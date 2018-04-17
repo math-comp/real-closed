@@ -1,0 +1,13 @@
+theories/all_real_closed.v
+theories/bigenough.v
+theories/cauchyreals.v
+theories/complex.v
+theories/ordered_qelim.v
+theories/polyorder.v
+theories/polyrcf.v
+theories/qe_rcf_th.v
+theories/qe_rcf.v
+theories/realalg.v
+theories/mxtens.v
+
+-R theories mathcomp.real_closed

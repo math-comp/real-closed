@@ -1,0 +1,43 @@
+dist: trusty
+sudo: required
+language: c
+cache:
+  apt: true
+  directories:
+  - $HOME/opam
+addons:
+  apt:
+    sources:
+    - avsm
+    packages:
+    - opam
+    - aspcud
+env:
+  global:
+  - NJOBS=2
+  # system is == 4.02.3
+  matrix:
+  - COMPILER="system" MC_VERSION="1.6.4" COQ_VERSION="8.7.2"
+
+install:
+- mkdir -p ~/opam/
+- opam init -j ${NJOBS} --root=~/opam/${COMPILER}-{$MC_VERSION} --compiler=${COMPILER} -n -y
+- eval $(opam config --root=~/opam/${COMPILER}-{$MC_VERSION} env)
+- opam repo add coq-released http://coq.inria.fr/opam/released
+
+jobs:
+  include:
+    - stage: coq
+      script:
+      - eval $(opam config --root=~/opam/${COMPILER}-{$MC_VERSION} env)
+      - opam install coq ${COQ_VERSION}
+      - opam pin add coq ${COQ_VERSION}
+    - stage: math-comp
+      script:
+      - eval $(opam config --root=~/opam/${COMPILER}-{$MC_VERSION} env)
+      - opam install -j ${NJOBS} -v -y coq-mathcomp-field.${MC_VERSION}
+      - opam pin add coq-mathcomp-field ${MC_VERSION}
+    - stage: real-closed
+      script:
+      - eval $(opam config --root=~/opam/${COMPILER}-{$MC_VERSION} env)
+      - make -j ${NJOBS}
