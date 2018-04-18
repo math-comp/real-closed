@@ -4,7 +4,7 @@
 The repository contains
 - a
   [certified quantifier elimination for the theory of real closed field](https://hal.inria.fr/inria-00593738v4)
-- a [construction of real closure of an archimedean field](https://hal.inria.fr/hal-00665965)
+- a [construction of real closure of an archimedean field](https://hal.inria.fr/hal-00671809v2)
 - a construction of the algebraic closure of a real closed field
 
 Except for the end-results listed above, one should not rely on anything.
