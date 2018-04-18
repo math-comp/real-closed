@@ -2,10 +2,10 @@
 
 # Theorems for real closed fields
 The repository contains
-- a
-  [certified quantifier elimination for the theory of real closed field](https://hal.inria.fr/inria-00593738v4)
-- a [construction of real closure of an archimedean field](https://hal.inria.fr/hal-00671809v2)
-- a construction of the algebraic closure of a real closed field
+- the decision procedure `rcf_sat` and its corectness lemma [`rcf_satP`](https://github.com/math-comp/real-closed/blob/3721886fffb13ea9c80824043f119ffed0c780f2/theories/qe_rcf.v#L991) for the first order theory of real closed fields through
+  [certified quantifier elimination](https://hal.inria.fr/inria-00593738v4)  
+- the definition `{realclosure F}` , a [construction of the real closure of an archimedean field](https://hal.inria.fr/hal-00671809v2), which is canonically a [`rcfType`](https://github.com/math-comp/math-comp/blob/c1ec9cd8e7e50f73159613c492aad4c6c40bc3aa/mathcomp/algebra/ssrnum.v#L63) when `F` is an archimedean field, and the characteristic theorems of section [`RealClosureTheory`](https://github.com/math-comp/real-closed/blob/3721886fffb13ea9c80824043f119ffed0c780f2/theories/realalg.v#L1477).
+- the definition `complex R`,  a construction of the algebraic closure of a real closed field, which is canonically a [`numClosedFieldType`](https://github.com/math-comp/math-comp/blob/c1ec9cd8e7e50f73159613c492aad4c6c40bc3aa/mathcomp/algebra/ssrnum.v#L73) that additionally satisfies [`complexalg_algebraic`](https://github.com/math-comp/real-closed/blob/3721886fffb13ea9c80824043f119ffed0c780f2/theories/complex.v#L1324).
 
 Except for the end-results listed above, one should not rely on anything.
 
