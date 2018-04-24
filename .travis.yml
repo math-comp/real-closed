@@ -17,7 +17,7 @@ env:
   - NJOBS=2
   # system is == 4.02.3
   matrix:
-  - COMPILER="system" MC_VERSION="1.6.4" COQ_VERSION="8.7.2"
+  - COMPILER="system" MC_VERSION="1.7.0" COQ_VERSION="8.8.0"
 
 jobs:
   include:
