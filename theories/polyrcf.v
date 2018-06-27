@@ -466,65 +466,57 @@ move: q'x0; rewrite /q !derivE !(mul0r,add0r,subr0,mulr1).
 by move/eqP; rewrite !hornerE mulrC subr_eq0; move/eqP.
 Qed.
 
-Lemma deriv_sign a b p :
-  (forall x, x \in `]a, b[ -> p^`().[x] >= 0)
-  -> (forall x y, (x \in `]a, b[) && (y \in `]a, b[)
-    ->  x < y -> p.[x] <= p.[y] ).
+Lemma ler_hornerW a b p : (forall x, x \in `]a, b[ -> p^`().[x] >= 0) ->
+  {in `[a, b] &, {homo horner p : x y / x <= y}}.
 Proof.
-move=> Pab x y; case/andP=> hx hy xy.
-rewrite -subr_gte0; case: (@mvt x y p)=> //.
-move=> c hc ->; rewrite pmulr_lge0 ?subr_gt0 ?Pab //.
-by apply: subitvP hc; rewrite //= ?(itvP hx) ?(itvP hy).
+move=> der_nneg x y axb ayb; rewrite ler_eqVlt => /orP[/eqP->//|ltxy].
+have [c xcy /(canRL (@subrK _ _))->]:= mvt p ltxy.
+rewrite ler_addr mulr_ge0 ?subr_ge0 ?(ltrW ltxy) ?der_nneg //.
+by apply: subitvP xcy; rewrite /= (itvP axb) (itvP ayb).
 Qed.
 
 End Prelim.
 
 Section MonotonictyAndRoots.
 
-Section NoRoot.
+Section DerPos.
 
 Variable (p : {poly R}).
 
 Variables (a b : R).
 
-Hypothesis der_pos : forall x, x \in `]a, b[ ->  (p^`()).[x] > 0.
+Hypothesis der_pos : forall x, x \in `]a, b[ -> (p^`()).[x] > 0.
 
-Lemma derp0r : 0 <= p.[a] -> forall x, x \in `]a, b] -> p.[x] > 0.
+Lemma ltr_hornerW : {in `[a, b] &, {homo horner p : x y / x < y}}.
 Proof.
-move=> pa0 x; case/itv_dec=> ax xb; case: (mvt p ax) => c acx.
-move/(canRL (@subrK _ _))->; rewrite ltr_paddr //.
-by rewrite pmulr_rgt0 ?subr_gt0 // der_pos //; apply: subitvPr acx.
+move=> x y axb ayb ltxy; have [c xcy /(canRL (@subrK _ _))->]:= mvt p ltxy.
+rewrite ltr_addr mulr_gt0 ?subr_gt0 ?der_pos //.
+by apply: subitvP xcy; rewrite /= (itvP axb) (itvP ayb).
 Qed.
 
-Lemma derppr : 0 < p.[a] -> forall x, x \in `[a, b] -> p.[x] > 0.
+Lemma ler_horner : {in `[a, b] &, {mono horner p : x y / x <= y}}.
+Proof. exact/homo_mono_in/ltr_hornerW. Qed.
+
+Lemma ltr_horner : {in `[a, b] &, {mono horner p : x y / x < y}}.
+Proof. exact/lerW_mono_in/ler_horner. Qed.
+
+Lemma derpr x : x \in `]a, b] -> p.[x] > p.[a].
 Proof.
-move=> pa0 x hx; case exa: (x == a); first by rewrite (eqP exa).
-case: (@mvt a x p); first by rewrite ltr_def exa (itvP hx).
-move=> c hc; move/eqP; rewrite subr_eq; move/eqP->; rewrite ltr_spsaddr //.
-rewrite pmulr_rgt0 ?subr_gt0 //; first by rewrite ltr_def exa (itvP hx).
-by rewrite der_pos // (subitvPr _ hc) //=  ?(itvP hx).
+by move=> axb; rewrite ltr_horner ?(itvP axb) //; apply: subitvPl axb => /=.
 Qed.
 
-Lemma derp0l : p.[b] <= 0 -> forall x, x \in `[a, b[ -> p.[x] < 0.
+Lemma derpl x : x \in `[a, b[ -> p.[x] < p.[b].
 Proof.
-move=> pb0 x hx; rewrite -oppr_gte0 /=.
-case: (@mvt x b p)=> //; first by rewrite (itvP hx).
-move=> c hc; move/(canRL (@addKr _ _))->; rewrite ltr_spaddr ?oppr_ge0 //.
-rewrite pmulr_rgt0 // ?subr_gt0 ?(itvP hx) //.
-by rewrite der_pos // (subitvPl _ hc) //= (itvP hx).
+by move=> axb; rewrite ltr_horner ?(itvP axb) //; apply: subitvPr axb => /=.
 Qed.
 
-Lemma derpnl : p.[b] < 0 -> forall x, x \in `[a, b] -> p.[x] < 0.
-Proof.
-move=> pbn x hx; case xb: (b == x) pbn; first by rewrite -(eqP xb).
-case: (@mvt x b p); first by rewrite ltr_def xb ?(itvP hx).
-move=> y hy; move/eqP; rewrite subr_eq; move/eqP->.
-rewrite !ltrNge; apply: contra=> hpx; rewrite ler_paddr // ltrW //.
-rewrite pmulr_rgt0 ?subr_gt0 ?(itvP hy) //.
-by rewrite der_pos // (subitvPl _ hy) //= (itvP hx).
-Qed.
+Lemma derprW x : x \in `[a, b] -> p.[x] >= p.[a].
+Proof. by move=> axb; rewrite ler_horner ?(itvP axb). Qed.
 
-End NoRoot.
+Lemma derplW x : x \in `[a, b] -> p.[x] <= p.[b].
+Proof. by move=> axb; rewrite ler_horner ?(itvP axb). Qed.
+
+End DerPos.
 
 Section NoRoot_sg.
 
@@ -544,6 +536,10 @@ move=> hx; rewrite derivZ hornerZ -sgr_cp0.
 rewrite sgrM sgr_id mulr_sg_eq1 derp_neq0 //=.
 by apply/eqP; apply: (@polyrN0_itv `]a, b[).
 Qed.
+Definition derq0r := derpr derq_pos.
+Definition derq0l := derpl derq_pos.
+Definition derqpr := derprW derq_pos.
+Definition derqnl := derplW derq_pos.
 
 Fact sgp x : sgr p.[x] = sp'c * sgr q.[x].
 Proof.
@@ -558,30 +554,69 @@ Proof. by rewrite -sgr_cp0 sgp => /eqP->; rewrite mulrN1. Qed.
 
 Lemma ders0r : p.[a] = 0 -> forall x, x \in `]a, b] -> sgr p.[x] = sp'c.
 Proof.
-move=> pa0 x hx; rewrite hsgp // (@derp0r _ a b) //; first exact: derq_pos.
+move=> pa0 x hx; rewrite hsgp // (ler_lt_trans _ (derq0r _)) //.
 by rewrite hornerZ pa0 mulr0.
 Qed.
 
 Lemma derspr : sgr p.[a] = sp'c -> forall x, x \in `[a, b] -> sgr p.[x] = sp'c.
 Proof.
-move=> spa x hx; rewrite hsgp // (@derppr _ a b) //; first exact: derq_pos.
+move=> spa x hx; rewrite hsgp // (ltr_le_trans _ (derqpr _)) //.
 by rewrite -sgr_cp0 hornerZ sgrM sgr_id spa -expr2 sqr_sg derp_neq0.
 Qed.
 
 Lemma ders0l : p.[b] = 0 -> forall x, x \in `[a, b[ -> sgr p.[x] = -sp'c.
 Proof.
-move=> pa0 x hx; rewrite hsgpN // (@derp0l _ a b) //; first exact: derq_pos.
-by rewrite hornerZ pa0 mulr0.
+move=> pb0 x hx; rewrite hsgpN // (ltr_le_trans (derq0l _)) //.
+by rewrite hornerZ pb0 mulr0.
 Qed.
 
 Lemma derspl :
   sgr p.[b] = -sp'c -> forall x, x \in `[a, b] -> sgr p.[x] = -sp'c.
 Proof.
-move=> spb x hx; rewrite hsgpN // (@derpnl _ a b) //; first exact: derq_pos.
+move=> spb x hx; rewrite hsgpN // (ler_lt_trans (derqnl _)) //.
 by rewrite -sgr_cp0 hornerZ sgr_smul spb mulrN -expr2 sqr_sg derp_neq0.
 Qed.
 
 End NoRoot_sg.
+
+Section DerNeg.
+
+Variable (p : {poly R}).
+
+Variables (a b : R).
+
+Hypothesis der_neg : forall x, x \in `]a, b[ -> (p^`()).[x] < 0.
+Let dern_pos x : x \in `]a, b[ -> ((- p)^`()).[x] > 0.
+Proof. by move=> axb; rewrite derivN hornerN oppr_gt0 der_neg. Qed.
+
+Lemma gtr_hornerW : {in `[a, b] &, {homo horner p : x y /~ x < y}}.
+Proof.
+by move=> x y axb ayb yx; rewrite -ltr_opp2 -!hornerN (ltr_hornerW dern_pos).
+Qed.
+
+Lemma ger_horner : {in `[a, b] &, {mono horner p : x y /~ x <= y}}.
+Proof. exact/nhomo_mono_in/gtr_hornerW. Qed.
+
+Lemma gtr_horner : {in `[a, b] &, {mono horner p : x y /~ x < y}}.
+Proof. exact/lerW_nmono_in/ger_horner. Qed.
+
+Lemma dernr x : x \in `]a, b] -> p.[x] < p.[a].
+Proof.
+by move=> axb; rewrite gtr_horner ?(itvP axb) //; apply: subitvPl axb => /=.
+Qed.
+
+Lemma dernl x : x \in `[a, b[ -> p.[x] > p.[b].
+Proof.
+by move=> axb; rewrite gtr_horner ?(itvP axb) //; apply: subitvPr axb => /=.
+Qed.
+
+Lemma dernrW x : x \in `[a, b] -> p.[x] <= p.[a].
+Proof. by move=> axb; rewrite ger_horner ?(itvP axb). Qed.
+
+Lemma dernlW x : x \in `[a, b] -> p.[x] >= p.[b].
+Proof. by move=> axb; rewrite ger_horner ?(itvP axb). Qed.
+
+End DerNeg.
 
 Variable (p : {poly R}).
 
@@ -605,10 +640,10 @@ case: (ivt_sign leab hs) => r arb pr0; exists r; split => //; last 2 first.
 - by move/eqP: pr0.
 - move=> x rxb; have hd : forall t, t \in `]r, b[ ->  0 < (p^`()).[t].
     by move=> t ht; rewrite der_pos // ?(subitvPl _ ht) //= ?(itvP arb).
-  by rewrite (derp0r hd) ?(eqP pr0).
+  by rewrite (ler_lt_trans _ (derpr hd _)) ?(eqP pr0).
 - move=> x rxb; have hd : forall t, t \in `]a, r[ ->  0 < (p^`()).[t].
     by move=> t ht; rewrite der_pos // ?(subitvPr _ ht) //= ?(itvP arb).
-  by rewrite (derp0l hd) ?(eqP pr0).
+  by rewrite (ltr_le_trans (derpl hd _)) ?(eqP pr0).
 Qed.
 
 End der_root.
@@ -631,10 +666,10 @@ End der_root.
 (* - by move/eqP: pr0. *)
 (* - move=> x rxb; have hd : forall t, t \in `]r, b[ ->  0 < (p^`()).[t]. *)
 (*     by move=> t ht; rewrite der_pos // ?(subitvPl _ ht) //= ?(itvP arb). *)
-(*   by rewrite (derp0r hd) ?(eqP pr0). *)
+(*   by rewrite (derpr hd) ?(eqP pr0). *)
 (* - move=> x rxb; have hd : forall t, t \in `]a, r[ ->  0 < (p^`()).[t]. *)
 (*     by move=> t ht; rewrite der_pos // ?(subitvPr _ ht) //= ?(itvP arb). *)
-(*   by rewrite (derp0l hd) ?(eqP pr0). *)
+(*   by rewrite (derpl hd) ?(eqP pr0). *)
 (* Qed. *)
 
 (* End der_root. *)
@@ -811,11 +846,12 @@ wlog {hp'} hp'sg: p / forall x, x \in `]a, b[ -> sgr (p^`()).[x] = 1.
 have hp'pos: forall x, x \in `]a, b[ -> (p^`()).[x] > 0.
   by move=> x; move/hp'sg; move/eqP; rewrite sgr_cp0.
 case: (lerP 0 p.[a]) => ha.
-- left; apply: no_roots_on => x axb.
-  by rewrite rootE gtr_eqF // (@derp0r _ a b) // (subitvPr _ axb) /=.
+- left; apply: no_roots_on => x axb; rewrite rootE gtr_eqF //.
+  by rewrite (ler_lt_trans _ (derpr hp'pos _))// (subitvPr _ axb) /=.
 - case: (lerP p.[b] 0) => hb.
   + left => x; rewrite in_nil; apply: negbTE; case axb: (x \in `]a, b[) => //=.
-    by rewrite rootE ltr_eqF // (@derp0l _ a b) // (subitvPl _ axb) /=.
+    rewrite rootE ltr_eqF //.
+    by rewrite (ltr_le_trans (derpl hp'pos _)) // (subitvPl _ axb) /=.
   + case: (derp_root hp'pos (ltrW leab) _).
       by rewrite ?inE; apply/andP.
   move=> r [h1 h2 h3] h4; right.
