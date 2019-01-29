@@ -172,7 +172,7 @@ by do ?[rewrite (expand_det_row _ ord0) //=;
         do ?rewrite [row' _ _]mx11_scalar det_scalar1 !mxE /=].
 Qed.
 
-Notation zmxR := ((map_mx ((intmul 1) : int -> R)) _ _).
+Notation zmxR := (map_mx ((intmul 1) : int -> R)).
 
 Lemma ctmat1_unit : zmxR ctmat1 \in unitmx.
 Proof.
@@ -232,7 +232,7 @@ Variable R : rcfType.
 Implicit Types a b  : R.
 Implicit Types p q : {poly R}.
 
-Notation zmxR := ((map_mx ((intmul 1) : int -> R)) _ _).
+Notation zmxR := (map_mx ((intmul 1) : int -> R)).
 Notation midf a b := ((a + b) / 2%:~R).
 
 (* Constraints and Tarski queries *)
