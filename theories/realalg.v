@@ -973,7 +973,7 @@ Prenex Implicits lt_algP le_algP.
 
 Lemma ler_to_alg : {mono to_alg : x y / x <= y}.
 Proof.
-apply: homo_mono=> x y lt_xy; rewrite !piE -(rwP lt_algP).
+apply: ler_mono => x y lt_xy; rewrite !piE -(rwP lt_algP).
 by apply/lt_creal_cst; rewrite lt_xy.
 Qed.
 

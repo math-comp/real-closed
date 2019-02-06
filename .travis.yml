@@ -10,14 +10,16 @@ env:
   - NJOBS="2"
   - CONTRIB_NAME="real-closed"
   matrix:
-  - COQ_VERSION="8.7" MC_VERSION="1.7.0"
-  - COQ_VERSION="8.8" MC_VERSION="1.7.0"
+  - COQ_VERSION="8.7"
+  - COQ_VERSION="8.8"
+  - COQ_VERSION="8.9"
+  - COQ_VERSION="dev"
 
 
 install: |
   # Prepare the COQ container
-  docker pull "mathcomp/mathcomp:${MC_VERSION}-coq-${COQ_VERSION}"
-  docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} "mathcomp/mathcomp:${MC_VERSION}-coq-${COQ_VERSION}"
+  docker pull "mathcomp/mathcomp-dev:coq-${COQ_VERSION}"
+  docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} "mathcomp/mathcomp-dev:coq-${COQ_VERSION}"
   docker exec COQ /bin/bash --login -c "
     # This bash script is double-quoted to interpolate Travis CI env vars:
     echo \"Build triggered by ${TRAVIS_EVENT_TYPE}\"
