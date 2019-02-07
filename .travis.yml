@@ -12,6 +12,8 @@ env:
   matrix:
   - COQ_VERSION="8.7" MC_VERSION="1.7.0"
   - COQ_VERSION="8.8" MC_VERSION="1.7.0"
+  - COQ_VERSION="8.9" MC_VERSION="1.7.0"
+  - COQ_VERSION="dev" MC_VERSION="1.7.0"
 
 
 install: |
