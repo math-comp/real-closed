@@ -14,9 +14,21 @@ library for the [Coq](https://coq.inria.fr) proof assistant.
 
 ## Installation
 
-If you already have OPAM installed:
+With opam, using the package
 
 ```
-opam repo add coq-exatr-dev https://coq.inria.fr/opam/extra-dev
+opam repo add coq-released https://coq.inria.fr/opam/released
 opam install coq-mathcomp-real-closed
+```
+
+Or locally:
+
+```
+opam pin add coq-mathcomp-real-closed .
+```
+
+Or manually, assuming mathematical componenents is installed
+```
+make
+make install
 ```
