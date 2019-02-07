@@ -2,6 +2,12 @@ dist: trusty
 sudo: required
 language: generic
 
+branches:
+  only:
+  - master
+  - 1.0+mathcomp-1.7.0
+  - 1.0+mathcomp-dev
+
 services:
   - docker
 
