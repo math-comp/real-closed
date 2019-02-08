@@ -10,16 +10,15 @@ env:
   - NJOBS="2"
   - CONTRIB_NAME="real-closed"
   matrix:
-  - COQ_VERSION="8.7" MC_VERSION="1.7.0"
-  - COQ_VERSION="8.8" MC_VERSION="1.7.0"
-  - COQ_VERSION="8.9" MC_VERSION="1.7.0"
-  - COQ_VERSION="dev" MC_VERSION="1.7.0"
-
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
 
 install: |
   # Prepare the COQ container
-  docker pull "mathcomp/mathcomp:${MC_VERSION}-coq-${COQ_VERSION}"
-  docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} "mathcomp/mathcomp:${MC_VERSION}-coq-${COQ_VERSION}"
+  docker pull "${DOCKERIMAGE}"
+  docker run -d -i --init --name=COQ -v ${TRAVIS_BUILD_DIR}:/home/coq/${CONTRIB_NAME} -w /home/coq/${CONTRIB_NAME} "${DOCKERIMAGE}"
   docker exec COQ /bin/bash --login -c "
     # This bash script is double-quoted to interpolate Travis CI env vars:
     echo \"Build triggered by ${TRAVIS_EVENT_TYPE}\"
@@ -27,11 +26,14 @@ install: |
     set -ex  # -e = exit on failure; -x = trace for debug
     # Using flambda makes sense here as we usually get ~10% faster
     # builds in math-comp.
-    eval $(opam env)
+    opam switch \$COMPILER_EDGE
     opam update -y
     opam config list
     opam repo list
     opam list
+    sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
+    opam pin add -y -n coq-mathcomp-real-closed .
+    opam install -y -vvv --deps-only coq-mathcomp-real-closed
     "
 script:
 - echo -e "${ANSI_YELLOW}Building ${CONTRIB_NAME}...${ANSI_RESET}" && echo -en 'travis_fold:start:script\\r'
@@ -39,10 +41,8 @@ script:
   docker exec COQ /bin/bash --login -c "
     export PS4='+ \e[33;1m(\$0 @ line \$LINENO) \$\e[0m '
     set -ex
-    sudo chown -R coq:coq /home/coq/${CONTRIB_NAME}
     eval $(opam env)
-    make -j "$NJOBS"
-    make install
+    opam install -y coq-mathcomp-real-closed
     "
 - docker stop COQ  # optional
 - echo -en 'travis_fold:end:script\\r'
