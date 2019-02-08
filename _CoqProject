@@ -1,5 +1,4 @@
 theories/all_real_closed.v
-theories/bigenough.v
 theories/cauchyreals.v
 theories/complex.v
 theories/ordered_qelim.v
