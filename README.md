@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/math-comp/real_closed.svg?branch=master)](https://travis-ci.org/math-comp/real-closed)
+[![Build Status](https://travis-ci.org/math-comp/real-closed.svg?branch=master)](https://travis-ci.org/math-comp/real-closed)
 
 # Theorems for real closed fields
 The repository contains
