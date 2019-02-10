@@ -11,9 +11,9 @@ env:
   - CONTRIB_NAME="real-closed"
   matrix:
   - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
-  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
-  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
-  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.7"
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.8"
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-8.9"
+  - DOCKERIMAGE="mathcomp/mathcomp:1.7.0-coq-dev"
 
 install: |
   # Prepare the COQ container
