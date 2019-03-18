@@ -35,7 +35,7 @@ Reserved Notation "R [i]"
 Local Notation sgr := Num.sg.
 Local Notation sqrtr := Num.sqrt.
 
-CoInductive complex (R : Type) : Type := Complex { Re : R; Im : R }.
+Record complex (R : Type) : Type := Complex { Re : R; Im : R }.
 
 Delimit Scope complex_scope with C.
 Local Open Scope complex_scope.

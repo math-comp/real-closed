@@ -902,7 +902,7 @@ rewrite ezy /=; case: (z \in `]y, b[); rewrite ?orbF ?orbT //.
 by apply/negP=> hz; move: (hay z); rewrite hz pz0 in_nil.
 Qed.
 
-CoInductive roots_spec (p : {poly R}) (i : pred R) (s : seq R) :
+Variant roots_spec (p : {poly R}) (i : pred R) (s : seq R) :
   {poly R} -> bool -> seq R -> Type :=
 | Roots0 of p = 0 :> {poly R} & s = [::] : roots_spec p i s 0 true [::]
 | Roots of p != 0 & roots_on p i s
@@ -1192,7 +1192,7 @@ Definition next_root (p : {poly R}) x b :=
 Lemma next_root0 a b : next_root 0 a b = a.
 Proof. by rewrite /next_root eqxx. Qed.
 
-CoInductive next_root_spec (p : {poly R}) x b : bool -> R -> Type :=
+Variant next_root_spec (p : {poly R}) x b : bool -> R -> Type :=
 | NextRootSpec0 of p = 0 : next_root_spec p x b true x
 | NextRootSpecRoot y of p != 0 & p.[y] = 0 & y \in `]x, b[
   & {in `]x, y[, forall z, ~~(root p z)} : next_root_spec p x b true y
@@ -1258,7 +1258,7 @@ Definition prev_root (p : {poly R}) a x :=
 Lemma prev_root0 a b : prev_root 0 a b = b.
 Proof. by rewrite /prev_root eqxx. Qed.
 
-CoInductive prev_root_spec (p : {poly R}) a x : bool -> R -> Type :=
+Variant prev_root_spec (p : {poly R}) a x : bool -> R -> Type :=
 | PrevRootSpec0 of p = 0 : prev_root_spec p a x true x
 | PrevRootSpecRoot y of p != 0 & p.[y] = 0 & y \in`]a, x[
   & {in `]y, x[, forall z, ~~(root p z)} : prev_root_spec p a x true y

@@ -556,7 +556,7 @@ Qed.
 
 Definition creal_axiom (x : nat -> F) :=  {asympt e : i j / `|x i - x j| < e}.
 
-CoInductive creal := CReal {cauchyseq :> nat -> F; _ : creal_axiom cauchyseq}.
+Record creal := CReal {cauchyseq :> nat -> F; _ : creal_axiom cauchyseq}.
 Bind Scope creal_scope with creal.
 
 Lemma crealP (x : creal) : {asympt e : i j / `|x i - x j| < e}.

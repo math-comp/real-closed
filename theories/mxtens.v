@@ -62,7 +62,7 @@ case: m=> [[[] //]|m]. case: n=> [|n] k.
 by apply: val_inj=> /=; rewrite -divn_eq.
 Qed.
 
-CoInductive is_mxtens_index (m n : nat) : 'I_(m * n) -> Type :=
+Variant is_mxtens_index (m n : nat) : 'I_(m * n) -> Type :=
     IsMxtensIndex : forall (i : 'I_m) (j : 'I_n),
                    is_mxtens_index (mxtens_index (i, j)).
 

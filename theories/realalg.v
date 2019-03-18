@@ -64,7 +64,7 @@ Local Notation m0 := (fun _ => 0%N).
 (* Construction of algebraic Cauchy reals : Cauchy real + polynomial *)
 (*********************************************************************)
 
-CoInductive algcreal := AlgCReal {
+Record algcreal := AlgCReal {
   creal_of_alg :> creal F;
   annul_creal : {poly F};
   _ : annul_creal \is monic;
@@ -332,7 +332,7 @@ Qed.
 (**********************************************************************)
 (* Theory of the "domain" of algebraic numbers: polynomial + interval *)
 (**********************************************************************)
-CoInductive algdom := AlgDom {
+Record algdom := AlgDom {
   annul_algdom : {poly F};
   center_alg : F;
   radius_alg : F;
