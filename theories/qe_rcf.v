@@ -6,7 +6,7 @@ Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
 From mathcomp
 Require Import finfun path matrix.
 From mathcomp
-Require Import bigop ssralg poly polydiv ssrnum zmodp div ssrint.
+Require Import bigop order ssralg poly polydiv ssrnum zmodp div ssrint.
 From mathcomp
 Require Import polyorder polyrcf interval polyXY.
 From mathcomp
@@ -16,7 +16,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Import GRing.Theory Num.Theory.
+Import Order.TTheory GRing.Theory Num.Theory.
 
 Local Open Scope nat_scope.
 Local Open Scope ring_scope.
@@ -611,7 +611,7 @@ Lemma eval_Changes e s k : qf_eval e (Changes s k)
   = qf_eval e (k (changes (map (eval e) s))).
 Proof.
 elim: s k=> //= a q ihq k; rewrite ihq eval_If /= -nth0.
-by case: q {ihq}=> /= [|b q]; [rewrite /= mulr0 ltrr add0n | case: ltrP].
+by case: q {ihq}=> /= [|b q]; [rewrite /= mulr0 ltxx add0n | case: ltrP].
 Qed.
 
 Lemma eval_SeqPInfty e ps k k' :
