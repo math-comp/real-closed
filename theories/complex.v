@@ -1242,7 +1242,7 @@ have [] := Theorem7' (companion p); first by rewrite -(subnK sp_gt1) addn2.
 by move=> x; rewrite eigenvalue_root_char companionK //; exists x.
 Qed.
 
-Definition complex_decFieldMixin := closed_fields_QEMixin complex_acf_axiom.
+Definition complex_decFieldMixin := closed_field_QEMixin complex_acf_axiom.
 Canonical complex_decField := DecFieldType R[i] complex_decFieldMixin.
 Canonical complex_closedField := ClosedFieldType R[i] complex_acf_axiom.
 

@@ -172,7 +172,7 @@ by do ?[rewrite (expand_det_row _ ord0) //=;
         do ?rewrite [row' _ _]mx11_scalar det_scalar1 !mxE /=].
 Qed.
 
-Notation zmxR := ((map_mx ((intmul 1) : int -> R)) _ _).
+Notation zmxR := ((map_mx ((intmul 1) : int -> R))).
 
 Lemma ctmat1_unit : zmxR ctmat1 \in unitmx.
 Proof.
@@ -232,7 +232,7 @@ Variable R : rcfType.
 Implicit Types a b  : R.
 Implicit Types p q : {poly R}.
 
-Notation zmxR := ((map_mx ((intmul 1) : int -> R)) _ _).
+Notation zmxR := ((map_mx ((intmul 1) : int -> R))).
 Notation midf a b := ((a + b) / 2%:~R).
 
 (* Constraints and Tarski queries *)
@@ -1181,7 +1181,7 @@ case: (next_rootP q x bnd) q_neq0; [by move->; rewrite eqxx| |]; last first.
   move=> z; rewrite (@itv_splitU _ x true) /= ?boundl_in_itv //.
   rewrite itv_xx /= inE => /orP [/eqP->|]; first by rewrite /root gtr_eqF.
   have [x_b|b_x] := ltrP x bnd.
-    rewrite (@itv_splitU _ bnd false) /=; last by rewrite inE x_b.
+    rewrite (@itv_splitU _ bnd false) /=; last by rewrite inE /= x_b.
     move=> /orP [] Hz; rewrite genroot //;
     by [rewrite Hq|rewrite ge_cauchy_bound].
   by move=> Hz; rewrite genroot // ge_cauchy_bound // (subitvP _ Hz) //= b_x.
@@ -1196,7 +1196,7 @@ case: (prev_rootP q (- bnd) x); [by move->; rewrite eqxx| |]; last first.
   move=> z; rewrite (@itv_splitU _ x false) /= ?boundr_in_itv //.
   rewrite itv_xx => /orP [/=|/eqP->]; last by rewrite /root gtr_eqF.
   have [b_x|x_b] := ltrP (- bnd) x.
-    rewrite (@itv_splitU _ (- bnd) true) /=; last by rewrite inE b_x.
+    rewrite (@itv_splitU _ (- bnd) true) /=; last by rewrite inE /= b_x.
     move=> /orP [] Hz; rewrite genroot //;
     by [rewrite Hq|rewrite le_cauchy_bound].
   by move=> Hz; rewrite genroot // le_cauchy_bound // (subitvP _ Hz) //= x_b.
@@ -1206,7 +1206,7 @@ have lty12 : y2 < y1.
 have : q.[y2] = q.[y1] by rewrite rqy1 rqy2.
 case/(rolle lty12) => z hz rz; constructor 3; exists z.
 rewrite rz eqxx /= big_all; apply/allP => r r_sq.
-have xy : x \in `]y2, y1[ by rewrite inE 1?(itvP hy1xb) 1?(itvP hy2xb).
+have xy : x \in `]y2, y1[ by rewrite inE /= 1?(itvP hy1xb) 1?(itvP hy2xb).
 rewrite -sgr_cp0 (@polyrN0_itv _ `]y2, y1[ _ _ x) ?sgr_cp0 ?hsq // => t.
 rewrite (@itv_splitU2 _ x) // => /or3P [/hy2|/eqP->|/hy1]; do ?exact: genroot.
 by rewrite rootE gtr_eqF ?hsq.
