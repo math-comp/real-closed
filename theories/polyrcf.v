@@ -284,9 +284,9 @@ have hxyi: {subset `[x, y] <= i}.
   by case: i hx hy {hi}=> [[[] ?|] [[] ?|]] /=; do ?[move/itvP->|move=> ?].
 do 2![case: sgrP; first by move/rootP; rewrite (negPf (hi _ _))]=> //.
   move=> /ltrW py0 /ltrW p0x; case: (@poly_ivt (- p) x y)=> //.
-    by rewrite inE !hornerN !oppr_cp0 p0x.
+    by rewrite inE /= !hornerN !oppr_cp0 p0x.
   by move=> z hz; rewrite rootN (negPf (hi z _)) // hxyi.
-move=> /ltrW p0y /ltrW px0; case: (@poly_ivt p x y); rewrite ?inE ?px0 //.
+move=> /ltrW p0y /ltrW px0; case: (@poly_ivt p x y); rewrite ?inE /= ?px0 //.
 by move=> z hz; rewrite (negPf (hi z _)) // hxyi.
 Qed.
 
@@ -320,16 +320,16 @@ Proof.
 move=> l0x.
 case: (ltrgtP x 1)=> hx; last by exists 1; rewrite ?hx ?lter01// expr1n.
   case: (@poly_ivt ('X ^+ n.+1 - x%:P) 0 1); first by rewrite ler01.
-    rewrite ?(hornerE,horner_exp) ?inE.
+    rewrite ?(hornerE,horner_exp) ?inE /=.
     by rewrite exprS mul0r sub0r expr1n oppr_cp0 subr_gte0/= !ltrW.
-  move=> y; case/andP=> [l0y ly1]; rewrite rootE ?(hornerE,horner_exp).
+  move=> y; case/andP=> [/= l0y ly1]; rewrite rootE ?(hornerE,horner_exp).
   rewrite subr_eq0; move/eqP=> hyx; exists y=> //; rewrite lt0r l0y.
   rewrite andbT; apply/eqP=> y0; move: hyx; rewrite y0.
   by rewrite exprS mul0r=> x0; move: l0x; rewrite -x0 ltrr.
 case: (@poly_ivt ('X ^+ n.+1 - x%:P) 0 x); first by rewrite ltrW.
-  rewrite ?(hornerE,horner_exp) exprS mul0r sub0r ?inE.
+  rewrite ?(hornerE,horner_exp) exprS mul0r sub0r ?inE /=.
   by rewrite oppr_cp0 (ltrW l0x) subr_ge0 ler_eexpr // ltrW.
-move=> y; case/andP=> l0y lyx; rewrite rootE ?(hornerE,horner_exp).
+move=> y; case/andP=> /= l0y lyx; rewrite rootE ?(hornerE,horner_exp).
 rewrite subr_eq0; move/eqP=> hyx; exists y=> //; rewrite lt0r l0y.
 rewrite andbT; apply/eqP=> y0; move: hyx; rewrite y0.
 by rewrite exprS mul0r=> x0; move: l0x; rewrite -x0 ltrr.
@@ -495,7 +495,7 @@ by apply: subitvP xcy; rewrite /= (itvP axb) (itvP ayb).
 Qed.
 
 Lemma ler_horner : {in `[a, b] &, {mono horner p : x y / x <= y}}.
-Proof. exact/homo_mono_in/ltr_hornerW. Qed.
+Proof. exact/ler_mono_in/ltr_hornerW. Qed.
 
 Lemma ltr_horner : {in `[a, b] &, {mono horner p : x y / x < y}}.
 Proof. exact/lerW_mono_in/ler_horner. Qed.
@@ -595,7 +595,7 @@ by move=> x y axb ayb yx; rewrite -ltr_opp2 -!hornerN (ltr_hornerW dern_pos).
 Qed.
 
 Lemma ger_horner : {in `[a, b] &, {mono horner p : x y /~ x <= y}}.
-Proof. exact/nhomo_mono_in/gtr_hornerW. Qed.
+Proof. exact/ler_nmono_in/gtr_hornerW. Qed.
 
 Lemma gtr_horner : {in `[a, b] &, {mono horner p : x y /~ x < y}}.
 Proof. exact/lerW_nmono_in/ger_horner. Qed.
@@ -756,7 +756,7 @@ move/allP:lxs=>lxs; case eyx: (y == _)=> /=.
   rewrite boundl_in_itv /=; symmetry.
   by apply/negP; move/lxs; rewrite ltrr.
 case py0: root; rewrite !(andbT, andbF) //.
-case ys: (y \in s); first by move/lxs:ys; rewrite ?inE => ->; case/andP.
+case ys: (y \in s); first by move/lxs:ys; rewrite ?inE /= => ->; case/andP.
 move/negP; move/negP=> nhy; apply: negbTE; apply: contra nhy.
 by apply: subitvPl; rewrite //= ?(itvP hx).
 Qed.
@@ -1816,8 +1816,8 @@ rewrite /sgp_pinfty; wlog lp_gt0 : x p / lead_coef p > 0 => [hwlog|rpx y Hy].
 have [z Hz] := poly_pinfty_gt_lc lp_gt0.
 have {Hz} Hz u : u \in `[z, +oo[ -> Num.sg p.[u] = 1.
   by rewrite inE andbT => /Hz pu_ge1; rewrite gtr0_sg // (ltr_le_trans lp_gt0).
-rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?inE ?ler_maxr ?(itvP Hy) //.
-by rewrite Hz ?gtr0_sg // inE ler_maxr lerr orbT.
+rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?inE /= ?ler_maxr ?(itvP Hy) //.
+by rewrite Hz ?gtr0_sg // inE /= ler_maxr lerr orbT.
 Qed.
 
 Lemma sgp_minftyP x (p : {poly R}) :
@@ -1826,8 +1826,8 @@ Lemma sgp_minftyP x (p : {poly R}) :
 Proof.
 move=> rpx y Hy; rewrite -sgp_pinfty_sym.
 have -> : p.[y] = (p \Po -'X).[-y] by rewrite horner_comp !hornerE opprK.
-apply: (@sgp_pinftyP (- x)); last by rewrite inE ler_opp2 (itvP Hy).
-by move=> z Hz /=; rewrite root_comp !hornerE rpx // inE ler_oppl (itvP Hz).
+apply: (@sgp_pinftyP (- x)); last by rewrite inE /= ler_opp2 (itvP Hy).
+by move=> z Hz /=; rewrite root_comp !hornerE rpx // inE /= ler_oppl (itvP Hz).
 Qed.
 
 Lemma odd_poly_root (p : {poly R}) : ~~ odd (size p) -> {x | root p x}.
