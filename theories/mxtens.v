@@ -51,7 +51,7 @@ Lemma mxtens_indexK m n : cancel (@mxtens_index m n) (@mxtens_unindex m n).
 Proof.
 case: m=> [[[] //]|m]; case: n=> [[_ [] //]|n].
 move=> [i j]; congr (_, _); apply: val_inj=> /=.
-  by rewrite divnMDl // divn_small.
+  by rewrite divnMDl // divn_small ?addn0.
 by rewrite modnMDl // modn_small.
 Qed.
 
