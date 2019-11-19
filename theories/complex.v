@@ -328,7 +328,7 @@ Definition complex_numMixin := NumMixin lec_normD ltc0_add eq0_normC
 Canonical complex_porderType := POrderType ring_display R[i] complex_numMixin.
 Canonical complex_numDomainType := NumDomainType R[i] complex_numMixin.
 Canonical complex_normedZmodType :=
-  NormedZmoduleType R[i] R[i] complex_numMixin.
+  NormedZmodType R[i] R[i] complex_numMixin.
 
 End ComplexField.
 End ComplexField.

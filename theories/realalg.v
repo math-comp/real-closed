@@ -943,10 +943,11 @@ Qed.
 Definition AlgNumFieldMixin := RealLtMixin add_alg_gt0 mul_alg_gt0
   gt0_alg_nlt0 sub_alg_gt0 lt0_alg_total norm_algN ge0_norm_alg le_alg_def.
 Canonical alg_porderType := POrderType ring_display alg AlgNumFieldMixin.
+Canonical alg_latticeType := LatticeType alg AlgNumFieldMixin.
 Canonical alg_distrLatticeType := DistrLatticeType alg AlgNumFieldMixin.
 Canonical alg_orderType := OrderType alg AlgNumFieldMixin.
 Canonical alg_numDomainType := NumDomainType alg AlgNumFieldMixin.
-Canonical alg_normedZmodType := NormedZmoduleType alg alg AlgNumFieldMixin.
+Canonical alg_normedZmodType := NormedZmodType alg alg AlgNumFieldMixin.
 Canonical alg_numFieldType := [numFieldType of alg].
 Canonical alg_of_porderType := [porderType of {alg F}].
 Canonical alg_of_distrLatticeType := [distrLatticeType of {alg F}].

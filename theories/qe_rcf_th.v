@@ -128,7 +128,7 @@ have [Hpq|Hpq|Hpq] := (ltngtP (\mu_x p) (\mu_x q)).
 + by rewrite mu_addl ?geq_minr.
 have [//|p' nrp'x hp] := (@mu_spec _ p x).
 have [//|q' nrq'x hq] := (@mu_spec _ q x).
-rewrite Hpq minnn hp {1 3}hq Hpq -mulrDl => pq0.
+rewrite Hpq hp {1 3}hq Hpq -mulrDl => pq0.
 by rewrite mu_mul // mu_exp mu_XsubC mul1n leq_addl.
 Qed.
 
@@ -678,7 +678,7 @@ Proof.
 have [lt_ab r0|le_ba] := ltrP a b; last by rewrite !cindexEba.
 have [->|p0] := eqVneq p 0; first by rewrite mul0r !cindex0p.
 have [->|q0] := eqVneq q 0; first by rewrite mul0r !cindexpC.
-rewrite /cindex (eq_big_perm _ (roots_mul _ _ _))//= big_cat/=.
+rewrite /cindex (perm_big _ (roots_mul _ _ _))//= big_cat/=.
 rewrite -[\sum_(x <- _) jump p _ _]addr0; congr (_+_).
   by rewrite !big_seq; apply: congr_big => // x hx; rewrite jump_mul2r.
 rewrite big1_seq//= => x hx; rewrite jump_mul2r // /jump.
@@ -785,7 +785,7 @@ have jumpP : forall (p q : {poly R}), p != 0 -> coprimep p q  ->
 rewrite !(eq_bigr _ (jumpP _ _ _ _))// 1?coprimep_sym// => {jumpP}.
 have sjumpC x : sjump (q * p) x = sjump (p * q) x by rewrite mulrC.
 rewrite -!big_seq (eq_bigr _ (fun x _ => sjumpC x)).
-rewrite -big_cat /= -(eq_big_perm _ (roots_mul_coprime _ _ _ _)) //=.
+rewrite -big_cat /= -(perm_big _ (roots_mul_coprime _ _ _ _)) //=.
 move: {1 2 5}a hab (erefl (roots (p * q) a b)) => //=.
 elim: roots => {a} [|x s /= ihs] a hab /eqP.
   by rewrite big_cons !big_nil variation0r.
