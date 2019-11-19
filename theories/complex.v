@@ -297,7 +297,7 @@ Definition complex_numMixin := NumMixin lec_normD ltc0_add eq0_normC
 Canonical complex_porderType := POrderType ring_display R[i] complex_numMixin.
 Canonical complex_numDomainType := NumDomainType R[i] complex_numMixin.
 Canonical complex_normedZmodType :=
-  NormedZmoduleType R[i] R[i] complex_numMixin.
+  NormedZmodType R[i] R[i] complex_numMixin.
 
 End ComplexField.
 End ComplexField.
@@ -1122,7 +1122,7 @@ have [] := @Lemma4 _ _ 1%:M _ [::L1; L2] (erefl _).
   do ![move: (_ *m _ *m _)] => t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12.
   rewrite [X in X + _ + _]addrC [X in X + _ = _]addrACA.
   rewrite [X in _ = (_ + _ + X) + _]addrC [X in _ = X + _]addrACA.
-  rewrite [X in _ + (_ + _ + X)]addrC [X in _ + X = _]addrACA.
+  rewrite [X in _ + (_ + _ + X) = _]addrC [X in _ + X = _]addrACA.
   rewrite [X in _ = _ + (X + _)]addrC [X in _ = _ + X]addrACA.
   rewrite [X in X = _]addrACA [X in _ = X]addrACA; congr (_ + _).
   by rewrite addrC [X in X + _ = _]addrACA [X in _ + X = _]addrACA.
