@@ -4,44 +4,68 @@
   sha256 = "0rxjkfiq53ibz0rzggvnp341b6kgzgfr9x6q07m2my7ijlirs2da";
 }),
 coq-version ? "8.9",
-mc ? "1.8.0",
+mc ? fetchGit {url = "https://github.com/math-comp/math-comp"; ref = "master";},
 print-env ? false
 }:
 let
   config.packageOverrides = pkgs:
-    with pkgs; rec {
-      coqPackages =
-        let coqPackages = (with pkgs; {
+
+        let coqPackagesV = (with pkgs;{
               "8.7" = coqPackages_8_7;
               "8.8" = coqPackages_8_8;
               "8.9" = coqPackages_8_9;
               "8.10" = coqPackages_8_10;
-          }."${coq-version}");
+            }."${coq-version}");
         in
-        coqPackages.overrideScope' (self: super: {
+
+    with pkgs; {
+      coqPackages =
+        coqPackagesV.overrideScope' (self: super: {
+          coq = super.coq;
           mathcompPkgs = if builtins.isString mc then (super.mathcompGen mc)
                          else super.mathcomp.mathcompGen (o: {
-                            version = "dev";
-                            name = "coq${self.coq.coq-version}-mathcomp-custom";
-                            src = mc;
-             });
-           mathcomp = self.mathcompPkgs.all;
-           mathcomp-ssreflect = self.mathcompPkgs.ssreflect;
-           mathcomp-field = self.mathcompPkgs.field;
-       });
-       coq = coqPackages.coq;
+                           version = "1.9.0";
+                           src = mc;
+                         });
+          mathcomp = self.mathcompPkgs.all;
+          ssreflect = self.mathcompPkgs.ssreflect;
+          mathcomp-ssreflect = self.mathcompPkgs.ssreflect;
+          mathcomp-fingroup = self.mathcompPkgs.fingroup;
+          mathcomp-algebra = self.mathcompPkgs.algebra;
+          mathcomp-field = self.mathcompPkgs.field;
+          mathcomp-solvable = self.mathcompPkgs.solvable;
+          mathcomp-character = self.mathcompPkgs.character;
+          mathcomp-ssreflect_1_9 = self.mathcompPkgs.ssreflect;
+          mathcomp-fingroup_1_9 = self.mathcompPkgs.fingroup;
+          mathcomp-algebra_1_9 = self.mathcompPkgs.algebra;
+          mathcomp-field_1_9 = self.mathcompPkgs.field;
+          mathcomp-solvable_1_9 = self.mathcompPkgs.solvable;
+          mathcomp-character_1_9 = self.mathcompPkgs.character;
+          mathcomp_1_9-bigenough = self.mathcomp-bigenough;
+          mathcomp-real-closed = (self.mathcompExtraGen { src =
+            fetchGit {url = "https://github.com/pi8027/real-closed"; ref = "misc";};
+                                 version = "1.0.3";
+                                 core-deps = with self; [ mathcomp-field ];
+                                 extra-deps = with self; [ mathcomp-bigenough ];
+                                 package = "real-closed";
+                                 version-sha256 = "";
+                                 description = "Mathematical Components Library on real closed fields";
+                               }).real-closed;
+          mathcomp_1_9-real-closed = self.mathcomp-real-closed;
+        });
+      coq = coqPackagesV.coq;
+      emacs = emacsWithPackages (epkgs:
+        with epkgs.melpaStablePackages; [proof-general]);
     };
 in
 with import nixpkgs {inherit config;};
-let
-  pgEmacs = emacsWithPackages (epkgs:
-    with epkgs.melpaStablePackages; [proof-general]);
-in
 stdenv.mkDerivation rec {
   name = "env";
   env = buildEnv { name = name; paths = buildInputs; };
-  buildInputs = [ coq ] ++ (with coqPackages; [mathcomp-field mathcomp-bigenough])
-                ++ lib.optional withEmacs pgEmacs;
+  buildInputs = [ coq ] ++ (with coqPackages;
+    [mathcomp-ssreflect mathcomp-bigenough mathcomp-algebra mathcomp-field
+     mathcomp-real-closed])
+                ++ lib.optional withEmacs emacs;
   shellHook = ''
     nixEnv (){
       echo "Here is your work environement:"

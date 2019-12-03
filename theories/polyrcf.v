@@ -949,12 +949,13 @@ case pr1 : (root p r1); case/monotonic_rootN => hrootsl; last 2 first.
   by rewrite -[s]cat0s; apply: (cat_roots_on hr1)=> //; rewrite pr1.
 - case: hrootsl=> r hr; exists (r::s); constructor=> //=.
     by rewrite -cat1s; apply: (cat_roots_on hr1)=> //; rewrite pr1.
-  rewrite path_min_sorted //; apply/allP=> y; rewrite -hroot; case/andP=> hy _.
+  rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+  rewrite -hroot; case/andP=> hy _.
   rewrite (lt_trans (_ : _ < r1)) ?(itvP hy) //.
   by rewrite (itvP (roots_on_in hr (mem_head _ _))).
 - exists (r1::s); constructor=> //=; last first.
-    rewrite path_min_sorted //; apply/allP=> y; rewrite -hroot.
-    by case/andP => /itvP->.
+    rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+    by rewrite -hroot; case/andP => /itvP->.
   move=> x; rewrite in_cons; case exr1: (x == r1)=> /=.
     by rewrite (eqP exr1) pr1 andbT.
   rewrite -hroot; case px: root; rewrite ?(andbT, andbF) //.
@@ -964,8 +965,9 @@ case pr1 : (root p r1); case/monotonic_rootN => hrootsl; last 2 first.
 - case: hrootsl => r0 hrootsl.
   move/min_roots_on:hrootsl; case=> // hr0 har0 pr0 hr0r1.
   exists [:: r0, r1 & s]; constructor=> //=; last first.
-    rewrite (itvP hr0) /= path_min_sorted //; apply/allP=> y.
-    by rewrite -hroot; case/andP => /itvP ->.
+    rewrite (itvP hr0) /=.
+    rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+    by rewrite -hroot; case/andP => /itvP->.
   move=> y; rewrite !in_cons (itv_splitU2 hr1) (itv_splitU2 hr0).
   case eyr0: (y == r0); rewrite ?(orbT, orbF, orTb, orFb).
     by rewrite (eqP eyr0) pr0.
@@ -997,8 +999,9 @@ Hint Resolve sorted_roots.
 
 Lemma path_roots p a b : path <%R a (roots p a b).
 Proof.
-case: rootsP=> //= p0 hp sp; rewrite path_min_sorted //.
-by apply/allP=> y; rewrite -hp; case/andP => /itvP ->.
+case: rootsP=> //= p0 hp sp.
+rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+by rewrite -hp; case/andP => /itvP->.
 Qed.
 Hint Resolve path_roots.
 
@@ -1135,7 +1138,7 @@ case/and3P=> hx hax; rewrite (eqP hax) in rax sax.
 case: rootsP p0=> // p0 rxb sxb _.
 case/andP=> px0 hxb; rewrite (eqP hxb) in rxb sxb.
 rewrite [_ :: _](@roots_uniq p a b) //; last first.
-  rewrite /= path_min_sorted //; apply/allP => y.
+  rewrite /= path_min_sorted //; first [move=> y | apply/allP => y].
   by rewrite -(eqP hxb); move/roots_in/itvP->.
 move=> y; rewrite (itv_splitU2 hx) !andb_orl in_cons.
 case hy: (y == x); first by rewrite (eqP hy) px0 orbT.
@@ -1167,9 +1170,9 @@ case/and3P=> hx hax; rewrite (eqP hax) in rax sax.
 case: rootsP p0=> // p0 rxb sxb _.
 case/andP=> px0 hxb; rewrite (eqP hxb) in rxb sxb.
 rewrite [rcons _ _](@roots_uniq p a b) //; last first.
-  rewrite -[rcons _ _]revK rev_sorted rev_rcons /= path_min_sorted.
-    by rewrite -rev_sorted revK.
-  apply/allP=> y; rewrite mem_rev; rewrite -(eqP hxb).
+  rewrite -[rcons _ _]revK rev_sorted rev_rcons /=.
+  rewrite path_min_sorted; [by rewrite -rev_sorted revK|].
+  first [move=> y | apply/allP => y]; rewrite mem_rev; rewrite -(eqP hxb).
   by move/roots_in; move/itvP->.
 move=> y; rewrite (itv_splitU2 hx) mem_rcons in_cons !andb_orl.
 case hy: (y == x); first by rewrite (eqP hy) px0 orbT.
