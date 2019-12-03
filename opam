@@ -11,8 +11,8 @@ build: [ make "-j" "%{jobs}%" ]
 install: [ make "install" ]
 depends: [
   "coq" { (>= "8.7" & < "8.11~") }
-  "coq-mathcomp-field" { (>= "1.8.0" & < "1.10.0~") }
-  "coq-mathcomp-bigenough"   {(>= "1.0.0" & < "1.1.0~")}
+  "coq-mathcomp-field"       {(>= "1.8.0" & <= "1.10.0")}
+  "coq-mathcomp-bigenough"   {(>= "1.0.0" & < "1.1~")}
 ]
 
 tags: [ "keyword:real closed field" "keyword:small scale reflection" "keyword:mathematical components" "date:2019-05-23" "logpath:mathcomp"]
