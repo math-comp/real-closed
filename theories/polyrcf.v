@@ -951,12 +951,12 @@ case pr1 : (root p r1); case/monotonic_rootN => hrootsl; last 2 first.
   by rewrite -[s]cat0s; apply: (cat_roots_on hr1)=> //; rewrite pr1.
 - case: hrootsl=> r hr; exists (r::s); constructor=> //=.
     by rewrite -cat1s; apply: (cat_roots_on hr1)=> //; rewrite pr1.
-  rewrite path_min_sorted // => y; rewrite -hroot; case/andP=> hy _.
-  rewrite (@ltr_trans _ r1) ?(itvP hy) //.
+  rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+  rewrite -hroot; case/andP=> hy _; rewrite (@ltr_trans _ r1) ?(itvP hy) //.
   by rewrite (itvP (roots_on_in hr (mem_head _ _))).
 - exists (r1::s); constructor=> //=; last first.
-    rewrite path_min_sorted=> // y; rewrite -hroot.
-    by case/andP; move/itvP->.
+    rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+    by rewrite -hroot; case/andP; move/itvP->.
   move=> x; rewrite in_cons; case exr1: (x == r1)=> /=.
     by rewrite (eqP exr1) pr1 andbT.
   rewrite -hroot; case px: root; rewrite ?(andbT, andbF) //.
@@ -966,7 +966,8 @@ case pr1 : (root p r1); case/monotonic_rootN => hrootsl; last 2 first.
 - case: hrootsl => r0 hrootsl.
   move/min_roots_on:hrootsl; case=> // hr0 har0 pr0 hr0r1.
   exists [:: r0, r1 & s]; constructor=> //=; last first.
-    rewrite (itvP hr0) /= path_min_sorted // => y.
+    rewrite (itvP hr0) /=.
+    rewrite path_min_sorted //; first [move=> y | apply/allP => y].
     by rewrite -hroot; case/andP; move/itvP->.
   move=> y; rewrite !in_cons (itv_splitU2 hr1) (itv_splitU2 hr0).
   case eyr0: (y == r0); rewrite ?(orbT, orbF, orTb, orFb).
@@ -999,8 +1000,9 @@ Hint Resolve sorted_roots.
 
 Lemma path_roots p a b : path <%R a (roots p a b).
 Proof.
-case: rootsP=> //= p0 hp sp; rewrite path_min_sorted //.
-by move=> y; rewrite -hp; case/andP; move/itvP->.
+case: rootsP=> //= p0 hp sp.
+rewrite path_min_sorted //; first [move=> y | apply/allP => y].
+by rewrite -hp; case/andP; move/itvP->.
 Qed.
 Hint Resolve path_roots.
 
@@ -1139,7 +1141,7 @@ case/and3P=> hx hax; rewrite (eqP hax) in rax sax.
 case: rootsP p0=> // p0 rxb sxb _.
 case/andP=> px0 hxb; rewrite (eqP hxb) in rxb sxb.
 rewrite [_ :: _](@roots_uniq p a b) //; last first.
-  rewrite /= path_min_sorted // => y.
+  rewrite /= path_min_sorted //; first [move=> y | apply/allP => y].
   by rewrite -(eqP hxb); move/roots_in; move/itvP->.
 move=> y; rewrite (itv_splitU2 hx) !andb_orl in_cons.
 case hy: (y == x); first by rewrite (eqP hy) px0 orbT.
@@ -1171,9 +1173,9 @@ case/and3P=> hx hax; rewrite (eqP hax) in rax sax.
 case: rootsP p0=> // p0 rxb sxb _.
 case/andP=> px0 hxb; rewrite (eqP hxb) in rxb sxb.
 rewrite [rcons _ _](@roots_uniq p a b) //; last first.
-  rewrite -[rcons _ _]revK rev_sorted rev_rcons /= path_min_sorted.
-    by rewrite -rev_sorted revK.
-  move=> y; rewrite mem_rev; rewrite -(eqP hxb).
+  rewrite -[rcons _ _]revK rev_sorted rev_rcons /=.
+  rewrite path_min_sorted; [by rewrite -rev_sorted revK|].
+  first [move=> y | apply/allP => y]; rewrite mem_rev; rewrite -(eqP hxb).
   by move/roots_in; move/itvP->.
 move=> y; rewrite (itv_splitU2 hx) mem_rcons in_cons !andb_orl.
 case hy: (y == x); first by rewrite (eqP hy) px0 orbT.
@@ -1388,15 +1390,15 @@ Qed.
 Lemma gdcop_eq0 p q : (gdcop p q == 0) = (q == 0) && (p != 0).
 Proof.
 case: (eqVneq q 0) => [-> | q0].
-  rewrite gdcop0 /= eqxx /=.
-  by case: (eqVneq p 0) => [-> | pn0]; rewrite ?(negPf pn0) eqxx  ?oner_eq0.
+  rewrite gdcop0 /=.
+  by have [|] := (boolP (p == 0)) => [p0| pn0] /=; rewrite ?eqxx ?oner_eq0.
 rewrite /gdcop; move: {-1}(size q) (leqnn (size q))=> k hk.
-case: (eqVneq p 0) => [-> | p0].
-  rewrite eqxx andbF; apply: negPf.
+case (eqVneq p 0) => [-> | p0].
+  rewrite ?eqxx andbF; apply: negPf.
   elim: k q q0 {hk} => [|k ihk] q q0 /=; first by rewrite eqxx oner_eq0.
   case: ifP => _ //.
   by apply: ihk; rewrite gcdp0 divpp ?q0 // polyC_eq0; apply/lc_expn_scalp_neq0.
-rewrite p0 (negPf q0) /=; apply: negPf.
+rewrite ?(negbTE q0) andFb; apply: negPf.
 elim: k q q0 hk => [|k ihk] /= q q0 hk.
   by move: hk q0; rewrite leqn0 size_poly_eq0; move->.
 case: ifP=> cpq; first by rewrite (negPf q0).
