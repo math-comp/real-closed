@@ -244,6 +244,7 @@ Definition ltc (x y : R[i]) :=
   let: a +i* b := x in let: c +i* d := y in
     (d == b) && (a < c).
 
+(*  TODO: when Pythagorean Fields are added, weaken to Pythagorean Field *)
 Definition normc (x : R[i]) : R :=
   let: a +i* b := x in sqrtr (a ^+ 2 + b ^+ 2).
 
@@ -327,6 +328,7 @@ Definition complex_numMixin := NumMixin lec_normD ltc0_add eq0_normC
      ge0_lec_total normCM lec_def ltc_def.
 Canonical complex_porderType := POrderType ring_display R[i] complex_numMixin.
 Canonical complex_numDomainType := NumDomainType R[i] complex_numMixin.
+Canonical complex_numFieldType := [numFieldType of R[i]].
 Canonical complex_normedZmodType :=
   NormedZmodType R[i] R[i] complex_numMixin.
 
@@ -334,7 +336,9 @@ End ComplexField.
 End ComplexField.
 
 Canonical ComplexField.complex_zmodType.
-Canonical ComplexField.complex_lmodType.
+(* we do not export the canonical structure of lmodType on purpose *)
+(* i.e. no: Canonical ComplexField.complex_lmodType.               *)
+(* indeed, this would prevent C fril having a normed module over C *)
 Canonical ComplexField.complex_ringType.
 Canonical ComplexField.complex_comRingType.
 Canonical ComplexField.complex_unitRingType.
@@ -342,9 +346,9 @@ Canonical ComplexField.complex_comUnitRingType.
 Canonical ComplexField.complex_idomainType.
 Canonical ComplexField.complex_fieldType.
 Canonical ComplexField.complex_porderType.
-Canonical ComplexField.complex_numDomainType.
 Canonical ComplexField.complex_normedZmodType.
-Canonical complex_numFieldType (R : rcfType) := [numFieldType of complex R].
+Canonical ComplexField.complex_numDomainType.
+Canonical ComplexField.complex_numFieldType.
 Canonical ComplexField.real_complex_rmorphism.
 Canonical ComplexField.real_complex_additive.
 Canonical ComplexField.Re_additive.
@@ -373,36 +377,37 @@ Ltac simpc := do ?
 Section ComplexTheory.
 
 Variable R : rcfType.
+Implicit Types (k : R) (x y z : R[i]).
 
-Lemma ReiNIm : forall x : R[i], Re (x * 'i%C) = - Im x.
+Lemma ReiNIm : forall x, Re (x * 'i%C) = - Im x.
 Proof. by case=> a b; simpc. Qed.
 
-Lemma ImiRe : forall x : R[i], Im (x * 'i%C) = Re x.
+Lemma ImiRe : forall x, Im (x * 'i%C) = Re x.
 Proof. by case=> a b; simpc. Qed.
 
 Lemma complexE x : x = (Re x)%:C + 'i%C * (Im x)%:C :> R[i].
 Proof. by case: x => *; simpc. Qed.
 
-Lemma real_complexE x : x%:C = x +i* 0 :> R[i]. Proof. done. Qed.
+Lemma real_complexE k : k%:C = k +i* 0 :> R[i]. Proof. done. Qed.
 
 Lemma sqr_i : 'i%C ^+ 2 = -1 :> R[i].
 Proof. by rewrite exprS; simpc; rewrite -real_complexE rmorphN. Qed.
 
 Lemma complexI : injective (real_complex R). Proof. by move=> x y []. Qed.
 
-Lemma ler0c (x : R) : (0 <= x%:C) = (0 <= x). Proof. by simpc. Qed.
+Lemma ler0c k : (0 <= k%:C) = (0 <= k). Proof. by simpc. Qed.
 
-Lemma lecE : forall x y : R[i], (x <= y) = (Im y == Im x) && (Re x <= Re y).
+Lemma lecE : forall x y, (x <= y) = (Im y == Im x) && (Re x <= Re y).
 Proof. by move=> [a b] [c d]. Qed.
 
-Lemma ltcE : forall x y : R[i], (x < y) = (Im y == Im x) && (Re x < Re y).
+Lemma ltcE : forall x y, (x < y) = (Im y == Im x) && (Re x < Re y).
 Proof. by move=> [a b] [c d]. Qed.
 
-Lemma lecR : forall x y : R, (x%:C <= y%:C) = (x <= y).
-Proof. by move=> x y; simpc. Qed.
+Lemma lecR : forall k k', (k%:C <= k'%:C) = (k <= k').
+Proof. by move=> k k'; simpc. Qed.
 
-Lemma ltcR : forall x y : R, (x%:C < y%:C) = (x < y).
-Proof. by move=> x y; simpc. Qed.
+Lemma ltcR : forall k k', (k%:C < k'%:C) = (k < k').
+Proof. by move=> k k'; simpc. Qed.
 
 Lemma conjc_is_rmorphism : rmorphism (@conjc R).
 Proof.
@@ -410,12 +415,8 @@ split=> [[a b] [c d]|] /=; first by simpc; rewrite [d - _]addrC.
 by split=> [[a b] [c d]|] /=; simpc.
 Qed.
 
-Lemma conjc_is_scalable : scalable (@conjc R).
-Proof. by move=> a [b c]; simpc. Qed.
-
 Canonical conjc_rmorphism := RMorphism conjc_is_rmorphism.
 Canonical conjc_additive := Additive conjc_is_rmorphism.
-Canonical conjc_linear := AddLinear conjc_is_scalable.
 
 Lemma conjcK : involutive (@conjc R).
 Proof. by move=> [a b] /=; rewrite opprK. Qed.
@@ -448,7 +449,7 @@ Proof. by move: x=> [a b] /=; simpc => /andP [/eqP]. Qed.
 (* Todo : extend theory of : *)
 (*   - signed exponents *)
 
-Lemma conj_ge0 : forall x : R[i], (0 <= x ^*) = (0 <= x).
+Lemma conj_ge0 : forall x, (0 <= x ^*) = (0 <= x).
 Proof. by move=> [a b] /=; simpc; rewrite oppr_eq0. Qed.
 
 Lemma conjc_nat : forall n, (n%:R : R[i])^* = n%:R.
@@ -460,10 +461,10 @@ Proof. exact: (conjc_nat 0). Qed.
 Lemma conjc1 : (1 : R[i]) ^* = 1.
 Proof. exact: (conjc_nat 1). Qed.
 
-Lemma conjc_eq0 : forall x : R[i], (x ^* == 0) = (x == 0).
+Lemma conjc_eq0 : forall x, (x ^* == 0) = (x == 0).
 Proof. by move=> [a b]; rewrite !eq_complex /= eqr_oppLR oppr0. Qed.
 
-Lemma conjc_inv: forall x : R[i], (x^-1)^* = (x^*%C )^-1.
+Lemma conjc_inv: forall x, (x^-1)^* = (x^*%C )^-1.
 Proof. exact: fmorphV. Qed.
 
 Lemma complex_root_conj (p : {poly R[i]}) (x : R[i]) :
@@ -474,7 +475,7 @@ Lemma complex_algebraic_trans (T : comRingType) (toR : {rmorphism T -> R}) :
   integralRange toR -> integralRange (real_complex R \o toR).
 Proof.
 set f := _ \o _ => R_integral [a b].
-have integral_real x : integralOver f (x%:C) by apply: integral_rmorph.
+have integral_real k : integralOver f (k%:C) by apply: integral_rmorph.
 rewrite [_ +i* _]complexE.
 apply: integral_add => //; apply: integral_mul => //=.
 exists ('X^2 + 1).
@@ -503,19 +504,47 @@ rewrite realE; simpc; rewrite [0 == _]eq_sym.
 by have [] := ltrgtP 0 a; rewrite ?(andbF, andbT, orbF, orbb).
 Qed.
 
-Lemma complex_realP (x : R[i]) : reflect (exists y, x = y%:C) (x \is Num.real).
+Lemma complex_realP x : reflect (exists k, x = k%:C) (x \is Num.real).
 Proof.
 case: x=> [a b] /=; rewrite complex_real.
 by apply: (iffP eqP) => [->|[c []//]]; exists a.
 Qed.
 
-Lemma RRe_real (x : R[i]) : x \is Num.real -> (Re x)%:C = x.
+Lemma RRe_real x : x \is Num.real -> (Re x)%:C = x.
 Proof. by move=> /complex_realP [y ->]. Qed.
 
-Lemma RIm_real (x : R[i]) : x \is Num.real -> (Im x)%:C = 0.
+Lemma RIm_real x : x \is Num.real -> (Im x)%:C = 0.
 Proof. by move=> /complex_realP [y ->]. Qed.
 
 End ComplexTheory.
+
+Definition Rcomplex := complex.
+Canonical Rcomplex_eqType (R : eqType) := [eqType of Rcomplex R].
+Canonical Rcomplex_countType (R : countType) := [countType of Rcomplex R].
+Canonical Rcomplex_choiceType (R : choiceType) := [choiceType of Rcomplex R].
+Canonical Rcomplex_zmodType (R : rcfType) := [zmodType of Rcomplex R].
+Canonical Rcomplex_ringType (R : rcfType) := [ringType of Rcomplex R].
+Canonical Rcomplex_comRingType (R : rcfType) := [comRingType of Rcomplex R].
+Canonical Rcomplex_unitRingType (R : rcfType) := [unitRingType of Rcomplex R].
+Canonical Rcomplex_comUnitRingType (R : rcfType) := [comUnitRingType of Rcomplex R].
+Canonical Rcomplex_idomainType (R : rcfType) := [idomainType of Rcomplex R].
+Canonical Rcomplex_fieldType (R : rcfType) := [fieldType of Rcomplex R].
+Canonical Rcomplex_lmodType (R : rcfType) :=
+  LmodType R (Rcomplex R) (ComplexField.complex_lmodMixin R).
+
+Module RComplexLMod.
+Section RComplexLMod.
+Variable R : rcfType.
+Implicit Types (k : R) (x y z : Rcomplex R).
+Canonical ComplexField.complex_lmodType.
+
+Lemma conjc_is_scalable : scalable (conjc : Rcomplex R -> Rcomplex R).
+Proof. by move=> a [b c]; simpc. Qed.
+Canonical conjc_linear := AddLinear conjc_is_scalable.
+
+End RComplexLMod.
+End RComplexLMod.
+Canonical RComplexLMod.conjc_linear.
 
 (* Section RcfDef. *)
 
@@ -1181,33 +1210,6 @@ Canonical complex_numClosedFieldType :=
 End Paper_HarmDerksen.
 
 End ComplexClosed.
-
-(* End ComplexInternal. *)
-
-(* Canonical ComplexInternal.complex_eqType. *)
-(* Canonical ComplexInternal.complex_choiceType. *)
-(* Canonical ComplexInternal.complex_countType. *)
-(* Canonical ComplexInternal.complex_ZmodType. *)
-(* Canonical ComplexInternal.complex_Ring. *)
-(* Canonical ComplexInternal.complex_comRing. *)
-(* Canonical ComplexInternal.complex_unitRing. *)
-(* Canonical ComplexInternal.complex_comUnitRing. *)
-(* Canonical ComplexInternal.complex_iDomain. *)
-(* Canonical ComplexInternal.complex_fieldType. *)
-(* Canonical ComplexInternal.ComplexField.real_complex_rmorphism. *)
-(* Canonical ComplexInternal.ComplexField.real_complex_additive. *)
-(* Canonical ComplexInternal.ComplexField.Re_additive. *)
-(* Canonical ComplexInternal.ComplexField.Im_additive. *)
-(* Canonical ComplexInternal.complex_numDomainType. *)
-(* Canonical ComplexInternal.complex_normedZmodType. *)
-(* Canonical ComplexInternal.complex_numFieldType. *)
-(* Canonical ComplexInternal.conjc_rmorphism. *)
-(* Canonical ComplexInternal.conjc_additive. *)
-(* Canonical ComplexInternal.complex_decField. *)
-(* Canonical ComplexInternal.complex_closedField. *)
-(* Canonical ComplexInternal.complex_numClosedFieldType. *)
-
-(* Definition complex_algebraic_trans := ComplexInternal.complex_algebraic_trans. *)
 
 Section ComplexClosedTheory.
 
