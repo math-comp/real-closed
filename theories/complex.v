@@ -112,7 +112,7 @@ Next Obligation. by move=> [a b] /=; rewrite !add0r. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !addNr. Qed.
 Canonical complex_zmodType := ZmodType R[i] complex_zmodMixin.
 
-Definition scalec (a : R) (x : R[i]) := 
+Definition scalec (a : R) (x : R[i]) :=
   let: b +i* c := x in (a * b) +i* (a * c).
 
 (* TODO: weaken R to ringType *)
@@ -273,6 +273,24 @@ suff -> : forall (u v w z t : R), (u - v + w) + (z + v + t) = u + w + (z + t).
 by move=> u v w z t; rewrite [_ - _ + _]addrAC [z + v]addrC !addrA addrNK.
 Qed.
 
+Lemma mulrnc (a b : R) k : a +i* b *+ k = (a *+ k) +i* (b *+ k).
+Proof.
+by elim: k => // k ih; apply/eqP; rewrite !mulrS eq_complex !ih !eqxx.
+Qed.
+
+Lemma normc_nat (k : nat) : normc k%:R = k%:R :> R.
+Proof.
+by rewrite mulrnc /= mul0rn expr0n addr0 sqrtr_sqr ger0_norm // ler0n.
+Qed.
+
+Lemma normc_natmul x k : normc (x *+ k) = (normc x) *+ k.
+Proof.
+by rewrite -mulr_natr normcM -[in RHS]mulr_natr normc_nat.
+Qed.
+
+Lemma normcN x : normc (- x) = normc x.
+Proof. by case: x => [a b]//=; rewrite !sqrrN. Qed.
+
 Lemma normCM x y : normC (x * y) = normC x * normC y.
 Proof. by rewrite -rmorphM normcM. Qed.
 
@@ -292,9 +310,9 @@ move: x y => [a b] [c d] /=; simpc; rewrite eq_complex /=.
 by have [] := altP eqP; rewrite ?(andbF, andbT) //= lt_def.
 Qed.
 
-Lemma lec_normD x y : lec (normC (x + y)) (normC x + normC y).
+Lemma le_normcD x y : normc (x + y) <= normc x + normc y.
 Proof.
-move: x y => [a b] [c d] /=; simpc; rewrite addr0 eqxx /=.
+move: x y => [a b] [c d] /=; simpc.
 rewrite -(@ler_pexpn2r _ 2) -?topredE /= ?(ler_paddr, sqrtr_ge0) //.
 rewrite [X in _ <= X] sqrrD ?sqr_sqrtr;
    do ?by rewrite ?(ler_paddr, sqrtr_ge0, sqr_ge0, mulr_ge0) //.
@@ -316,12 +334,36 @@ have: 0 <= (a * d - b * c) ^+ 2 by rewrite sqr_ge0.
 by rewrite sqrrB addrAC subr_ge0 [_ * c]mulrC mulrACA [d * _]mulrC.
 Qed.
 
+Lemma lec_normD x y : lec (normC (x + y)) (normC x + normC y).
+Proof. by rewrite /lec /= addr0 eqxx le_normcD. Qed.
+
 Definition complex_numMixin := NumMixin lec_normD ltc0_add eq0_normC
      ge0_lec_total normCM lec_def ltc_def.
 Canonical complex_porderType := POrderType ring_display R[i] complex_numMixin.
+
+Structure complex_normedBaseType := NormedBaseType {
+  nbase :> Type;
+  nbase_is_numdomain :> Num.NumDomain.class_of nbase;
+  normed_of_nbase : @Num.normed_mixin_of (Num.NumDomain.Pack nbase_is_numdomain) complex_zmodType
+    nbase_is_numdomain
+}.
+
+Canonical complex_normedBaseRing (base : complex_normedBaseType) :=
+  Num.NumDomain.Pack (nbase_is_numdomain base).
+
+Canonical complex_normedZmodType (base : complex_normedBaseType) :=
+  NormedZmodType base R[i] (normed_of_nbase base).
+
 Canonical complex_numDomainType := NumDomainType R[i] complex_numMixin.
-Canonical complex_normedZmodType :=
-  NormedZmodType R[i] R[i] complex_numMixin.
+
+(* C.-normed canonical structure on complex *)
+Canonical C_complex_normedBaseType :=
+  NormedBaseType (complex_numMixin : Num.normed_mixin_of _ _).
+
+Definition complex_RnormMixin :=
+  @Num.NormedMixin R _ _ normc le_normcD eq0_normc normc_natmul normcN.
+(* R.-normed canonical structure on complex *)
+Canonical R_complex_normedBaseType := NormedBaseType complex_RnormMixin.
 
 End ComplexField.
 End ComplexField.
@@ -333,18 +375,21 @@ Canonical ComplexField.complex_unitRingType.
 Canonical ComplexField.complex_comUnitRingType.
 Canonical ComplexField.complex_idomainType.
 Canonical ComplexField.complex_fieldType.
+Canonical ComplexField.complex_lmodBaseRing.
+Canonical ComplexField.complex_lmodType.
+Canonical ComplexField.R_complex_lmodBaseType.
+Canonical ComplexField.C_complex_lmodBaseType.
 Canonical ComplexField.complex_porderType.
-Canonical ComplexField.complex_numDomainType.
+Canonical ComplexField.complex_normedBaseRing.
 Canonical ComplexField.complex_normedZmodType.
+Canonical ComplexField.C_complex_normedBaseType.
+Canonical ComplexField.R_complex_normedBaseType.
+Canonical ComplexField.complex_numDomainType.
 Canonical complex_numFieldType (R : rcfType) := [numFieldType of complex R].
 Canonical ComplexField.real_complex_rmorphism.
 Canonical ComplexField.real_complex_additive.
 Canonical ComplexField.Re_additive.
 Canonical ComplexField.Im_additive.
-Canonical ComplexField.complex_lmodBaseRing.
-Canonical ComplexField.complex_lmodType.
-Canonical ComplexField.R_complex_lmodBaseType.
-Canonical ComplexField.C_complex_lmodBaseType.
 
 Definition conjc {R : ringType} (x : R[i]) := let: a +i* b := x in a -i* b.
 Notation "x ^*" := (conjc x) (at level 2, format "x ^*") : complex_scope.
@@ -654,13 +699,19 @@ Qed.
 Lemma sqr_normc (x : R[i]) : (`|x| ^+ 2) = x * x^*%C.
 Proof. by rewrite normcE sqr_sqrtc. Qed.
 
-Lemma normc_ge_Re (x : R[i]) : `|Re x|%:C <= `|x|.
+Lemma rnormc_ge_Re (x : R[i]) : `|Re x| <= `|x|.
 Proof.
 by case: x => a b; simpc; rewrite -sqrtr_sqr ler_wsqrtr // ler_addl sqr_ge0.
 Qed.
 
-Lemma normcJ (x : R[i]) :  `|x^*%C| = `|x|.
-Proof. by case: x => a b; simpc; rewrite /= sqrrN. Qed.
+Lemma normc_ge_Re (x : R[i]) : `|Re x|%:C <= `|x|.
+Proof. by apply/andP/andP; rewrite eqxx rnormc_ge_Re. Qed.
+
+Lemma rnormcJ (x : R[i]) :  `|x^*%C| = `|x| :> R.
+Proof. by case: x => a b /=; rewrite /Num.norm/= sqrrN. Qed.
+
+Lemma normcJ (x : R[i]) :  `|x^*%C| = `|x| :> R[i].
+Proof. by congr (_%:C); exact: rnormcJ. Qed.
 
 Lemma invc_norm (x : R[i]) : x^-1 = `|x|^-2 * x^*%C.
 Proof.
