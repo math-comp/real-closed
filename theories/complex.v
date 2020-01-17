@@ -121,7 +121,21 @@ Next Obligation. by move=> a b [c d] /=; rewrite !mulrA. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !mul1r. Qed.
 Next Obligation. by move=> a [b c] [d e] /=; rewrite !mulrDr. Qed.
 Next Obligation. by move=> [a b] c d /=; rewrite !mulrDl. Qed.
-Canonical complex_lmodType := LmodType R R[i] complex_lmodMixin.
+
+Structure complex_lmodBaseType := LmodBaseType {
+  base :> Type;
+  base_is_ring :> GRing.Ring.class_of base;
+  base_of_lmod : GRing.Lmodule.mixin_of (GRing.Ring.Pack base_is_ring) complex_zmodType
+}.
+
+Canonical complex_lmodBaseRing (base : complex_lmodBaseType) :=
+  GRing.Ring.Pack (base_is_ring base).
+
+Canonical complex_lmodType (base : complex_lmodBaseType) :=
+  LmodType base R[i] (base_of_lmod base).
+
+(* R.-module canonical structure on complex *)
+Canonical R_complex_lmodBaseType := LmodBaseType complex_lmodMixin.
 
 (* TODO: weaken R to comRingType *)
 Definition mulc (x y : R[i]) := let: a +i* b := x in let: c +i* d := y in
@@ -160,6 +174,10 @@ Definition complex_comRingMixin :=
   ComRingMixin mulcA mulcC mul1c mulc_addl nonzero1c.
 Canonical complex_ringType :=RingType R[i] complex_comRingMixin.
 Canonical complex_comRingType := ComRingType R[i] mulcC.
+
+(* C is also a C.-module *)
+Canonical C_complex_lmodBaseType :=
+  LmodBaseType (GRing.regular_lmodMixin complex_ringType).
 
 (* TODO: weaken R to realFieldType *)
 Lemma mulVc : forall x, x != C0 -> mulc (invc x) x = C1.
@@ -323,6 +341,10 @@ Canonical ComplexField.real_complex_rmorphism.
 Canonical ComplexField.real_complex_additive.
 Canonical ComplexField.Re_additive.
 Canonical ComplexField.Im_additive.
+Canonical ComplexField.complex_lmodBaseRing.
+Canonical ComplexField.complex_lmodType.
+Canonical ComplexField.R_complex_lmodBaseType.
+Canonical ComplexField.C_complex_lmodBaseType.
 
 Definition conjc {R : ringType} (x : R[i]) := let: a +i* b := x in a -i* b.
 Notation "x ^*" := (conjc x) (at level 2, format "x ^*") : complex_scope.
@@ -486,35 +508,11 @@ Proof. by move=> /complex_realP [y ->]. Qed.
 Lemma RIm_real x : x \is Num.real -> (Im x)%:C = 0.
 Proof. by move=> /complex_realP [y ->]. Qed.
 
-End ComplexTheory.
-
-Definition Rcomplex := complex.
-Canonical Rcomplex_eqType (R : eqType) := [eqType of Rcomplex R].
-Canonical Rcomplex_countType (R : countType) := [countType of Rcomplex R].
-Canonical Rcomplex_choiceType (R : choiceType) := [choiceType of Rcomplex R].
-Canonical Rcomplex_zmodType (R : rcfType) := [zmodType of Rcomplex R].
-Canonical Rcomplex_ringType (R : rcfType) := [ringType of Rcomplex R].
-Canonical Rcomplex_comRingType (R : rcfType) := [comRingType of Rcomplex R].
-Canonical Rcomplex_unitRingType (R : rcfType) := [unitRingType of Rcomplex R].
-Canonical Rcomplex_comUnitRingType (R : rcfType) := [comUnitRingType of Rcomplex R].
-Canonical Rcomplex_idomainType (R : rcfType) := [idomainType of Rcomplex R].
-Canonical Rcomplex_fieldType (R : rcfType) := [fieldType of Rcomplex R].
-Canonical Rcomplex_lmodType (R : rcfType) :=
-  LmodType R (Rcomplex R) (ComplexField.complex_lmodMixin R).
-
-Module RComplexLMod.
-Section RComplexLMod.
-Variable R : rcfType.
-Implicit Types (k : R) (x y z : Rcomplex R).
-Canonical ComplexField.complex_lmodType.
-
-Lemma conjc_is_scalable : scalable (conjc : Rcomplex R -> Rcomplex R).
+Lemma conjc_is_Rscalable : scalable_for ( *:%R : R -> R[i] -> R[i]) (conjc : R[i] -> R[i]).
 Proof. by move=> a [b c]; simpc. Qed.
-Canonical conjc_linear := AddLinear conjc_is_scalable.
+Canonical conjc_linear := AddLinear conjc_is_Rscalable.
 
-End RComplexLMod.
-End RComplexLMod.
-Canonical RComplexLMod.conjc_linear.
+End ComplexTheory.
 
 (* Section RcfDef. *)
 

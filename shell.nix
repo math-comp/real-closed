@@ -42,16 +42,6 @@ let
           mathcomp-solvable_1_9 = self.mathcompPkgs.solvable;
           mathcomp-character_1_9 = self.mathcompPkgs.character;
           mathcomp_1_9-bigenough = self.mathcomp-bigenough;
-          mathcomp-real-closed = (self.mathcompExtraGen { src =
-            fetchGit {url = "https://github.com/pi8027/real-closed"; ref = "misc";};
-                                 version = "1.0.3";
-                                 core-deps = with self; [ mathcomp-field ];
-                                 extra-deps = with self; [ mathcomp-bigenough ];
-                                 package = "real-closed";
-                                 version-sha256 = "";
-                                 description = "Mathematical Components Library on real closed fields";
-                               }).real-closed;
-          mathcomp_1_9-real-closed = self.mathcomp-real-closed;
         });
       coq = coqPackagesV.coq;
       emacs = emacsWithPackages (epkgs:
@@ -63,8 +53,7 @@ stdenv.mkDerivation rec {
   name = "env";
   env = buildEnv { name = name; paths = buildInputs; };
   buildInputs = [ coq ] ++ (with coqPackages;
-    [mathcomp-ssreflect mathcomp-bigenough mathcomp-algebra mathcomp-field
-     mathcomp-real-closed])
+    [mathcomp-ssreflect mathcomp-bigenough mathcomp-algebra mathcomp-field])
                 ++ lib.optional withEmacs emacs;
   shellHook = ''
     nixEnv (){
