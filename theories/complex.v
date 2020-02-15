@@ -93,18 +93,16 @@ Qed.
 Lemma complexr0 : forall (R : ringType) (x : R), x +i* 0 = x%:C. Proof. by []. Qed.
 
 Module ComplexField.
-Section ComplexField.
+Section ComplexField_ringType.
 
-Variable R : rcfType.
+Variable R : ringType.
 Local Notation C := R[i].
 Local Notation C0 := ((0 : R)%:C).
-Local Notation C1 := ((1 : R)%:C).
 
 Definition addc (x y : R[i]) := let: a +i* b := x in let: c +i* d := y in
   (a + c) +i* (b + d).
 Definition oppc (x : R[i]) := let: a +i* b := x in (- a) +i* (- b).
 
-(* TODO: weaken R to ringType *)
 Program Definition complex_zmodMixin := @ZmodMixin _ C0 oppc addc _ _ _ _.
 Next Obligation. by move=> [a b] [c d] [e f] /=; rewrite !addrA. Qed.
 Next Obligation. by move=> [a b] [c d] /=; congr (_ +i* _); rewrite addrC. Qed.
@@ -115,7 +113,6 @@ Canonical complex_zmodType := ZmodType R[i] complex_zmodMixin.
 Definition scalec (a : R) (x : R[i]) :=
   let: b +i* c := x in (a * b) +i* (a * c).
 
-(* TODO: weaken R to ringType *)
 Program Definition complex_lmodMixin := @LmodMixin _ _ scalec _ _ _ _.
 Next Obligation. by move=> a b [c d] /=; rewrite !mulrA. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !mul1r. Qed.
@@ -134,11 +131,17 @@ Canonical complex_lmodBaseRing (base : complex_lmodBaseType) :=
 Canonical complex_lmodType (base : complex_lmodBaseType) :=
   LmodType base R[i] (base_of_lmod base).
 
-(* R.-module canonical structure on complex *)
-Canonical R_complex_lmodBaseType := LmodBaseType complex_lmodMixin.
+End ComplexField_ringType.
 
-(* TODO: weaken R to comRingType *)
-Definition mulc (x y : R[i]) := let: a +i* b := x in let: c +i* d := y in
+(* R.-module canonical structure on complex *)
+Canonical R_complex_lmodBaseType (K : rcfType) := LmodBaseType (@complex_lmodMixin K).
+
+Section ComplexField_comRingType.
+
+Variable R : comRingType.
+Local Notation C := R[i].
+
+Definition mulc (x y : C) := let: a +i* b := x in let: c +i* d := y in
   ((a * c) - (b * d)) +i* ((a * d) + (b * c)).
 
 Lemma mulcC : commutative mulc.
@@ -155,14 +158,22 @@ by congr ((_ + _) +i* (_ + _)); rewrite !addrA addrAC;
   congr (_ + _); rewrite addrC.
 Qed.
 
-(* TODO: weaken R to fieldType *)
+End ComplexField_comRingType.
+
+Section ComplexField_fieldType.
+
+Variable R : fieldType.
+Local Notation C := R[i].
+Local Notation C0 := ((0 : R)%:C).
+Local Notation C1 := ((1 : R)%:C).
+
 Definition invc (x : R[i]) := let: a +i* b := x in let n2 := (a ^+ 2 + b ^+ 2) in
   (a / n2) -i* (b / n2).
 
-Lemma mul1c : left_id C1 mulc.
+Lemma mul1c : left_id C1 (@mulc R).
 Proof. by move=> [a b] /=; rewrite !mul1r !mul0r subr0 addr0. Qed.
 
-Lemma mulc_addl : left_distributive mulc addc.
+Lemma mulc_addl : left_distributive (@mulc R) (@addc R).
 Proof.
 move=> [a b] [c d] [e f] /=; rewrite !mulrDl !opprD -!addrA.
 by congr ((_ + _) +i* (_ + _)); rewrite addrCA.
@@ -171,15 +182,28 @@ Qed.
 Lemma nonzero1c : C1 != C0. Proof. by rewrite eq_complex /= oner_eq0. Qed.
 
 Definition complex_comRingMixin :=
-  ComRingMixin mulcA mulcC mul1c mulc_addl nonzero1c.
-Canonical complex_ringType :=RingType R[i] complex_comRingMixin.
-Canonical complex_comRingType := ComRingType R[i] mulcC.
+  ComRingMixin (@mulcA R) (@mulcC R) mul1c mulc_addl nonzero1c.
+Canonical complex_ringType := RingType R[i] complex_comRingMixin.
+Canonical complex_comRingType := ComRingType R[i] (@mulcC R).
 
 (* C is also a C.-module *)
 Canonical C_complex_lmodBaseType :=
   LmodBaseType (GRing.regular_lmodMixin complex_ringType).
 
-(* TODO: weaken R to realFieldType *)
+End ComplexField_fieldType.
+
+Local Ltac simpc := do ?
+  [ rewrite -[(_ +i* _) - (_ +i* _)]/(_ +i* _)
+  | rewrite -[(_ +i* _) + (_ +i* _)]/(_ +i* _)
+  | rewrite -[(_ +i* _) * (_ +i* _)]/(_ +i* _)].
+
+Section ComplexField_realFieldType.
+
+Variable R : realFieldType.
+Local Notation C := R[i].
+Local Notation C0 := ((0 : R)%:C).
+Local Notation C1 := ((1 : R)%:C).
+
 Lemma mulVc : forall x, x != C0 -> mulc (invc x) x = C1.
 Proof.
 move=> [a b]; rewrite eq_complex => /= hab; rewrite !mulNr opprK.
@@ -200,11 +224,6 @@ Definition ComplexFieldIdomainMixin := (FieldIdomainMixin field_axiom).
 Canonical complex_idomainType := IdomainType R[i] (FieldIdomainMixin field_axiom).
 Canonical complex_fieldType := FieldType R[i] field_axiom.
 
-Ltac simpc := do ?
-  [ rewrite -[(_ +i* _) - (_ +i* _)]/(_ +i* _)
-  | rewrite -[(_ +i* _) + (_ +i* _)]/(_ +i* _)
-  | rewrite -[(_ +i* _) * (_ +i* _)]/(_ +i* _)].
-
 Lemma real_complex_is_rmorphism : rmorphism (real_complex R).
 Proof.
 split; [|split=> //] => a b /=; simpc; first by rewrite subrr.
@@ -215,6 +234,15 @@ Canonical real_complex_rmorphism :=
   RMorphism real_complex_is_rmorphism.
 Canonical real_complex_additive :=
   Additive real_complex_is_rmorphism.
+
+End ComplexField_realFieldType.
+
+Section ComplexField.
+
+Variable R : rcfType.
+Local Notation C := R[i].
+Local Notation C0 := ((0 : R)%:C).
+Local Notation C1 := ((1 : R)%:C).
 
 Lemma Re_is_scalar : scalar (@Re R).
 Proof. by move=> a [b c] [d e]. Qed.
@@ -344,7 +372,7 @@ Canonical complex_porderType := POrderType ring_display R[i] complex_numMixin.
 Structure complex_normedBaseType := NormedBaseType {
   nbase :> Type;
   nbase_is_numdomain :> Num.NumDomain.class_of nbase;
-  normed_of_nbase : @Num.normed_mixin_of (Num.NumDomain.Pack nbase_is_numdomain) complex_zmodType
+  normed_of_nbase : @Num.normed_mixin_of (Num.NumDomain.Pack nbase_is_numdomain) (@complex_zmodType R)
     nbase_is_numdomain
 }.
 
