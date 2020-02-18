@@ -6,7 +6,7 @@ Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
 From mathcomp
 Require Import bigop ssralg poly polydiv ssrnum zmodp.
 From mathcomp
-Require Import polyorder path interval ssrint.
+Require Import polyorder path interval ssrint table.
 
 (****************************************************************************)
 (* This files contains basic (and unformatted) theory for polynomials       *)
@@ -737,107 +737,6 @@ Proof. by move=> axb; rewrite ger_horner ?(itvP axb). Qed.
 
 End DerNeg.
 
-Section findr.
-
-Variables (s : seq R) (c : R) (c_gt0 : c > 0).
-Let c_ge0 : c >= 0. Proof. exact: ltrW. Qed.
-
-Definition findr x := find (>= x) s.
-Definition cs := (- c) :: (rcons s c).
-Definition sprev x := cs`_(findr x).
-Definition snext x := cs`_(findr x).+1.
-
-Hypothesis s_sorted : sorted <=%R s.
-Hypothesis s_uniq : uniq s.
-
-Let s_lt_sorted : sorted <%R s.
-Proof. by rewrite ltr_sorted_uniq_le s_uniq. Qed.
-
-Hypothesis all_s : all (fun x => x \in `](- c), c[) s.
-Let allins := allP all_s.
-Hint Resolve ler_trans ltr_trans.
-
-Lemma cs_sorted : sorted <=%R cs.
-Proof.
-rewrite /= path_min_sorted; last first.
-  move=> y; rewrite mem_rcons in_cons => /predU1P[->|yc].
-    by rewrite ge0_cp // ler_maxr.
-  by rewrite (itvP (allins _)).
-rewrite -[<=%R]/(fun _ _=> _ <= _) -rev_sorted rev_rcons /=.
-rewrite path_min_sorted ?rev_sorted //.
-by move=> y; rewrite mem_rev => ry; rewrite (itvP (allins _)).
-Qed.
-Hint Resolve cs_sorted.
-
-Lemma cs_uniq : uniq cs.
-Proof.
-rewrite /cs /=; rewrite rcons_uniq /= s_uniq andbT mem_rcons in_cons negb_or.
-rewrite eq_sym -addr_eq0 gtr_eqF ?addr_gt0 //=.
-apply: contraTT isT; rewrite negb_and !negbK => /orP[] /allins;
-by rewrite inE/= ltrr ?andbF.
-Qed.
-
-Lemma cs_lt_sorted : sorted <%R cs.
-Proof. by rewrite ltr_sorted_uniq_le cs_uniq. Qed.
-Hint Resolve cs_lt_sorted.
-
-Lemma findrocI_eq i j x : (i <= size s)%N -> (j <= size s)%N ->
-(x \in `]cs`_i, cs`_i.+1]) -> (x \in `]cs`_j, cs`_j.+1]) -> i = j.
-Proof.
-move=> i_lt j_lt.
-wlog lt_ij : i j i_lt j_lt / (i < j)%N => [hw xi xj|/andP[ix xi] /andP[jx xj]].
-  by have [/hw->//|/hw->//|//] := ltngtP i j.
-suff /(ler_trans xi) /ler_lt_trans /(_ jx) : cs`_i.+1 <= cs`_j by rewrite ltrr.
-by rewrite sorted_le_nth -?topredE //=  ?size_rcons ?ltnS ?leqW //=.
-Qed.
-
-Lemma mem_snext x : x \in s -> snext x = x.
-Proof.
-rewrite /snext /cs /findr; elim: (s) (s_sorted) => //= y s' ihs' pys'.
-rewrite in_cons => /predU1P [->|xs']; rewrite ?(lerr, eqxx)//.
-rewrite ler_eqVlt ltrNge eq_sym; have [//|/= neq_yx] := altP eqP.
-rewrite (allP (order_path_min (@ler_trans _) pys')) //= ihs' //.
-exact: path_sorted pys'.
-Qed.
-
-Lemma in_snext : {in `](- c), c], forall x, snext x \in c :: s}.
-Proof.
-move=> x xc; rewrite /snext /= nth_rcons /findr.
-case: ltngtP (find_size (>= x) s); rewrite in_cons ?eqxx// => fs_lt _.
-by rewrite mem_nth ?orbT.
-Qed.
-
-Lemma findrP : {in `](- c), c], forall x, x \in `]sprev x, snext x]}.
-Proof.
-move=> x xc; rewrite inE /= /sprev /snext /cs /= ?nth_rcons.
-have find_small : (findr x <= size s)%N by apply: find_size.
-apply/andP; split; last first.
-    case: ltngtP (find_small) => [] //=; last by rewrite (itvP xc).
-    by move=> i_lt; rewrite nth_find // has_find.
-have /= := @before_find _ 0 (>= x) s (findr x).-1; rewrite -/(findr x).
-case: (findr _) => [_ |i] in find_small *; rewrite ?(itvP xc) //=.
-by rewrite nth_rcons find_small ltrNge => ->.
-Qed.
-
-Section sorted_mono.
-Variables (s' : seq R) (ss : sorted <%R s') (ssle : sorted <=%R s').
-Definition sorted_ler_nthW := sorted_le_nth (@ler_trans _) (@lerr _) 0 ssle.
-Let sorted_ltr_nthW := sorted_lt_nth (@ltr_trans _) 0 ss.
-Definition sorted_ler_nth := lenr_mono_in sorted_ltr_nthW.
-Definition sorted_ltr_nth := lenrW_mono_in sorted_ler_nth.
-End sorted_mono.
-
-Lemma findr_notin i : (i <= size s)%N ->
-  {in `]cs`_i, cs`_i.+1[, forall x, x \in s = false}.
-Proof.
-move=> si x; apply: contraTF=> /mem_snext <-; rewrite inE !lersifT /snext.
-rewrite !sorted_ltr_nth -?topredE /= ?size_rcons ?ltnS ?find_size 1?leqW //=.
-by case: leqP.
-Qed.
-
-End findr.
-Arguments cs s c : simpl never.
-
 Lemma roots_subproof (p : {poly R}) : p != 0 -> {rs : seq R | mem rs =1 root p}.
 Proof.
 elim: (size p) {-2}p (eqxx (size p)) => [|[|sp] ihsp] {p}p.
@@ -855,8 +754,7 @@ have cp_gt0 : 0 < cp by rewrite ltr_maxr ?cauchy_bound_gt0.
 have allcp' : all (fun x => x \in `] (- cp),cp[) rs'.
   apply/allP => x; rewrite [_ \in _]rs'P => /(root_in_cauchy_bound p'neq0) /=.
   by apply: subitvP; rewrite /= ler_opp2 andbb ler_maxr lerr orbT.
-pose cs := cs rs' cp.
-exists (pmap (fun i => has_ivt_root p cs`_i cs`_((locked succn) i))
+exists (pmap (fun i => has_ivt_root p rs`[i] rs`[(locked succn) i])
              (iota 0 (locked (size rs').+1))) => x; rewrite /= -!lock.
 rewrite mem_pmap; apply/mapP/idP => [[i i_in /esym/some_ivt_root//]|rpx].
 have xcpoo : x \in `](- cp), cp[.
