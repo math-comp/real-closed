@@ -76,7 +76,7 @@ Canonical term_eqMixin (T : eqType) := EqMixin (@term_eqP T).
 Canonical term_eqType (T : eqType) :=
    Eval hnf in EqType (term T) (@term_eqMixin T).
 
-Arguments term_eqP T [x y].
+Arguments term_eqP T {x y}.
 Prenex Implicits term_eq.
 
 
@@ -199,7 +199,7 @@ Canonical oclause_eqMixin (T : eqType) := EqMixin (@oclause_eqP T).
 Canonical oclause_eqType (T : eqType) :=
    Eval hnf in EqType (oclause T) (@oclause_eqMixin T).
 
-Arguments oclause_eqP T [x y].
+Arguments oclause_eqP T {x y}.
 Prenex Implicits oclause_eq.
 
 Section EvalTerm.
