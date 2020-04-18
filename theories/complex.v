@@ -4,9 +4,9 @@ Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp
 Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
 From mathcomp
-Require Import bigop ssralg ssrint div ssrnum rat poly closed_field polyrcf.
+Require Import bigop order ssralg ssrint div ssrnum rat poly closed_field.
 From mathcomp
-Require Import matrix mxalgebra tuple mxpoly zmodp binomial realalg.
+Require Import polyrcf matrix mxalgebra tuple mxpoly zmodp binomial realalg.
 
 (**********************************************************************)
 (*   This files defines the extension R[i] of a real field R,         *)
@@ -16,7 +16,7 @@ Require Import matrix mxalgebra tuple mxpoly zmodp binomial realalg.
 (* (cf comments below, thanks to Pierre Lairez for finding the paper) *)
 (**********************************************************************)
 
-Import GRing.Theory Num.Theory.
+Import Order.TTheory GRing.Theory Num.Theory.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -257,8 +257,8 @@ Qed.
 
 Lemma eq0_normc x : normc x = 0 -> x = 0.
 Proof.
-case: x => a b /= /eqP; rewrite sqrtr_eq0 ler_eqVlt => /orP [|]; last first.
-  by rewrite ltrNge addr_ge0 ?sqr_ge0.
+case: x => a b /= /eqP; rewrite sqrtr_eq0 le_eqVlt => /orP [|]; last first.
+  by rewrite ltNge addr_ge0 ?sqr_ge0.
 by rewrite paddr_eq0 ?sqr_ge0 ?expf_eq0 //= => /andP[/eqP -> /eqP ->].
 Qed.
 
@@ -267,7 +267,7 @@ Lemma eq0_normC x : normC x = 0 -> x = 0. Proof. by case=> /eq0_normc. Qed.
 Lemma ge0_lec_total x y : lec 0 x -> lec 0 y -> lec x y || lec y x.
 Proof.
 move: x y => [a b] [c d] /= /andP[/eqP -> a_ge0] /andP[/eqP -> c_ge0].
-by rewrite eqxx ler_total.
+by rewrite eqxx le_total.
 Qed.
 
 Lemma normcM x y : normc (x * y) = normc x * normc y.
@@ -296,7 +296,7 @@ Qed.
 Lemma ltc_def x y : ltc x y = (y != x) && lec x y.
 Proof.
 move: x y => [a b] [c d] /=; simpc; rewrite eq_complex /=.
-by have [] := altP eqP; rewrite ?(andbF, andbT) //= ltr_def.
+by have [] := altP eqP; rewrite ?(andbF, andbT) //= lt_def.
 Qed.
 
 Lemma lec_normD x y : lec (normC (x + y)) (normC x + normC y).
@@ -312,7 +312,7 @@ rewrite [u + _] addrC [X in _ - X]addrAC [b ^+ _ + _]addrC.
 rewrite [u]lock [v]lock !addrA; set x := (a ^+ 2 + _ + _ + _).
 rewrite -addrA addrC addKr -!lock addrC.
 have [huv|] := ger0P (u + v); last first.
-  by move=> /ltrW /ler_trans -> //; rewrite pmulrn_lge0 // mulr_ge0 ?sqrtr_ge0.
+  by move=> /ltW /le_trans -> //; rewrite pmulrn_lge0 // mulr_ge0 ?sqrtr_ge0.
 rewrite -(@ler_pexpn2r _ 2) -?topredE //=; last first.
   by rewrite ?(pmulrn_lge0, mulr_ge0, sqrtr_ge0) //.
 rewrite -mulr_natl !exprMn !sqr_sqrtr ?(ler_paddr, sqr_ge0) //.
@@ -325,7 +325,10 @@ Qed.
 
 Definition complex_numMixin := NumMixin lec_normD ltc0_add eq0_normC
      ge0_lec_total normCM lec_def ltc_def.
+Canonical complex_porderType := POrderType ring_display R[i] complex_numMixin.
 Canonical complex_numDomainType := NumDomainType R[i] complex_numMixin.
+Canonical complex_normedZmodType :=
+  NormedZmodType R[i] R[i] complex_numMixin.
 
 End ComplexField.
 End ComplexField.
@@ -338,7 +341,9 @@ Canonical ComplexField.complex_unitRingType.
 Canonical ComplexField.complex_comUnitRingType.
 Canonical ComplexField.complex_idomainType.
 Canonical ComplexField.complex_fieldType.
+Canonical ComplexField.complex_porderType.
 Canonical ComplexField.complex_numDomainType.
+Canonical ComplexField.complex_normedZmodType.
 Canonical complex_numFieldType (R : rcfType) := [numFieldType of complex R].
 Canonical ComplexField.real_complex_rmorphism.
 Canonical ComplexField.real_complex_additive.
@@ -583,11 +588,11 @@ have F2: `|a| <= sqrtr (a^+2 + b^+2).
   rewrite -sqrtr_sqr ler_wsqrtr //.
   by rewrite addrC -subr_ge0 addrK exprn_even_ge0.
 have F3: 0 <= (sqrtr (a ^+ 2 + b ^+ 2) - a) / 2%:R.
-  rewrite mulr_ge0 // subr_ge0 (ler_trans _ F2) //.
-  by rewrite -(maxrN a) ler_maxr lerr.
+  rewrite mulr_ge0 // subr_ge0 (le_trans _ F2) //.
+  by rewrite -(maxrN a) lexU lexx.
 have F4: 0 <= (sqrtr (a ^+ 2 + b ^+ 2) + a) / 2%:R.
-  rewrite mulr_ge0 // -{2}[a]opprK subr_ge0 (ler_trans _ F2) //.
-  by rewrite -(maxrN a) ler_maxr lerr orbT.
+  rewrite mulr_ge0 // -{2}[a]opprK subr_ge0 (le_trans _ F2) //.
+  by rewrite -(maxrN a) lexU lexx orbT.
 congr (_ +i* _); set u := if _ then _ else _.
   rewrite mulrCA !mulrA.
   have->: (u * u) = 1.
@@ -618,7 +623,7 @@ by rewrite -[_*+2]mulr_natr mulfK // pnatr_eq0.
 Qed.
 
 Lemma sqrtc0 : sqrtc 0 = 0.
-Proof. by rewrite sqrtc_sqrtr ?lerr // sqrtr0. Qed.
+Proof. by rewrite sqrtc_sqrtr ?lexx // sqrtr0. Qed.
 
 Lemma sqrtc1 : sqrtc 1 = 1.
 Proof. by rewrite sqrtc_sqrtr ?ler01 // sqrtr1. Qed.
@@ -1304,6 +1309,7 @@ End ComplexClosed.
 (* Canonical ComplexInternal.ComplexField.Re_additive. *)
 (* Canonical ComplexInternal.ComplexField.Im_additive. *)
 (* Canonical ComplexInternal.complex_numDomainType. *)
+(* Canonical ComplexInternal.complex_normedZmodType. *)
 (* Canonical ComplexInternal.complex_numFieldType. *)
 (* Canonical ComplexInternal.conjc_rmorphism. *)
 (* Canonical ComplexInternal.conjc_additive. *)
@@ -1348,7 +1354,10 @@ Canonical complexalg_idomainType := [idomainType of complexalg].
 Canonical complexalg_fieldType := [fieldType of complexalg].
 Canonical complexalg_decDieldType := [decFieldType of complexalg].
 Canonical complexalg_closedFieldType := [closedFieldType of complexalg].
+Canonical complexalg_porderType := [porderType of complexalg].
 Canonical complexalg_numDomainType := [numDomainType of complexalg].
+Canonical complexalg_normedZmodType :=
+  [normedZmodType complexalg of complexalg].
 Canonical complexalg_numFieldType := [numFieldType of complexalg].
 Canonical complexalg_numClosedFieldType := [numClosedFieldType of complexalg].
 

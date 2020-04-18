@@ -4,7 +4,7 @@ Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp
 Require Import ssrfun ssrbool eqtype ssrnat seq div choice fintype.
 From mathcomp
-Require Import bigop ssralg finset fingroup zmodp.
+Require Import bigop order ssralg finset fingroup zmodp.
 From mathcomp
 Require Import poly ssrnum.
 
@@ -76,7 +76,7 @@ Canonical term_eqMixin (T : eqType) := EqMixin (@term_eqP T).
 Canonical term_eqType (T : eqType) :=
    Eval hnf in EqType (term T) (@term_eqMixin T).
 
-Arguments term_eqP T [x y].
+Arguments term_eqP T {x y}.
 Prenex Implicits term_eq.
 
 
@@ -199,7 +199,7 @@ Canonical oclause_eqMixin (T : eqType) := EqMixin (@oclause_eqP T).
 Canonical oclause_eqType (T : eqType) :=
    Eval hnf in EqType (oclause T) (@oclause_eqMixin T).
 
-Arguments oclause_eqP T [x y].
+Arguments oclause_eqP T {x y}.
 Prenex Implicits oclause_eq.
 
 Section EvalTerm.
@@ -421,7 +421,7 @@ split=> t1.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
 Qed.
 
-Import Num.Theory.
+Import Order.TTheory Num.Theory.
 
 (* Correctness of the transformation. *)
 Lemma to_rformP e f : holds e (to_rform f) <-> holds e f.
@@ -676,8 +676,8 @@ Proof.
 move=> qev; have qevT f: qev f true = ~~ qev f false.
   rewrite {}/qev; elim: f => //=; do [by case | move=> f1 IH1 f2 IH2 | ].
   - by move=> t1 t2; rewrite !andbT !orbF.
-  - by move=> t1 t2; rewrite !andbT !orbF; rewrite !subr_gte0 -lerNgt.
-  - by move=> t1 t2; rewrite !andbT !orbF; rewrite !subr_gte0 -ltrNge.
+  - by move=> t1 t2; rewrite !andbT !orbF; rewrite !subr_gte0 -leNgt.
+  - by move=> t1 t2; rewrite !andbT !orbF; rewrite !subr_gte0 -ltNge.
   - by rewrite and_odnfP cat_dnfP negb_and -IH1 -IH2.
   - by rewrite and_odnfP cat_dnfP negb_or -IH1 -IH2.
   - by rewrite and_odnfP cat_dnfP /= negb_or IH1 -IH2 negbK.
@@ -810,7 +810,7 @@ suff {x1 x2 x3 x4} /= -> :
   holds e (odnf_to_oform s2) <-> eval e t == 0%:R /\ holds e (odnf_to_oform s1).
   suff /= -> :
     holds e (odnf_to_oform s3) <-> 0%:R < eval e t /\ holds e (odnf_to_oform s1).
-    rewrite ler_eqVlt eq_sym; split; first by case; case/orP=> -> ?; [left|right].
+    rewrite le_eqVlt eq_sym; split; first by case; case/orP=> -> ?; [left|right].
     by case; [case=> -> ? /= |case=> ->; rewrite orbT].
   rewrite /s1 /s3.
   elim: (leq_elim_aux eq_l lt_l le_l) => /= [| t1 l ih]; first by split=> // [[]].
@@ -896,8 +896,8 @@ suff {x1 x2 x3 x4} /= -> :
   suff /= -> :
     holds e (odnf_to_oform s3) <-> 0%:R < - eval e t /\ holds e (odnf_to_oform s1).
     rewrite oppr_gt0; split.
-      by case; move/eqP; rewrite neqr_lt; case/orP=> -> h1; [right | left].
-    by case; case=> h ?; split=> //; apply/eqP; rewrite neqr_lt h ?orbT.
+      by case; move/eqP; rewrite neq_lt; case/orP=> -> h1; [right | left].
+    by case; case=> h ?; split=> //; apply/eqP; rewrite neq_lt h ?orbT.
   rewrite /s1 /s3.
   elim: (neq_elim_aux lt_l neq_l) => /= [| t1 l ih] /=; first by split => //; case.
   set y1 := foldr _ _ _; set y2 := foldr _ _ _; set y3 := foldr _ _ _.
