@@ -835,116 +835,6 @@ End Skew.
 
 Notation skew K n := (@skew_def _ (Phant K) n).
 
-Section Companion.
-
-Variable (K : fieldType).
-
-Lemma companion_subproof (p : {poly K}) :
-  {M : 'M[K]_((size p).-1)| p \is monic -> char_poly M = p}.
-Proof.
-have simp := (castmxE, mxE, castmx_id, cast_ord_id).
-case Hsp: (size p) => [|sp] /=.
-  move/eqP: Hsp; rewrite size_poly_eq0 => /eqP ->.
-  by exists 0; rewrite qualifE lead_coef0 eq_sym oner_eq0.
-case: sp => [|sp] in Hsp *.
-  move: Hsp => /eqP/size_poly1P/sig2_eqW [c c_neq0 ->].
-  by exists ((-c)%:M); rewrite monicE lead_coefC => /eqP ->; apply: det_mx00.
-have addn1n n : (n + 1 = 1 + n)%N by rewrite addn1.
-exists (castmx (erefl _, addn1n _)
-       (block_mx (\row_(i < sp) - p`_(sp - i)) (-p`_0)%:M
-                 1%:M                        0)).
-elim/poly_ind: p sp Hsp (addn1n _) => [|p c IHp] sp; first by rewrite size_poly0.
-rewrite size_MXaddC.
-have [->|p_neq0] //= := altP eqP; first by rewrite size_poly0; case: ifP.
-move=> [Hsp] eq_cast.
-rewrite monicE lead_coefDl ?size_polyC ?size_mul ?polyX_eq0 //; last first.
-  by rewrite size_polyX addn2 Hsp ltnS (leq_trans (leq_b1 _)).
-rewrite lead_coefMX -monicE => p_monic.
-rewrite -/_`_0 coefD coefMX coefC eqxx add0r.
-case: sp => [|sp] in Hsp p_neq0 p_monic eq_cast *.
-  move: Hsp p_monic => /eqP/size_poly1P [l l_neq0 ->].
-  rewrite monicE lead_coefC => /eqP ->; rewrite mul1r.
-  rewrite /char_poly /char_poly_mx thinmx0 flatmx0 castmx_id.
-  set b := (block_mx _ _ _ _); rewrite [map_mx _ b]map_block_mx => {b}.
-  rewrite !map_mx0 map_scalar_mx (@opp_block_mx _ 1 0 0 1) !oppr0.
-  set b := block_mx _ _ _ _; rewrite (_ : b = c%:P%:M); last first.
-    apply/matrixP => i j; rewrite !mxE; case: splitP => k /= Hk; last first.
-      by move: (ltn_ord i); rewrite Hk.
-    rewrite !ord1 !mxE; case: splitP => {Hk k} k /= Hk; first by move: (ltn_ord k).
-    by rewrite ord1 !mxE mulr1n rmorphN opprK.
-  by rewrite -rmorphD det_scalar.
-rewrite /char_poly /char_poly_mx (expand_det_col _ ord_max).
-rewrite big_ord_recr /= big_ord_recl //= big1 ?simp; last first.
-  move=> i _; rewrite !simp.
-  case: splitP => k /=; first by rewrite /bump leq0n ord1.
-  rewrite /bump leq0n => [] [Hik]; rewrite !simp.
-  case: splitP => l /=; first by move/eqP; rewrite gtn_eqF.
-  rewrite !ord1 addn0 => _ {l}; rewrite !simp -!val_eqE /=.
-  by rewrite /bump leq0n ltn_eqF ?ltnS ?add1n // mulr0n subrr mul0r.
-case: splitP => i //=; rewrite !ord1 !simp => _ {i}.
-case: splitP => i //=; first by move/eqP; rewrite gtn_eqF.
-rewrite ord1 !simp => {i}.
-case: splitP => i //=; rewrite ?ord1 ?simp // => /esym [eq_i_sp] _.
-case: splitP => j //=; first by move/eqP; rewrite gtn_eqF.
-rewrite ord1 !simp => {j} _.
-rewrite eqxx mulr0n ?mulr1n rmorphN ?opprK !add0r !addr0 subr0 /=.
-rewrite -[c%:P in X in _ = X]mulr1 addrC mulrC.
-rewrite /cofactor -signr_odd addnn odd_double expr0 mul1r /=.
-rewrite !linearB /= -!map_col' -!map_row'.
-congr (_ * 'X + c%:P * _).
-  have coefE := (coefD, coefMX, coefC, eqxx, add0r, addr0).
-  rewrite -[X in _ = X](IHp sp Hsp _ p_monic) /char_poly /char_poly_mx.
-   congr (\det (_ - _)).
-    apply/matrixP => k l; rewrite !simp -val_eqE /=;
-    by rewrite /bump ![(sp < _)%N]ltnNge ?leq_ord.
-  apply/matrixP => k l; rewrite !simp.
-  case: splitP => k' /=; rewrite ?ord1 /bump ltnNge leq_ord add0n.
-    case: splitP => [k'' /= |k'' -> //]; rewrite ord1 !simp => k_eq0 _.
-    case: splitP => l' /=; rewrite ?ord1 /bump ltnNge leq_ord add0n !simp;
-      last by move/eqP; rewrite ?addn0 ltn_eqF.
-    move<-; case: splitP => l'' /=; rewrite ?ord1 ?addn0 !simp.
-      by move<-; rewrite subSn ?leq_ord ?coefE.
-    move->; rewrite eqxx mulr1n ?coefE subSn ?subrr //=.
-    by rewrite !rmorphN ?subnn addr0.
-  case: splitP => k'' /=; rewrite ?ord1 => -> // []; rewrite !simp.
-  case: splitP => l' /=; rewrite /bump ltnNge leq_ord add0n !simp -?val_eqE /=;
-    last by rewrite ord1 addn0 => /eqP; rewrite ltn_eqF.
-  by case: splitP => l'' /= -> <- <-; rewrite !simp // ?ord1 ?addn0 ?ltn_eqF.
-move=> {IHp Hsp p_neq0 p_monic}; rewrite add0n; set s := _ ^+ _;
-apply: (@mulfI _ s); first by rewrite signr_eq0.
-rewrite mulrA -expr2 sqrr_sign mulr1 mul1r /s.
-pose fix D n : 'M[{poly K}]_n.+1 :=
-     if n is n'.+1  then block_mx (-1 :'M_1)   ('X *: pid_mx 1)
-                                  0            (D n')           else -1.
-pose D' n : 'M[{poly K}]_n.+1 := \matrix_(i, j) ('X *+ (i.+1 == j) - (i == j)%:R).
-set M := (_ - _); have -> : M = D' sp.
-  apply/matrixP => k l; rewrite !simp.
-  case: splitP => k' /=; rewrite ?ord1 !simp // /bump leq0n add1n; case.
-  case: splitP => l' /=; rewrite /bump ltnNge leq_ord add0n; last first.
-    by move/eqP; rewrite ord1 addn0 ltn_eqF.
-  rewrite !simp -!val_eqE /= /bump leq0n ltnNge leq_ord [(true + _)%N]add1n ?add0n.
-  by move=> -> ->; rewrite polyC_muln.
-have -> n : D' n = D n.
-  clear -simp; elim: n => [|n IHn] //=; apply/matrixP => i j; rewrite !simp.
-    by rewrite !ord1 /= ?mulr0n sub0r.
-  case: splitP => i' /=; rewrite -!val_eqE /= ?ord1 !simp => -> /=.
-    case: splitP => j' /=; rewrite ?ord1 !simp => -> /=; first by rewrite sub0r.
-    by rewrite eqSS andbT subr0 mulr_natr.
-  by case: splitP => j' /=; rewrite ?ord1 -?IHn ?simp => -> //=; rewrite subr0.
-elim: sp {eq_cast i M eq_i_sp s} => [|n IHn].
-  by rewrite /= (_ : -1 = (-1)%:M) ?det_scalar // rmorphN.
-rewrite /= (@det_ublock _ 1 n.+1) IHn.
-by rewrite (_ : -1 = (-1)%:M) ?det_scalar // rmorphN.
-Qed.
-
-Definition companion (p : {poly K}) : 'M[K]_((size p).-1) :=
-  projT1 (companion_subproof p).
-
-Lemma companionK (p : {poly K}) : p \is monic -> char_poly (companion p) = p.
-Proof. exact: projT2 (companion_subproof _). Qed.
-
-End Companion.
-
 Section Restriction.
 
 Variable K : fieldType.
@@ -1274,8 +1164,8 @@ have p_monic : p \is monic.
 have sp_gt1 : (size p > 1)%N.
   by rewrite size_addl size_polyXn // size_opp ltnS size_poly.
 case: n n_gt0 p => //= n _ p in p_monic sp_gt1 *.
-have [] := Theorem7' (companion p); first by rewrite -(subnK sp_gt1) addn2.
-by move=> x; rewrite eigenvalue_root_char companionK //; exists x.
+have [] := Theorem7' (companionmx p); first by rewrite -(subnK sp_gt1) addn2.
+by move=> x; rewrite eigenvalue_root_char companionmxK //; exists x.
 Qed.
 
 Definition complex_decFieldMixin := closed_field_QEMixin complex_acf_axiom.
