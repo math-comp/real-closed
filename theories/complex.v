@@ -618,10 +618,10 @@ have F2: `|a| <= sqrtr (a^+2 + b^+2).
   by rewrite addrC -subr_ge0 addrK exprn_even_ge0.
 have F3: 0 <= (sqrtr (a ^+ 2 + b ^+ 2) - a) / 2%:R.
   rewrite mulr_ge0 // subr_ge0 (le_trans _ F2) //.
-  by rewrite -(maxrN a) lexU lexx.
+  by rewrite -(maxrN a) le_maxr lexx.
 have F4: 0 <= (sqrtr (a ^+ 2 + b ^+ 2) + a) / 2%:R.
   rewrite mulr_ge0 // -{2}[a]opprK subr_ge0 (le_trans _ F2) //.
-  by rewrite -(maxrN a) lexU lexx orbT.
+  by rewrite -(maxrN a) le_maxr lexx orbT.
 congr (_ +i* _); set u := if _ then _ else _.
   rewrite mulrCA !mulrA.
   have->: (u * u) = 1.
