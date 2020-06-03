@@ -793,13 +793,13 @@ rewrite roots_cons; case/and5P => _ xab /eqP hax hx /eqP hs.
 rewrite !big_cons variation0r add0r (ihs _ _ hs) ?(itvP xab) // => {ihs}.
 pose y := (head b s); pose ax := midf a x; pose xy := midf x y.
 rewrite (@sjump_neigh a b _ _ _ ax xy) ?inE ?midf_lte//=; last 2 first.
-+ by rewrite /prev_root pq_eq0 hax meet_l ?(itvP xab, midf_lte).
++ by rewrite /prev_root pq_eq0 hax min_l ?(itvP xab, midf_lte).
 + have hy: y \in `]x, b].
     rewrite /y; case: s hs {y xy} => /= [|u s] hu.
       by rewrite boundr_in_itv /= ?(itvP xab).
     have /roots_in: u \in  roots (p * q) x b by rewrite hu mem_head.
     by apply: subitvP; rewrite /= !lexx.
-  by rewrite /next_root pq_eq0 hs join_l ?(itvP hy, midf_lte).
+  by rewrite /next_root pq_eq0 hs max_l ?(itvP hy, midf_lte).
 move: @y @xy {hs}; rewrite /cross.
 by case: s => /= [|y l]; rewrite ?(big_cons, big_nil, variation0r, add0r).
 Qed.
@@ -835,11 +835,11 @@ have pq0 : p * q != 0 by rewrite mulf_neq0.
 rewrite cindex_seq_mids // sum_varP /cross.
   apply: congr_variation; apply: (mulrIz (oner_neq0 R)); rewrite -!sgrEz.
     case hr: roots => [|c s] /=; apply: (@sgr_neighprN _ _ a b) => //;
-    rewrite /neighpr /next_root ?(negPf pq0) join_l // hr mid_in_itv //=.
+    rewrite /neighpr /next_root ?(negPf pq0) max_l // hr mid_in_itv //=.
     by move/eqP: hr; rewrite roots_cons => /and5P [_ /itvP ->].
   rewrite -cats1 pairmap_cat /= cats1 map_rcons last_rcons.
   apply: (@sgr_neighplN _ _ a b) => //.
-  rewrite /neighpl /prev_root (negPf pq0) meet_l //.
+  rewrite /neighpl /prev_root (negPf pq0) min_l //.
   by rewrite mid_in_itv //= last_roots_le.
 elim: roots {-2 6}a (erefl (roots (p * q) a b))
   {hpqa hpqb} hab hlab => {a} [|c s IHs] a Hs hab hlab /=.

@@ -148,7 +148,7 @@ rewrite lead_coefDl ?size_mul ?polyX_eq0 // ?lead_coefMX; last first.
 move=> lq_gt0; have [y Hy] := IHq lq_gt0.
 pose z := (1 + (lead_coef q) ^-1 * `|c|); exists (maxr y z) => x.
 have z_gt0 : 0 < z by rewrite ltr_spaddl ?ltr01 ?mulr_ge0 ?invr_ge0 // ltW.
-rewrite !hornerE leUx => /andP[/Hy Hq Hc].
+rewrite !hornerE le_maxl => /andP[/Hy Hq Hc].
 apply: le_trans (_ : lead_coef q * z + c <= _); last first.
   rewrite ler_add2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pmul2r //.
   by rewrite ler_pmul2l // (lt_le_trans _ Hq).
@@ -171,7 +171,7 @@ move=> lq_gt0; have [y Hy _] := poly_pinfty_gt_lc lq_gt0.
 pose z := (1 + (lead_coef q) ^-1 * (`|m| + `|c|)); exists (maxr y z) => x.
 have z_gt0 : 0 < z.
   by rewrite ltr_spaddl ?ltr01 ?mulr_ge0 ?invr_ge0 ?addr_ge0 // ?ltW.
-rewrite !hornerE leUx => /andP[/Hy Hq Hc].
+rewrite !hornerE le_maxl => /andP[/Hy Hq Hc].
 apply: le_trans (_ : lead_coef q * z + c <= _); last first.
   rewrite ler_add2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pmul2r //.
   by rewrite ler_pmul2l // (lt_le_trans _ Hq).
@@ -347,8 +347,8 @@ move=> d' d'p He'.
 case: (@nth_root (e / ((3%:R / 2%:R) * `|p.[x]|)) n).
   by rewrite ltr_pdivl_mulr ?mul0r ?pmulr_rgt0 ?invr_gt0 ?normrE ?ltr0Sn.
 move=> d dp rootd.
-exists (minr d d'); first by rewrite ltxI dp.
-move=> y; rewrite ltxI; case/andP=> hxye hxye'.
+exists (minr d d'); first by rewrite lt_minr dp.
+move=> y; rewrite lt_minr; case/andP=> hxye hxye'.
 rewrite !(hornerE, horner_exp) subrr expr0n mulr0n mulr0 add0r addrK normrM.
 apply: le_lt_trans (_ : `|p.[y]| * d ^+ n.+1 < _).
   by rewrite ler_wpmul2l ?normrE // normrX ler_expn2r -?topredE /= ?normrE 1?ltW.
@@ -1210,9 +1210,9 @@ Qed.
 Lemma next_root_in p a b : next_root p a b \in `[a, maxr b a].
 Proof.
 case: next_rootP => [p0|y np0 py0 hy _|c np0 hc _].
-* by rewrite bound_in_itv /= lexU lexx orbT.
-* by apply: subitvP hy=> /=; rewrite lexU !lexx.
-* by rewrite hc bound_in_itv /= lexU lexx orbT.
+* by rewrite bound_in_itv /= le_maxr lexx orbT.
+* by apply: subitvP hy=> /=; rewrite le_maxr !lexx.
+* by rewrite hc bound_in_itv /= le_maxr lexx orbT.
 Qed.
 
 Lemma next_root_gt p a b : a < b -> p != 0 -> next_root p a b > a.
@@ -1220,7 +1220,7 @@ Proof.
 move=> ab np0; case: next_rootP=> [p0|y _ py0 hy _|c _ -> _].
 * by rewrite p0 eqxx in np0.
 * by rewrite (itvP hy).
-* by rewrite ltxU ab.
+* by rewrite lt_maxr ab.
 Qed.
 
 Lemma next_noroot p a b : {in `]a, (next_root p a b)[, noroot p}.
@@ -1278,9 +1278,9 @@ Qed.
 Lemma prev_root_in p a b : prev_root p a b \in `[minr a b, b].
 Proof.
 case: prev_rootP => [p0|y np0 py0 hy _|c np0 hc _].
-* by rewrite bound_in_itv /= leIx lexx orbT.
-* by apply: subitvP hy=> /=; rewrite leIx !lexx.
-* by rewrite hc bound_in_itv /= leIx lexx orbT.
+* by rewrite bound_in_itv /= le_minl lexx orbT.
+* by apply: subitvP hy=> /=; rewrite le_minl !lexx.
+* by rewrite hc bound_in_itv /= le_minl lexx orbT.
 Qed.
 
 Lemma prev_noroot p a b : {in `](prev_root p a b), b[, noroot p}.
@@ -1296,7 +1296,7 @@ Proof.
 move=> ab np0; case: prev_rootP=> [p0|y _ py0 hy _|c _ -> _].
 * by rewrite p0 eqxx in np0.
 * by rewrite (itvP hy).
-* by rewrite ltIx ab.
+* by rewrite lt_minl ab.
 Qed.
 
 Lemma is_prev_root p a b x :
@@ -1457,20 +1457,20 @@ case: leP => //; case: next_rootP=> [|y np0 py0 hy|c np0 ->] hp hpq _.
   - by rewrite hornerM py0 mul0r.
   - move=> z hz /=; rewrite rootM negb_or ?hp //.
     by rewrite (@next_noroot _ a b) //; apply: subitvPr hz.
-* case: (altP (q =P 0))=> q0.
-    move: hpq; rewrite q0 mulr0 root0 next_root0 leUx lexx andbT.
-    by move/join_r => ->; constructor.
+* case: (altP (q =P 0)) => q0.
+    move: hpq; rewrite q0 mulr0 root0 next_root0 le_maxl lexx andbT.
+    by move/max_r->; constructor.
   constructor=> //; first by rewrite mulf_neq0.
   move=> z hz /=; rewrite rootM negb_or ?hp //.
   rewrite (@next_noroot _ a b) //; apply: subitvPr hz=> /=.
-  by move: hpq; rewrite leUx; case/andP.
+  by move: hpq; rewrite le_maxl; case/andP.
 Qed.
 
 Lemma neighpr_mul a b p q :
   (neighpr (p * q) a b) =i [predI (neighpr p a b) & (neighpr q a b)].
 Proof.
 move=> x; rewrite inE /= !inE /= next_rootM.
-by case: (a < x); rewrite // ltxI.
+by case: (a < x); rewrite // lt_minr.
 Qed.
 
 Lemma prev_rootM a b (p q : {poly R}) :
@@ -1488,19 +1488,19 @@ case: ltP => //; case: (@prev_rootP p)=> [|y np0 py0 hy|c np0 ->] hp hpq _.
   - move=> z hz /=; rewrite rootM negb_or ?hp //.
     by rewrite (@prev_noroot _ a b) //; apply: subitvPl hz.
 * case: (altP (q =P 0))=> q0.
-    move: hpq; rewrite q0 mulr0 root0 prev_root0 lexI lexx andbT.
-    by move/meet_r => ->; constructor.
+    move: hpq; rewrite q0 mulr0 root0 prev_root0 le_minr lexx andbT.
+    by move/min_r->; constructor.
   constructor=> //; first by rewrite mulf_neq0.
   move=> z hz /=; rewrite rootM negb_or ?hp //.
   rewrite (@prev_noroot _ a b) //; apply: subitvPl hz=> /=.
-  by move: hpq; rewrite lexI; case/andP.
+  by move: hpq; rewrite le_minr; case/andP.
 Qed.
 
 Lemma neighpl_mul a b p q :
   (neighpl (p * q) a b) =i [predI (neighpl p a b) & (neighpl q a b)].
 Proof.
 move=> x; rewrite !inE /= prev_rootM.
-by case: (x < b); rewrite // ltUx !(andbT, andbF).
+by case: (x < b); rewrite // lt_maxl !(andbT, andbF).
 Qed.
 
 Lemma neighpr_wit p x b : x < b -> p != 0 -> {y | y \in neighpr p x b}.
@@ -1809,8 +1809,8 @@ rewrite /sgp_pinfty; wlog lp_gt0 : x p / lead_coef p > 0 => [hwlog|rpx y Hy].
 have [z Hz] := poly_pinfty_gt_lc lp_gt0.
 have {Hz} Hz u : u \in `[z, +oo[ -> Num.sg p.[u] = 1.
   by rewrite inE andbT => /Hz pu_ge1; rewrite gtr0_sg // (lt_le_trans lp_gt0).
-rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?inE /= ?lexU ?(itvP Hy) //.
-by rewrite Hz ?gtr0_sg // inE /= lexU lexx orbT.
+rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?inE /= ?le_maxr ?(itvP Hy) //.
+by rewrite Hz ?gtr0_sg // inE /= le_maxr lexx orbT.
 Qed.
 
 Lemma sgp_minftyP x (p : {poly R}) :

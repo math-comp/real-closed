@@ -118,7 +118,7 @@ have [|r_lt0] := lerP 0 r; last first.
 rewrite le0r=> /orP[/eqP->|r_gt0 hx hy].
   by rewrite !normr_le0 !subr_eq0=> /eqP-> /eqP->; rewrite !subrr normr0 mul0r.
 rewrite mulrA mulrDr mulr1 ler_paddl ?mulr_ge0 ?normr_ge0 //=.
-  by rewrite exprn_ge0 ?lexU ?mulr_ge0 ?ger0E ?ltW.
+  by rewrite exprn_ge0 ?le_maxr ?mulr_ge0 ?ger0E ?ltW.
 rewrite -{1}(addNKr x y) [- _ + _]addrC /= -mulrA.
 rewrite nderiv_taylor; last exact: mulrC.
 have [->|p_neq0] := eqVneq p 0.
@@ -132,7 +132,7 @@ rewrite exprSr mulrA !normrM mulrC ler_wpmul2l ?normr_ge0 //.
 suff /ler_wpmul2l /le_trans :
   `|(y - x) ^+ i| <=  maxr 1 (2%:R * r) ^+ (size p).-1.
   apply; rewrite ?normr_ge0 // mulrC ler_wpmul2l ?poly_boundP //.
-  by rewrite ?exprn_ge0 // lexU ler01 mulr_ge0 ?ler0n ?ltW.
+  by rewrite ?exprn_ge0 // le_maxr ler01 mulr_ge0 ?ler0n ?ltW.
 case: (leP _ 1)=> hr.
   rewrite expr1n normrX exprn_ile1 ?normr_ge0 //.
   rewrite (le_trans (ler_dist_add a _ _)) // addrC distrC.
@@ -150,7 +150,7 @@ Proof.
 rewrite /poly_accr_bound pmulr_rgt0 //.
   rewrite ltr_paddr ?ltr01 //.
   by rewrite sumr_ge0 // => i; rewrite poly_bound_ge0.
-by rewrite exprn_gt0 // ltxU ltr01 pmulr_rgt0 ?ltr0n.
+by rewrite exprn_gt0 // lt_maxr ltr01 pmulr_rgt0 ?ltr0n.
 Qed.
 
 Lemma poly_accr_bound_ge0 p a r : 0 <= poly_accr_bound p a r.
@@ -212,7 +212,7 @@ Proof.
 rewrite /poly_accr_bound pmulr_rgt0 //.
   rewrite ltr_paddr ?ltr01 //.
   by rewrite sumr_ge0 // => i; rewrite poly_bound_ge0.
-by rewrite exprn_gt0 // ltxU ltr01 pmulr_rgt0 ?ltr0n.
+by rewrite exprn_gt0 // lt_maxr ltr01 pmulr_rgt0 ?ltr0n.
 Qed.
 
 Lemma poly_accr_bound2_ge0 p a r : 0 <= poly_accr_bound2 p a r.
@@ -230,7 +230,7 @@ rewrite le0r=> /orP[/eqP->|r_gt0].
   by move=> nxy /eqP xa /eqP xb; rewrite xa xb eqxx in nxy.
 move=> neq_xy hx hy.
 rewrite mulrA mulrDr mulr1 ler_paddl ?mulr_ge0 ?normr_ge0 //=.
-  by rewrite exprn_ge0 ?lexU ?mulr_ge0 ?ger0E ?ltW.
+  by rewrite exprn_ge0 ?le_maxr ?mulr_ge0 ?ger0E ?ltW.
 rewrite -{1}(addNKr x y) [- _ + _]addrC /= -mulrA.
 rewrite nderiv_taylor; last exact: mulrC.
 have [->|p_neq0] := eqVneq p 0.
@@ -250,7 +250,7 @@ rewrite normrM normrX 3!exprSr expr1 !mulrA !ler_wpmul2r ?normr_ge0 //.
 suff /ler_wpmul2l /le_trans :
   `|(y - x)| ^+ i <=  maxr 1 (2%:R * r) ^+ (size p^`()).-1.
   apply; rewrite ?normr_ge0 // mulrC ler_wpmul2l ?poly_boundP //.
-  by rewrite ?exprn_ge0 // lexU ler01 mulr_ge0 ?ler0n ?ltW.
+  by rewrite ?exprn_ge0 // le_maxr ler01 mulr_ge0 ?ler0n ?ltW.
 case: (leP _ 1)=> hr.
   rewrite expr1n exprn_ile1 ?normr_ge0 //.
   rewrite (le_trans (ler_dist_add a _ _)) // addrC distrC.
@@ -358,7 +358,7 @@ rewrite ler_pdivl_mulr ?gtr0E // -{2}[2%:R]ger0_norm ?ger0E //.
 rewrite -normrM mulrBl mulfVK ?pnatr_eq0 // ler_distl.
 rewrite opprB addrCA addrK (addrC (l + u)) addrA addrNK.
 rewrite -!mulr2n !mulr_natr !ler_muln2r !orFb.
-rewrite leIx lexU !ler_distl /=.
+rewrite le_minl le_maxr !ler_distl /=.
 set le := <=%R; rewrite {}/le.
 have [] := lerP=> /= a1N; have [] := lerP=> //= a1P;
 have [] := lerP=> //= a2P; rewrite ?(andbF, andbT) //; symmetry.
@@ -405,7 +405,7 @@ move=> [] accr2_p; last first.
   by rewrite mulrC ler_wpmul2r // ltW.
 case: accr2_p=> [[k2 k2_gt0 hk2]] h2.
 left; split; last by move=> x; rewrite split_interval // => /orP [/h1|/h2].
-exists (minr k1 k2); first by rewrite ltxI k1_gt0.
+exists (minr k1 k2); first by rewrite lt_minr k1_gt0.
 move=> x y neq_xy; rewrite !split_interval //.
 wlog lt_xy: x y neq_xy / y < x.
   move=> hwlog; have [] := ltrP y x; first exact: hwlog.
@@ -416,11 +416,11 @@ move=> {h1} {h2} {sm1}.
 wlog le_xr1 : a1 a2 r1 r2 k1 k2
   r1_gt0 r2_gt0 k1_gt0 k2_gt0 har hk1 hk2  / `|x - a1| <= r1.
   move=> hwlog h; move: (h)=> /orP [/hwlog|]; first exact.
-  move=> /(hwlog a2 a1 r2 r1 k2 k1) hwlog' ley; rewrite meetC.
+  move=> /(hwlog a2 a1 r2 r1 k2 k1) hwlog' ley; rewrite minC.
   by apply: hwlog'; rewrite 1?orbC // distrC [r2 + _]addrC.
 move=> _.
 have [le_yr1|gt_yr1] := (lerP _ r1)=> /= [_|le_yr2].
-  by rewrite ltIx hk1.
+  by rewrite lt_minl hk1.
 rewrite ltr_pdivl_mulr ?subr_gt0 //.
 pose z := a1 - r1.
 have hz1 : `|z - a1| <= r1 by rewrite addrC addKr normrN gtr0_norm.
@@ -439,7 +439,7 @@ have hz2 : `|z - a2| <= r2.
     by rewrite (monoRL (addrK _) (ler_add2r _)) addrC ltW.
   by move: le_yr2; rewrite ler_norml=> /andP[].
 have [<-|neq_zx] := eqVneq z x.
-  by rewrite -ltr_pdivl_mulr ?subr_gt0 // ltIx hk2 ?orbT // gt_eqF.
+  by rewrite -ltr_pdivl_mulr ?subr_gt0 // lt_minl hk2 ?orbT // gt_eqF.
 have lt_zx : z < x.
   rewrite lt_neqAle neq_zx /=.
   move: le_xr1; rewrite distrC ler_norml=> /andP[_].
@@ -447,9 +447,9 @@ have lt_zx : z < x.
 rewrite -{1}[x](addrNK z) -{1}[p.[x]](addrNK p.[z]).
 rewrite !addrA -![_ - _ + _ - _]addrA mulrDr ltr_add //.
   rewrite -ltr_pdivl_mulr ?subr_gt0 //.
-  by rewrite ltIx hk1 ?gt_eqF.
+  by rewrite lt_minl hk1 ?gt_eqF.
 rewrite -ltr_pdivl_mulr ?subr_gt0 //.
-by rewrite ltIx hk2 ?orbT ?gt_eqF.
+by rewrite lt_minl hk2 ?orbT ?gt_eqF.
 Qed.
 
 End monotony.
@@ -874,13 +874,13 @@ Proof.
 pose_big_enough i; first set b := 1 + `|x i|.
   exists (foldl maxr b [seq `|x n| | n <- iota 0 i]) => [|n].
     have : 0 < b by rewrite ltr_spaddl.
-    by elim: iota b => //= a l IHl b b_gt0; rewrite IHl ?ltxU ?b_gt0.
+    by elim: iota b => //= a l IHl b b_gt0; rewrite IHl ?lt_maxr ?b_gt0.
   have [|le_in] := (ltnP n i).
     elim: i b => [|i IHi] b //.
-    rewrite ltnS -addn1 iota_add add0n map_cat foldl_cat /= lexU leq_eqVlt.
+    rewrite ltnS -addn1 iota_add add0n map_cat foldl_cat /= le_maxr leq_eqVlt.
     by case/orP=> [/eqP->|/IHi->] //; rewrite lexx orbT.
   set xn := `|x n|; suff : xn <= b.
-    by elim: iota xn b => //= a l IHl xn b Hxb; rewrite IHl ?lexU ?Hxb.
+    by elim: iota xn b => //= a l IHl xn b Hxb; rewrite IHl ?le_maxr ?Hxb.
   rewrite -ler_subl_addr (le_trans (ler_norm _)) //.
   by rewrite (le_trans (ler_dist_dist _ _)) ?ltW ?cauchymodP.
 by close.
@@ -1363,7 +1363,7 @@ pose r : F := minr 1 (minr
   (diff px_gt0 / 4%:R / b1)
   (diff px_gt0 / 4%:R / b2 / 2%:R)).
 exists r.
-  rewrite !ltxI ?ltr01 ?pmulr_rgt0 ?gtr0E ?diff_gt0;
+  rewrite !lt_minr ?ltr01 ?pmulr_rgt0 ?gtr0E ?diff_gt0;
   by rewrite ?poly_accr_bound2_gt0 ?poly_accr_bound_gt0.
 pose_big_enough i.
   exists i => //; left; split; last first.
@@ -1372,7 +1372,7 @@ pose_big_enough i.
     rewrite (le_trans (_ : _ <= r + `|x i|)) ?subr0; last 2 first.
     + rewrite (monoRL (addrNK _) (ler_add2r _)).
       by rewrite (le_trans (ler_sub_dist _ _)).
-    + by rewrite ler_add ?leIx ?lexx ?uboundP.
+    + by rewrite ler_add ?le_minl ?lexx ?uboundP.
     move=> /(_ isT isT).
     rewrite ler_distl=> /andP[le_py ge_py].
     rewrite (lt_le_trans _ le_py) // subr_gt0 -/b1.
@@ -1380,7 +1380,7 @@ pose_big_enough i.
     apply: le_lt_trans (_ : r * b1 < _).
       by rewrite ler_wpmul2r ?poly_accr_bound_ge0.
     rewrite -ltr_pdivl_mulr ?poly_accr_bound_gt0 //.
-    rewrite !ltIx ltr_pmul2r ?invr_gt0 ?poly_accr_bound_gt0 //.
+    rewrite !lt_minl ltr_pmul2r ?invr_gt0 ?poly_accr_bound_gt0 //.
     by rewrite gtr_pmulr ?diff_gt0 // invf_lt1 ?gtr0E ?ltr1n ?orbT.
   exists (diff px_gt0 / 4%:R).
    by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
@@ -1391,11 +1391,11 @@ pose_big_enough i.
   rewrite (le_trans (_ : _ <= r + `|x i|)); last 2 first.
   + rewrite (monoRL (addrNK _) (ler_add2r _)).
     by rewrite (le_trans (ler_sub_dist _ _)).
-  + by rewrite ler_add ?leIx ?lexx ?uboundP.
+  + by rewrite ler_add ?le_minl ?lexx ?uboundP.
   rewrite (le_trans (_ : _ <= r + `|x i|)); last 2 first.
   + rewrite (monoRL (addrNK _) (ler_add2r _)).
     by rewrite (le_trans (ler_sub_dist _ _)).
-  + by rewrite ler_add ?leIx ?lexx ?uboundP.
+  + by rewrite ler_add ?le_minl ?lexx ?uboundP.
   rewrite ler_paddl ?uboundP ?ler01 //.
   move=> /(_ isT isT); rewrite ler_distl=> /andP [haccr _].
   move=> /(_ isT isT); rewrite ler_distl=> /andP [hp' _].
@@ -1409,9 +1409,9 @@ pose_big_enough i.
     rewrite (le_trans (ler_dist_add (x i) _ _)) //.
     apply: le_trans (_ : r * 2%:R <= _).
       by rewrite mulrDr mulr1 ler_add // distrC.
-    by rewrite -ler_pdivl_mulr ?ltr0n // !leIx lexx !orbT.
+    by rewrite -ler_pdivl_mulr ?ltr0n // !le_minl lexx !orbT.
   + rewrite -ler_pdivl_mulr ?poly_accr_bound_gt0 //.
-    by rewrite (le_trans hz) // !leIx lexx !orbT.
+    by rewrite (le_trans hz) // !le_minl lexx !orbT.
 by close.
 Qed.
 
@@ -1518,7 +1518,7 @@ apply: le_trans (_ : u * vi <= _).
   move=> r2_gt1; rewrite ler_eexpn2l //.
   rewrite -subn1 leq_subLR add1n (leq_trans _ (leqSpred _)) //.
   by rewrite max_size_evalC.
-rewrite ler_wpmul2l ?exprn_ge0 ?lexU ?ler01 // ler_add //.
+rewrite ler_wpmul2l ?exprn_ge0 ?le_maxr ?ler01 // ler_add //.
 pose f j :=  poly_bound q.[(z i)%:P]^`N(j.+1) a r.
 rewrite (big_ord_widen (sizeY q).-1 f); last first.
   rewrite -subn1 leq_subLR add1n (leq_trans _ (leqSpred _)) //.
