@@ -226,27 +226,56 @@ End PolyRealField.
 Hint Resolve le_cauchy_bound ge_cauchy_bound cauchy_bound_gt0 cauchy_bound_ge0.
 Hint Resolve cauchy_bound_neq0.
 
-Section poly_ext.
+Section ring_ext.
+
+Variable (R : ringType).
+Implicit Types (x y : ext R) (a b c : R) (s : bool).
+
+Definition mule x y : ext R :=
+  match x, y with
+  | a%:x, b%:x => (a * b)%:x
+  | Infty s, _%:x | _%:x, Infty s => Infty s
+  | Infty s, Infty s' => Infty (s (+) s')
+  end.
+Local Infix "*" := mule : ext_scope.
+
+End ring_ext.
+Infix "*" := mule : ext_scope.
+
+Definition eitv_bound (T : Type) (x : bool * ext T) :=
+  match x with
+  | (o, Fin a) => BOpen_if o a
+  | (o, Infty _) => BInfty
+  end.
+
+Definition eitv_itv_bound T (x : ) :=
+
+Section num_ext.
 Variable (R : numDomainType).
 Implicit Types (p : {poly R}) (x y : ext R) (a b c : R) (s : bool).
 
-Definition ehorner p x : ext R := match x with
+
+Definition EInterval ix iy :=
+  Inter
+
+
+Definition hornere p x : ext R := match x with
   | Fin a => p.[a]%:x
   | Infty s => if (size p <= 1)%N then (p.[0])%:x else
                Infty (odd (size p) (+) (lead_coef p < 0) (+) s)
   end.
-Local Notation "p .[ x ]" := (ehorner p x) : ext_scope.
+Local Notation "p .[ x ]" := (hornere p x) : ext_scope.
 
-Lemma ehornerC c x : c%:P.[x]%x = c%:x.
+Lemma hornereC c x : c%:P.[x]%x = c%:x.
 Proof. by case: x => [s|a]/=; rewrite hornerC// size_polyC leq_b1. Qed.
 
-Lemma ehornerX x : 'X.[x]%x = x.
+Lemma hornereX x : 'X.[x]%x = x.
 Proof.
 by case: x => [s|a]/=; rewrite hornerX// ?size_polyX ltnn lead_coefX/= ltr10.
 Qed.
 
-End poly_ext.
-Notation "p .[ x ]" := (ehorner p x) : ext_scope.
+End num_ext.
+Notation "p .[ x ]" := (hornere p x) : ext_scope.
 
 (************************************************************)
 (* Definitions and properties for polynomials in a rcfType. *)
@@ -258,19 +287,19 @@ Variable R : rcfType.
 Section Prelim.
 
 Implicit Types a b c : R.
-Implicit Types x y z t : R.
+Implicit Types x y z t : ext R.
 Implicit Types p q r : {poly R}.
 
 Section FixedSegment.
 
-Variables (a b : R).
+Variables (x y : ext R).
 Variable (p : {poly R}).
 
 (* we restate poly_ivt in a nicer way. Perhaps the def of PolyRCF should *)
 (* be moved in this file, juste above this section                       *)
 Definition poly_ivtW := poly_ivt.
 
-Lemma poly_ivtP : a <= b -> p.[a] * p.[b] <= 0 ->
+Lemma poly_ivtP : x <= y -> (p.[x] * p.[y] <= 0)%x ->
    exists2 x, x \in `[a, b] & root p x.
 Proof.
 move=> le_ab sgp; have []//= := @poly_ivt _ (p.[b] *: p) a b.
