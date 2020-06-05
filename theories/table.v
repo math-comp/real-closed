@@ -73,8 +73,8 @@ Arguments finite {T}.
 Arguments is_finite T /.
 
 Notation "x %:x" := (Fin x).
-Notation "+oo" := (Infty true).
-Notation "-oo" := (Infty false).
+Notation "+oo" := (Infty false).
+Notation "-oo" := (Infty true).
 Hint Resolve Fin_inj Infty_inj.
 
 Canonical ext_eqType (T : eqType) := EqType (ext T) (CanEqMixin ext_encodeK).
@@ -95,13 +95,13 @@ Implicit Types (t u v : T) (x y z : ext).
 Let FinT_inj := @Fin_inj T.
 
 Definition ext_le x y := match x, y with
-  | Infty bl, Infty br => bl ==> br | Fin t, Fin u => t <= u
-  | Infty bl, _ => ~~ bl            | _, Infty br => br
+  | Infty bl, Infty br => br ==> bl | Fin t, Fin u => t <= u
+  | Infty bl, _ => bl            | _, Infty br => ~~ br
 end.
 
 Definition ext_lt x y := match x, y with
-  | Infty bl, Infty br => ~~ bl && br  | Fin t, Fin u => t < u
-  | Infty bl, _ => ~~ bl               | _ , Infty br => br
+  | Infty bl, Infty br => bl && ~~ br  | Fin t, Fin u => t < u
+  | Infty bl, _ => bl               | _ , Infty br => ~~ br
 end.
 
 Lemma ext_lt_def : forall x y, ext_lt x y = (y != x) && ext_le x y.
