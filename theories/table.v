@@ -90,7 +90,7 @@ Section rindex.
 Variables (d : unit) (T : orderType d).
 
 Notation ext := (ext T).
-Implicit Types (t u v : T) (x y z : ext).
+Implicit Types (m t u v : T) (x y z : ext).
 
 Let FinT_inj := @Fin_inj T.
 
@@ -142,6 +142,50 @@ Lemma maxxmax x : Order.max x +oo = +oo. Proof. by case: x => [[]|]. Qed.
 Lemma maxmaxx x : Order.max +oo x = +oo. Proof. by case: x => [[]|]. Qed.
 Lemma maxxmin x : Order.max x -oo = x.   Proof. by case: x => [[]|]. Qed.
 Lemma maxminx x : Order.max -oo x = x.   Proof. by case: x => [[]|]. Qed.
+
+Definition edflt t t' x :=
+  match x with Fin t'' => t'' | Infty s => if s then t else t' end.
+Notation edflt1 t := (edflt t t).
+
+Lemma le_edflt2  m t t' x x' : t <= m <= t' ->
+  t < edflt1 m x <= t' -> t <= edflt1 m x' < t' ->
+  (edflt t t' x <= edflt t t' x') = (x <= x').
+Proof.
+case: x x' => [[]|u] [[]|v]//= /andP[tm mt] /andP[tu ut] /andP[tv vt];
+do ?by [rewrite ?lexx ?tv ?vt// (le_trans tm)|rewrite ?lt_geF ?(lt_le_trans tu)].
+Qed.
+
+Lemma lt_edflt2  m t t' x x' : t <= m <= t' ->
+  t < edflt1 m x < t' -> t < edflt1 m x' < t' ->
+  (edflt t t' x < edflt t t' x') = (x < x').
+Proof.
+case: x x' => [[]|u] [[]|v]//= /andP[tm mt] /andP[tu ut] /andP[tv vt];
+do ?by [rewrite ?tv ?vt// (lt_trans tu)|rewrite lt_gtF// ?(lt_trans tu)].
+Qed.
+
+Lemma edflt_le_sup m t t' x : t <= m < t' ->
+  edflt1 m x <= t' -> edflt t t' x <= t'.
+Proof. by case: x => [[]|u]//= /andP[tm mt]; apply: le_trans. Qed.
+
+Lemma edflt_ge_inf m t t' x : t < m <= t' ->
+  t <= edflt1 m x -> t <= edflt t t' x.
+Proof. by case: x => [[]|u]//= /andP[tm mt] /le_trans->. Qed.
+
+Lemma ge_edflt t t' t'' x :
+  t <= t'' < t' -> (edflt t t' x <= t'') = (x <= t''%:x).
+Proof. by case: x => [[]|u]//= /andP[tu ut]; rewrite ?tu// lt_geF. Qed.
+
+Lemma le_edflt t t' t'' x :
+  t < t'' <= t' -> (t'' <= edflt t t' x) = (t''%:x <= x).
+Proof. by case: x => [[]|u]//= /andP[tu ut]; rewrite ?ut// lt_geF. Qed.
+
+Lemma gt_edflt t t' t'' x :
+  t < t'' < t' -> (edflt t t' x < t'') = (x < t''%:x).
+Proof. by case: x => [[]|u]//= /andP[tu ut]; rewrite ?tu// lt_gtF//=. Qed.
+
+Lemma lt_edflt t t' t'' x :
+  t < t'' < t' -> (t'' < edflt t t' x) = (t''%:x < x).
+Proof. by case: x => [[]|u]//= /andP[tu ut]; rewrite ?ut// lt_gtF. Qed.
 
 Section rindex_def.
 Variable (x0 : T) (s : seq T).
@@ -292,6 +336,18 @@ by rewrite (nth_map t)// ltEext/= -ltNge.
 Qed.
 Hint Resolve rindexP.
 
+Lemma gt_rprev t : rprev t < t%:x.
+Proof. by have /andP[] := rindexP t. Qed.
+Hint Resolve gt_rprev.
+
+Lemma ge_rprev t : rprev t <= t%:x.
+Proof. by rewrite ltW. Qed.
+Hint Resolve ge_rprev.
+
+Lemma le_rnext t : t%:x <= rnext t.
+Proof. by have /andP[] := rindexP t. Qed.
+Hint Resolve le_rnext.
+
 Lemma eq_rindex t u : rprev t < u%:x <= rnext t -> rindex s t = rindex s u.
 Proof. by move=> /eq_from_rindex; apply. Qed.
 
@@ -308,25 +364,23 @@ Definition total_sorted_le_nth := le_mono_in sorted_lt_nthW.
 Definition total_sorted_lt_nth := leW_mono_in total_sorted_le_nth.
 End sorted_mono.
 
-Lemma rindex_notin i :
-  {in [pred t | [i] < t%:x < [i.+1]], forall t, t \in s = false}.
-Proof.
-move=> t; rewrite inE; have [i_small|i_big] := leqP i (size s); last first.
-  by rewrite !nth_default//= ?size_map// 1?ltnW//.
-apply: contraTF => /mem_rnext <-.
-have rindex_seqmax_sorted : sorted <%O (rcons rindex_seq +oo).
-  rewrite -[rcons _ _]revK rev_sorted rev_rcons/=.
-  rewrite path_min_sorted// ?rev_sorted//.
-  by apply/allP => y; rewrite mem_rev// in_cons => /predU1P[->//|/mapP[? ? ->]].
-by rewrite -![[_]]nth_rcons_default !total_sorted_lt_nth ?[_ && _]le_lt_asym//;
-   rewrite ?inE/= ?size_rcons ?size_map ?ltnS// ?find_size// 1?leqW//=.
-Qed.
-
 Lemma rindexE i : {in [pred t | [i] < t%:x <= [i.+1]], forall t, rindex s t = i}.
 Proof.
 move=> t; have [i_le|i_gt] := leqP i (size s); first exact: eq_from_rindex.
 by rewrite !nth_default//= ?size_map// ltnW.
 Qed.
+
+Lemma rindex_inF i :
+  {in [pred t | [i] < t%:x < [i.+1]], forall t, t \in s = false}.
+Proof.
+move=> t; rewrite inE => /andP[t_gt t_lt]; have := t_lt.
+rewrite -(@rindexE i t); last by rewrite inE t_gt ltW.
+by apply: contraTF => /mem_rnext->; rewrite ltxx.
+Qed.
+
+Lemma rindex_notin i :
+  {in [pred t | [i] < t%:x < [i.+1]], forall t, t \notin s}.
+Proof. by move=> x /rindex_inF->. Qed.
 
 Lemma rindex_next t tnext : rnext t = tnext%:x -> rindex s tnext = rindex s t.
 Proof. by move=> sneq; apply: rindexE; rewrite inE -sneq lexx andbT. Qed.
@@ -335,8 +389,8 @@ End rindex_seq.
 End rindex.
 
 Bind Scope ext_scope with ext.
-
+Notation edflt1 t := (edflt t t).
 Notation "s `[ i ]" := (nth +oo%x (rindex_seq s) i) : ext_scope.
 Notation rprev s t := s`[rindex s t].
 Notation rnext s t := s`[(rindex s t).+1].
-Hint Resolve rindex_size rindexP lt_rprev_rnext.
+Hint Resolve rindex_size rindexP gt_rprev ge_rprev le_rnext lt_rprev_rnext.
