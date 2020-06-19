@@ -1612,7 +1612,7 @@ case: (@neighpl_wit (p * p^`()) a x)=> [||m hm].
   rewrite ihn ?size_deriv ?sp /neighpl //; last first.
     by rewrite (subitvP _ (@mid_in_itv _ true true _ _ _)) //=
        ?lexx (itvP hmp').
-  rewrite mu_deriv // odd_sub ?mu_gt0 //=; last by rewrite -size_poly_eq0 sp.
+  rewrite mu_deriv // oddB ?mu_gt0 //=; last by rewrite -size_poly_eq0 sp.
   by rewrite signr_addb /= mulrN1 mulNr opprK.
 Qed.
 

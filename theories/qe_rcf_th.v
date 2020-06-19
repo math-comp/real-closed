@@ -577,7 +577,7 @@ Proof.
 move=> pqn0 yl yr hyl hyr; rewrite -(sjump_neigh pqn0 hyl hyr).
 rewrite /jump /sjump -mulrnA mulnb andbCA.
 have [muqp|/eqnP ->] := ltnP; rewrite (andbF, andbT) //.
-by rewrite mu_mul // odd_add addbC odd_sub // ltnW.
+by rewrite mu_mul // oddD addbC oddB // ltnW.
 Qed.
 
 Lemma jump_mul2l (p q r : {poly R}) :
@@ -961,7 +961,7 @@ rewrite !PoszD opprD addrACA; congr (_ + _); rewrite neq0_mods_rec //=.
 rewrite /crossR /variation /sgp_pinfty /sgp_minfty.
 rewrite mulr_signM size_mul // !lead_coefM.
 rewrite polySpred // addSn [size q]polySpred // addnS /= !negbK.
-rewrite -odd_add signr_odd; set s := _ ^+ _.
+rewrite -oddD signr_odd; set s := _ ^+ _.
 rewrite -!sgz_cp0 !(sgz_sgr, sgzM).
 have: s != 0 by rewrite signr_eq0.
 by move: p0 q0; rewrite -!lead_coef_eq0; do 3!case: sgzP=> _.
