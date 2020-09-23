@@ -171,7 +171,6 @@ Section CauchyBound.
 Definition cauchy_bound (p : {poly R}) :=
   1 + `|lead_coef p|^-1 * \sum_(i < size p) `|p`_i|.
 
-(* Could be a sharp bound *)
 Lemma cauchy_boundP (p : {poly R}) x :
   p != 0 -> p.[x] = 0 -> `| x | < cauchy_bound p.
 Proof.
@@ -746,11 +745,11 @@ rewrite mem_pmap; apply/mapP/idP => [[i i_in /some_eq_iroot[]//]|rpx].
 have xcpoo : x \in cpi.
   apply: subitvP (root_in_cauchy_bound p_neq0 _) => //=.
   by rewrite ler_opp2 andbb le_maxr lexx.
-exists (rindex rs x); first by rewrite mem_iota add0n -lock/= ltnS.
-have rprev_cp : edflt1 0 (rprev rs x) \in cpi.
-  have := map_f (edflt1 0) (in_rprev rs x); rewrite /= inE => /predU1P[->//|].
+exists (rindex rs x); first by rewrite mem_iota add0n -lock/= ltnS rindex_size.
+have rprev_cp : edflt1 0 (aprev rs x) \in cpi.
+  have := map_f (edflt1 0) (in_aprev rs x); rewrite /= inE => /predU1P[->//|].
   by rewrite -map_comp /= map_id => /rscpi.
-have rnext_cp : edflt1 0 (rnext rs x) \in cpi.
+have rnext_cp : edflt1 0 (anext rs x) \in cpi.
   have := map_f (edflt1 0) (in_rnext rs x); rewrite /= inE => /predU1P[->//|].
   by rewrite -map_comp /= map_id => /rscpi.
 apply/some_eq_iroot; split => //; apply: eq_iroot => //; last 1 first.

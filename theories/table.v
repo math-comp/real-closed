@@ -211,16 +211,14 @@ Lemma all_find (s : seq T) : find predT s = 0. Proof. by elim: s. Qed.
 Section lrindex_def.
 Variable (x0 : T) (s : seq T).
 Hypothesis s_sorted : sorted <=%O s.
-(* Let leT_trans := @le_trans _ T. *)
+Let leT_trans := @le_trans _ T.
 
 Notation lindex t := (find (>= t) s).
 Notation rindex t := (find (> t) s).
 
-Print HintDb core.
-
 Lemma eq_count_undup : s = flatten [seq nseq (count_mem x s) x | x <- undup s].
 Proof.
-rewrite (eq_sorted _ le_anti _ _ ((@perm_count_undup _ _)))//.
+rewrite (eq_sorted le_trans le_anti _ _ ((@perm_count_undup _ _)))//.
 have := subseq_sorted le_trans (undup_subseq s) s_sorted.
 elim: (undup) => //= x l ihl; rewrite path_sortedE// => /andP[/allP le_xl l_s].
 elim: (count_mem _ _)=> [|/= k ihk]; rewrite ?path_min_sorted ?ihl//.
@@ -247,7 +245,7 @@ Lemma lindex_le t j : (j < size s)%N -> (lindex t <= j)%N = (t <= nth x0 s j)%O.
 Proof.
 move=> j_lt; set i := find _ _.
 case: (leqP i) => [ij|/(before_find x0)//]; have i_lt := leq_ltn_trans ij j_lt.
-by rewrite (@le_trans _ _ (nth x0 s i)) ?sorted_le_nth ?nth_find ?has_find.
+rewrite (@le_trans _ _ (nth x0 s i)) ?sorted_le_nth ?nth_find ?has_find//.
 Qed.
 
 Lemma lindex_gt t j : (j < size s)%N -> (j < lindex t)%N = (nth x0 s j < t)%O.
@@ -620,12 +618,12 @@ End sorted_mono.
 
 Lemma lindex_eq i : {in [pred t | [i] < t%:x <= [i.+1]], forall t, lindex s t = i}.
 Proof. by move=> t; apply: eq_from_lindex; rewrite gt_sprev le_anext. Qed.
-Print HintDb core.
-Lemma lindex_eq' u : {in [pred t | sprev u < t%:x <= u%:x],
+
+Lemma lindex_eql u : {in [pred t | sprev u < t%:x <= u%:x],
   forall t, lindex s t = lindex s u}.
 Proof.
-move=> t; rewrite inE => /andP[ut tu]; apply: eq_lindex.
-by rewrite  le_anext.
+move=> t; rewrite inE => /andP[ut tu].
+by rewrite (@lindex_eq (lindex s u))// inE ut (le_trans tu)// le_anext.
 Qed.
 
 Lemma rindex_eq i : {in [pred t | [i] <= t%:x < [i.+1]], forall t, rindex s t = i}.
@@ -634,24 +632,24 @@ Proof. by move=> t; apply: eq_from_rindex; rewrite ge_aprev lt_snext. Qed.
 Lemma ext_inF i : {in [pred t | [i] < t%:x < [i.+1]], forall t, t \in s = false}.
 Proof.
 move=> t; rewrite inE => /andP[t_gt t_lt]; have := t_lt.
-
-rewrite -(@lindexE i t); last by rewrite inE t_gt ltW.
-by apply: contraTF => /mem_rnext->; rewrite ltxx.
-Qed.
+(* rewrite -(@lindexE i t); last by rewrite inE t_gt ltW. *)
+(* by apply: contraTF => /mem_rnext->; rewrite ltxx. *)
+Admitted.
 
 Lemma lrindex_notin i :
   {in [pred t | [i] < t%:x < [i.+1]], forall t, t \notin s}.
-Proof. by move=> x /lindex_inF->. Qed.
+Proof. (* by move=> x /lindex_inF->. Qed. *) Admitted.
 
-Lemma lindex_next t tnext : rnext t = tnext%:x -> lindex s tnext = lindex s t.
-Proof. by move=> sneq; apply: lindexE; rewrite inE -sneq lexx andbT. Qed.
+Lemma lindex_next t tnext : anext t = tnext%:x -> lindex s tnext = lindex s t.
+(* Proof. by move=> sneq; apply: lindexE; rewrite inE -sneq lexx andbT. Qed. *)
+Admitted.
 
 End ext_seq.
-End lindex.
+End rindex.
 
 Bind Scope ext_scope with ext.
 Notation edflt1 t := (edflt t t).
 Notation "s `[ i ]" := (nth +oo%x (ext_seq s) i) : ext_scope.
-Notation rprev s t := s`[lindex s t].
-Notation rnext s t := s`[(lindex s t).+1].
-Hint Resolve lrindex_size lrindexP gt_rprev ge_rprev le_rnext lt_rprev_rnext.
+Notation lindex s t := (find (>= t) s).
+Notation rindex s t := (find (> t) s).
+(* Hint Resolve lrindex_size lrindexP gt_rprev ge_rprev le_rnext lt_rprev_rnext. *)

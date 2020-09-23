@@ -1,4 +1,4 @@
 {
   coq = "8.10";
-  mathcomp = "CohenCyril/maxr";
+  mathcomp = "1.11.0";
 }
