@@ -1,4 +1,4 @@
 {
-  coq = "8.10";
-  mathcomp = "mathcomp-1.11.0";
+  coq = "8.11";
+  mathcomp = "mathcomp-1.12.0";
 }
