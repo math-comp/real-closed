@@ -577,7 +577,7 @@ Proof.
 move=> pqn0 yl yr hyl hyr; rewrite -(sjump_neigh pqn0 hyl hyr).
 rewrite /jump /sjump -mulrnA mulnb andbCA.
 have [muqp|/eqnP ->] := ltnP; rewrite (andbF, andbT) //.
-by rewrite mu_mul // odd_add addbC odd_sub // ltnW.
+by rewrite mu_mul // oddD addbC oddB // ltnW.
 Qed.
 
 Lemma jump_mul2l (p q r : {poly R}) :
@@ -792,13 +792,13 @@ elim: roots => {a} [|x s /= ihs] a hab /eqP.
 rewrite roots_cons; case/and5P => _ xab /eqP hax hx /eqP hs.
 rewrite !big_cons variation0r add0r (ihs _ _ hs) ?(itvP xab) // => {ihs}.
 pose y := (head b s); pose ax := midf a x; pose xy := midf x y.
-rewrite (@sjump_neigh a b _ _ _ ax xy) ?inE ?midf_lte//=; last 2 first.
+rewrite (@sjump_neigh a b _ _ _ ax xy) ?in_itv ?midf_lte//=; last 2 first.
 + by rewrite /prev_root pq_eq0 hax min_l ?(itvP xab, midf_lte).
 + have hy: y \in `]x, b].
     rewrite /y; case: s hs {y xy} => /= [|u s] hu.
-      by rewrite boundr_in_itv /= ?(itvP xab).
+      by rewrite in_itv /= lexx ?(itvP xab).
     have /roots_in: u \in  roots (p * q) x b by rewrite hu mem_head.
-    by apply: subitvP; rewrite /= !lexx.
+    by apply: subitvP; rewrite /<=%O /= /<=%O /= !lexx.
   by rewrite /next_root pq_eq0 hs max_l ?(itvP hy, midf_lte).
 move: @y @xy {hs}; rewrite /cross.
 by case: s => /= [|y l]; rewrite ?(big_cons, big_nil, variation0r, add0r).
@@ -961,7 +961,7 @@ rewrite !PoszD opprD addrACA; congr (_ + _); rewrite neq0_mods_rec //=.
 rewrite /crossR /variation /sgp_pinfty /sgp_minfty.
 rewrite mulr_signM size_mul // !lead_coefM.
 rewrite polySpred // addSn [size q]polySpred // addnS /= !negbK.
-rewrite -odd_add signr_odd; set s := _ ^+ _.
+rewrite -oddD signr_odd; set s := _ ^+ _.
 rewrite -!sgz_cp0 !(sgz_sgr, sgzM).
 have: s != 0 by rewrite signr_eq0.
 by move: p0 q0; rewrite -!lead_coef_eq0; do 3!case: sgzP=> _.
@@ -1178,13 +1178,14 @@ case: (next_rootP q x bnd) q_neq0; [by move->; rewrite eqxx| |]; last first.
   rewrite big_all; apply/allP=> r hr; have rxp := hsq r hr.
   rewrite -sgr_cp0 -/(sgp_pinfty _).
   rewrite -(@sgp_pinftyP _ x _ _ x) ?boundl_in_itv ?sgr_cp0 //.
-  move=> z; rewrite (@itv_splitU _ x true) /= ?boundl_in_itv //.
-  rewrite itv_xx /= inE => /orP [/eqP->|]; first by rewrite /root gt_eqF.
+  move=> z; rewrite (@itv_splitU _ _ (BRight x)) /<=%O /= ?lexx //.
+  rewrite itv_xx /= => /orP [/eqP->|]; first by rewrite /root gt_eqF.
   have [x_b|b_x] := ltrP x bnd.
-    rewrite (@itv_splitU _ bnd false) /=; last by rewrite inE /= x_b.
+    rewrite (@itv_splitU _ _ (BLeft bnd)) /<=%O /= ?x_b //.
     move=> /orP [] Hz; rewrite genroot //;
     by [rewrite Hq|rewrite ge_cauchy_bound].
-  by move=> Hz; rewrite genroot // ge_cauchy_bound // (subitvP _ Hz) //= b_x.
+  move=> Hz.
+  by rewrite genroot ?ge_cauchy_bound // (subitvP _ Hz) /<=%O /= /<=%O //= b_x.
 move=> y1 _ rqy1 hy1xb hy1.
 case: (prev_rootP q (- bnd) x); [by move->; rewrite eqxx| |]; last first.
   move=> _ q_neq0 _ Hq _. (* assia : what is the use of c ? *)
@@ -1193,10 +1194,10 @@ case: (prev_rootP q (- bnd) x); [by move->; rewrite eqxx| |]; last first.
   rewrite big_all; apply/allP=> r hr; have rxp := hsq r hr.
   rewrite -sgr_cp0 -/(sgp_minfty _).
   rewrite -(@sgp_minftyP _ x _ _ x) ?boundr_in_itv ?sgr_cp0 //.
-  move=> z; rewrite (@itv_splitU _ x false) /= ?boundr_in_itv //.
+  move=> z; rewrite (@itv_splitU _ _ (BLeft x)) /<=%O /= ?lexx //.
   rewrite itv_xx => /orP [/=|/eqP->]; last by rewrite /root gt_eqF.
   have [b_x|x_b] := ltrP (- bnd) x.
-    rewrite (@itv_splitU _ (- bnd) true) /=; last by rewrite inE /= b_x.
+    rewrite (@itv_splitU _ _ (BRight (- bnd))) /<=%O /= ?b_x //.
     move=> /orP [] Hz; rewrite genroot //;
     by [rewrite Hq|rewrite le_cauchy_bound].
   by move=> Hz; rewrite genroot // le_cauchy_bound // (subitvP _ Hz) //= x_b.
@@ -1206,9 +1207,9 @@ have lty12 : y2 < y1.
 have : q.[y2] = q.[y1] by rewrite rqy1 rqy2.
 case/(rolle lty12) => z hz rz; constructor 3; exists z.
 rewrite rz eqxx /= big_all; apply/allP => r r_sq.
-have xy : x \in `]y2, y1[ by rewrite inE /= 1?(itvP hy1xb) 1?(itvP hy2xb).
+have xy : x \in `]y2, y1[ by rewrite in_itv /= 1?(itvP hy1xb) 1?(itvP hy2xb).
 rewrite -sgr_cp0 (@polyrN0_itv _ `]y2, y1[ _ _ x) ?sgr_cp0 ?hsq // => t.
-rewrite (@itv_splitU2 _ x) // => /or3P [/hy2|/eqP->|/hy1]; do ?exact: genroot.
+rewrite (@itv_splitUeq _ _ x) // => /or3P [/hy2|/eqP->|/hy1]; do ?exact: genroot.
 by rewrite rootE gt_eqF ?hsq.
 Qed.
 
