@@ -115,7 +115,7 @@ Section SgpInfty.
 Lemma sgp_pinfty_sym p : sgp_pinfty (p \Po -'X) = sgp_minfty p.
 Proof.
 rewrite /sgp_pinfty /sgp_minfty lead_coef_comp ?size_opp ?size_polyX //.
-by rewrite lead_coef_opp lead_coefX mulrC.
+by rewrite lead_coefN lead_coefX mulrC.
 Qed.
 
 Lemma poly_pinfty_gt_lc p :
@@ -197,22 +197,22 @@ Proof.
 move=> p_neq0 x; rewrite in_itv /=; apply/contra_leN.
 by case/rootP/(cauchy_boundP p_neq0)/ltr_normlP; rewrite ltr_oppl.
 Qed.
-Hint Resolve le_cauchy_bound.
+Hint Resolve le_cauchy_bound : core.
 
 Lemma ge_cauchy_bound p : p != 0 -> {in `[cauchy_bound p, +oo[, noroot p}.
 Proof.
 move=> p_neq0 x; rewrite in_itv andbT /=; apply/contra_leN.
 by case/rootP/(cauchy_boundP p_neq0)/ltr_normlP; rewrite ltr_oppl.
 Qed.
-Hint Resolve ge_cauchy_bound.
+Hint Resolve ge_cauchy_bound : core.
 
 Lemma cauchy_bound_gt0 p : cauchy_bound p > 0.
 Proof. by rewrite ltr_spaddl ?ltr01 // mulrC divr_ge0 ?normr_ge0 ?sumr_ge0. Qed.
-Hint Resolve cauchy_bound_gt0.
+Hint Resolve cauchy_bound_gt0 : core.
 
 Lemma cauchy_bound_ge0 p : cauchy_bound p >= 0.
 Proof. by rewrite ltW. Qed.
-Hint Resolve cauchy_bound_ge0.
+Hint Resolve cauchy_bound_ge0 : core.
 
 End CauchyBound.
 
@@ -843,7 +843,7 @@ case: eqVneq => [->|p0]; first by exists [::]; constructor.
 case: (boolP (p^`() == 0)) => [|p'0].
   rewrite -derivn1 -derivn_poly0 => /size1_polyC pC; exists [::].
   by constructor=> // x; rewrite pC rootC -polyC_eq0 -pC (negPf p0) andbF.
-have {ihn} /ihn /(_ a b) [sp'] : (size p^`() <= n)%N.
+have {}/ihn /(_ a b) [sp'] : (size p^`() <= n)%N.
   rewrite -ltnS; apply: leq_trans sp; rewrite size_deriv prednK // lt0n.
   by rewrite size_poly_eq0 p0.
 elim: sp' a => [|r1 sp' hsp'] a hp'.
@@ -896,18 +896,18 @@ Proof. by case: rootsP=> //=; rewrite eqxx. Qed.
 Lemma roots_on_roots : forall p a b, p != 0 ->
   roots_on p `]a, b[ (roots p a b).
 Proof. by move=> a b p; case: rootsP. Qed.
-Hint Resolve roots_on_roots.
+Hint Resolve roots_on_roots : core.
 
 Lemma sorted_roots a b p : sorted <%R (roots p a b).
 Proof. by case: rootsP. Qed.
-Hint Resolve sorted_roots.
+Hint Resolve sorted_roots : core.
 
 Lemma path_roots p a b : path <%R a (roots p a b).
 Proof.
 case: rootsP=> //= p0 hp sp; rewrite path_min_sorted //.
 by apply/allP=> y; rewrite -hp; case/andP => /itvP ->.
 Qed.
-Hint Resolve path_roots.
+Hint Resolve path_roots : core.
 
 Lemma root_is_roots (p : {poly R}) (a b : R) :
    p != 0 -> forall x, x \in `]a, b[ -> root p x = (x \in roots p a b).
@@ -1264,7 +1264,7 @@ have [->|p0] := eqVneq p 0; first by rewrite roots0.
 by apply: (@sorted_uniq _ <%R); [apply: lt_trans | apply: ltxx|].
 Qed.
 
-Hint Resolve uniq_roots.
+Hint Resolve uniq_roots : core.
 
 Lemma in_roots p (a b x : R) :
   (x \in roots p a b) = [&& root p x, x \in `]a, b[ & p != 0].
@@ -1421,7 +1421,7 @@ Proof. by rewrite /sgp_right size_poly0. Qed.
 Lemma sgr_neighpr b p x :
   {in neighpr p x b, forall y, (sgr p.[y] = sgp_right p x)}.
 Proof.
-elim: (size p) {-2}p (leqnn (size p))=> [|n ihn] {p} p.
+elim: (size p) {-2}p (leqnn (size p))=> [|n ihn] {}p.
   rewrite leqn0 size_poly_eq0 /neighpr; move/eqP=> -> /= y.
   by rewrite next_root0 itv_xx.
 rewrite leq_eqVlt ltnS; case/predU1P => [sp|]; last exact: ihn.
@@ -1461,7 +1461,7 @@ Lemma sgr_neighpl a p x :
     (sgr p.[y] = (-1) ^+ (odd (\mu_x p)) * sgp_right p x)
   }.
 Proof.
-elim: (size p) {-2}p (leqnn (size p))=> [|n ihn] {p} p.
+elim: (size p) {-2}p (leqnn (size p))=> [|n ihn] {}p.
   rewrite leqn0 size_poly_eq0 /neighpl; move/eqP=> -> /= y.
   by rewrite prev_root0 itv_xx.
 rewrite leq_eqVlt ltnS; case/predU1P => [sp y|]; last exact: ihn.
@@ -1663,7 +1663,7 @@ Lemma rootsRP p a b :
 Proof.
 move=> rpa rpb.
 have [->|p_neq0] := eqVneq p 0; first by rewrite rootsR0 roots0.
-apply: (eq_sorted_irr lt_trans); rewrite ?sorted_roots // => x.
+apply: (irr_sorted_eq lt_trans); rewrite ?sorted_roots // => x.
 rewrite -roots_on_rootsR -?roots_on_roots //=.
 case: (boolP (root _ _)); rewrite ?(andbT, andbF) //.
 apply: contraLR; rewrite in_itv negb_and -!leNgt.
@@ -1677,10 +1677,10 @@ Proof.
 rewrite /sgp_pinfty; wlog lp_gt0 : x p / lead_coef p > 0 => [hwlog|rpx y Hy].
   have [|/(hwlog x p) //|/eqP] := ltrgtP (lead_coef p) 0; last first.
     by rewrite lead_coef_eq0 => /eqP -> ? ? ?; rewrite lead_coef0 horner0.
-  rewrite -[p]opprK lead_coef_opp oppr_cp0 => /(hwlog x _) Hp HNp y Hy.
+  rewrite -[p]opprK lead_coefN oppr_cp0 => /(hwlog x _) Hp HNp y Hy.
   by rewrite hornerN !sgrN Hp => // z /HNp; rewrite rootN.
 have [z Hz] := poly_pinfty_gt_lc lp_gt0.
-have {Hz} Hz u : u \in `[z, +oo[ -> Num.sg p.[u] = 1.
+have {}Hz u : u \in `[z, +oo[ -> Num.sg p.[u] = 1.
   rewrite in_itv andbT => /Hz pu_ge1.
   by rewrite gtr0_sg // (lt_le_trans lp_gt0).
 rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?in_itv /= ?le_maxr ?(itvP Hy) //.

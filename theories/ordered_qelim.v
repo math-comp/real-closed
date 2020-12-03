@@ -79,7 +79,7 @@ Canonical term_eqType (T : eqType) :=
 Arguments term_eqP T {x y}.
 Prenex Implicits term_eq.
 
-
+Declare Scope oterm_scope.
 Bind Scope oterm_scope with term.
 Bind Scope oterm_scope with formula.
 Delimit Scope oterm_scope with oT.
@@ -169,6 +169,7 @@ Definition le_of_oclause (R : Type) (x : oclause R) :=
 
 End OrderedClause.
 
+Declare Scope oclause_scope.
 Delimit Scope oclause_scope with OCLAUSE.
 Open Scope oclause_scope.
 
@@ -364,60 +365,60 @@ split=> t1.
 - rewrite /eq0_rform; move: (ub_var t1) => m.
   set tr := _ m.
   suffices: all (@rterm R) (tr.1 :: tr.2)%PAIR.
-    case: tr => {t1} t1 r /= /andP[t1_r].
+    case: tr => {}t1 r /= /andP[t1_r].
     by elim: r m => [|t r IHr] m; rewrite /= ?andbT // => /andP[->]; apply: IHr.
   have: all (@rterm R) [::] by [].
   rewrite {}/tr; elim: t1 [::] => //=.
   + move=> t1 IHt1 t2 IHt2 r.
-  move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
-  move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
+  move/IHt1; case: to_rterm => {r IHt1}t1 r /= /andP[t1_r].
+  move/IHt2; case: to_rterm => {r IHt2}t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
   + by move=> t1 IHt1 r /IHt1; case: to_rterm.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
   + move=> t1 IHt1 t2 IHt2 r.
-  move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
-  move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
+  move/IHt1; case: to_rterm => {r IHt1}t1 r /= /andP[t1_r].
+  move/IHt2; case: to_rterm => {r IHt2}t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
   + move=> t1 IHt1 r.
-  by move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /=; rewrite all_rcons.
+  by move/IHt1; case: to_rterm => {r IHt1}t1 r /=; rewrite all_rcons.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
 - rewrite /lt0_rform; move: (ub_var t1) => m; set tr := _ m.
   suffices: all (@rterm R) (tr.1 :: tr.2)%PAIR.
-    case: tr => {t1} t1 r /= /andP[t1_r].
+    case: tr => {}t1 r /= /andP[t1_r].
     by elim: r m => [|t r IHr] m; rewrite /= ?andbT // => /andP[->]; apply: IHr.
   have: all (@rterm R) [::] by [].
   rewrite {}/tr; elim: t1 [::] => //=.
   + move=> t1 IHt1 t2 IHt2 r.
-  move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
-  move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
+  move/IHt1; case: to_rterm => {r IHt1}t1 r /= /andP[t1_r].
+  move/IHt2; case: to_rterm => {r IHt2}t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
   + by move=> t1 IHt1 r /IHt1; case: to_rterm.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
   + move=> t1 IHt1 t2 IHt2 r.
-  move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
-  move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
+  move/IHt1; case: to_rterm => {r IHt1}t1 r /= /andP[t1_r].
+  move/IHt2; case: to_rterm => {r IHt2}t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
   + move=> t1 IHt1 r.
-  by move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /=; rewrite all_rcons.
+  by move/IHt1; case: to_rterm => {r IHt1}t1 r /=; rewrite all_rcons.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
 - rewrite /leq0_rform; move: (ub_var t1) => m; set tr := _ m.
   suffices: all (@rterm R) (tr.1 :: tr.2)%PAIR.
-    case: tr => {t1} t1 r /= /andP[t1_r].
+    case: tr => {}t1 r /= /andP[t1_r].
     by elim: r m => [|t r IHr] m; rewrite /= ?andbT // => /andP[->]; apply: IHr.
   have: all (@rterm R) [::] by [].
   rewrite {}/tr; elim: t1 [::] => //=.
   + move=> t1 IHt1 t2 IHt2 r.
-  move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
-  move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
+  move/IHt1; case: to_rterm => {r IHt1}t1 r /= /andP[t1_r].
+  move/IHt2; case: to_rterm => {r IHt2}t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
   + by move=> t1 IHt1 r /IHt1; case: to_rterm.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
   + move=> t1 IHt1 t2 IHt2 r.
-  move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /= /andP[t1_r].
-  move/IHt2; case: to_rterm => {t2 r IHt2} t2 r /= /andP[t2_r].
+  move/IHt1; case: to_rterm => {r IHt1}t1 r /= /andP[t1_r].
+  move/IHt2; case: to_rterm => {r IHt2}t2 r /= /andP[t2_r].
   by rewrite t1_r t2_r.
   + move=> t1 IHt1 r.
-  by move/IHt1; case: to_rterm => {t1 r IHt1} t1 r /=; rewrite all_rcons.
+  by move/IHt1; case: to_rterm => {r IHt1}t1 r /=; rewrite all_rcons.
   + by move=> t1 IHt1 n r /IHt1; case: to_rterm.
 Qed.
 
@@ -546,8 +547,8 @@ elim: t r0 m => /=; try do [
    first by [rewrite takel_cat // -htake1 size_take geq_minr];
   rewrite -(rsub_acc r1 r3 t1') {hub1'}// -{htake1}htake2 {r3}cat_take_drop;
   by elim: r2 m => //= u r2 IHr2 m; rewrite IHr2
-| do [ move=> t1 IHt1 r m; do 2!move/IHt1=> {IHt1}IHt1
-     | move=> t1 IHt1 n r m; do 2!move/IHt1=> {IHt1}IHt1];
+| do [ move=> t1 IHt1 r m; do 2!move/IHt1=> {}IHt1
+     | move=> t1 IHt1 n r m; do 2!move/IHt1=> {}IHt1];
   case: to_rterm IHt1 => t1' r1 [-> -> hsub1 <-]; split=> {hsub1}//;
   by elim: r1 m => //= u r1 IHr1 m; rewrite IHr1].
 move=> t1 IH r m letm /IH {IH} /(_ letm) {letm}.
@@ -715,7 +716,7 @@ have and_ok bcs1 bcs2: ok bcs1 -> ok bcs2 -> ok (and_odnf bcs1 bcs2).
   case/and3P=> ok11 ok12 ok1 ok2; rewrite cat_ok ?{}IH1 {bcs1 ok1}//.
   elim: bcs2 ok2 => //= cl2 bcs2 IH2 /andP[ok2 /IH2->].
   by rewrite /dnf_rterm /= !all_cat andbT ok11; case/and3P: ok12=> -> -> ->.
-elim: f b => //=; try by [move=> _ ? ? [] | move=> ? ? ? ? [] /= /andP[]; auto].
+elim: f b => //=; do ?by [move=> ? ? ? [] | move=> ? ? ? ? [] /= /andP[]; auto].
 - by do 2!case.
 - by rewrite /dnf_rterm => ? ? [] /= ->.
 - by rewrite /dnf_rterm => ? ? [] /=; rewrite andbC !andbT.
@@ -1034,7 +1035,7 @@ rewrite /oclause_to_w /= !all_map.
 apply/allP => [] [oc_eq oc_neq oc_le oc_lt] hoc; rewrite /dnf_rterm /= andbT.
 rewrite -all_cat; apply/allP=> u hu; move/terms_of_neq_leq_elim: hoc => /=.
 move/(_ u); rewrite !mem_cat.
-have {hu} hu : [|| u \in oc_eq, u \in oc_neq, u \in oc_le | u \in oc_lt].
+have {}hu : [|| u \in oc_eq, u \in oc_neq, u \in oc_le | u \in oc_lt].
   by move: hu; rewrite mem_cat; case/orP=> ->; rewrite ?orbT.
 move/(_ hu); case/orP; last first.
   move: rneq.
@@ -1083,7 +1084,7 @@ have -> :
 move: (dnf_rterm_subproof hdnf).
 rewrite /oclause_to_w; elim: (oclause_neq_leq_elim bc) => /= [|a l ih].
   by split=> //; case.
-case/andP=> h1 h2; have {ih h2} ih := (ih h2); split.
+case/andP=> h1 h2; have {h2} ih := (ih h2); split.
 - case/orP.
     move/(valid_QE_wproj i e h1)=> /= [x /=] [] // [] h2 [] _ [] h3 _; exists x.
     by left.

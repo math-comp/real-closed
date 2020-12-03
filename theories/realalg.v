@@ -73,14 +73,14 @@ Record algcreal := AlgCReal {
 
 Lemma monic_annul_creal x : annul_creal x \is monic.
 Proof. by case: x. Qed.
-Hint Resolve monic_annul_creal.
+Hint Resolve monic_annul_creal : core.
 
 Lemma annul_creal_eq0 x : (annul_creal x == 0) = false.
 Proof. by rewrite (negPf (monic_neq0 _)). Qed.
 
 Lemma root_annul_creal x : ((annul_creal x).[x] == 0)%CR.
 Proof. by case: x. Qed.
-Hint Resolve root_annul_creal.
+Hint Resolve root_annul_creal : core.
 
 Definition cst_algcreal (x : F) :=
   AlgCReal (monicXsubC _) (@root_cst_creal _ x).
@@ -137,8 +137,7 @@ Lemma div_annihilant_algcreal_neq0 (x y : algcreal) :
    div_annihilant (annul_creal x) (annul_creal y) != 0.
 Proof. by move=> ?; rewrite div_annihilant_neq0 ?monic_neq0. Qed.
 
-Hint Resolve eq_creal_refl.
-Hint Resolve le_creal_refl.
+Hint Resolve eq_creal_refl le_creal_refl : core.
 
 Lemma simplify_algcreal (x : algcreal) (x_neq0 : (x != 0)%CR) :
   {y | ((annul_creal y).[0] != 0) & ((y != 0)%CR * (x == y)%CR)%type}.
@@ -345,7 +344,7 @@ Record algdom := AlgDom {
 Lemma radius_alg_ge0 x : 0 <= radius_alg x. Proof. by case: x. Qed.
 
 Lemma monic_annul_algdom x : annul_algdom x \is monic. Proof. by case: x. Qed.
-Hint Resolve monic_annul_algdom.
+Hint Resolve monic_annul_algdom : core.
 
 Lemma annul_algdom_eq0 x : (annul_algdom x == 0) = false.
 Proof. by rewrite (negPf (monic_neq0 _)). Qed.
@@ -1498,15 +1497,15 @@ Local Notation "p ^ f" := (map_poly f p) : ring_scope.
 
 Lemma root_annul_realalg (x : R) : root ((annul_realalg x) ^ realalg_of _) x.
 Proof. exact: RealAlg.root_annul_alg. Qed.
-Hint Resolve root_annul_realalg.
+Hint Resolve root_annul_realalg : core.
 
 Lemma monic_annul_realalg (x : R) : annul_realalg x \is monic.
 Proof. exact: RealAlg.monic_annul_alg. Qed.
-Hint Resolve monic_annul_realalg.
+Hint Resolve monic_annul_realalg : core.
 
 Lemma annul_realalg_neq0 (x : R) : annul_realalg x != 0%R.
 Proof. exact: RealAlg.annul_alg_neq0. Qed.
-Hint Resolve annul_realalg_neq0.
+Hint Resolve annul_realalg_neq0 : core.
 
 Lemma realalg_algebraic : integralRange (realalg_of F).
 Proof. by move=> x; exists (annul_realalg x). Qed.
