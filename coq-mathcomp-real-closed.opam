@@ -27,7 +27,7 @@ depends: [
 
 tags: [
   "keyword:real closed field"
-  "logpath:mathcomp"
+  "logpath:mathcomp.real_closed"
 ]
 authors: [
   "Cyril Cohen"

@@ -26,7 +26,7 @@ order theory of real closed field, through quantifier elimination.
   - [MathComp algebra 1.12](https://math-comp.github.io)
   - [MathComp field 1.12](https://math-comp.github.io)
   - [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
-- Coq namespace: `mathcomp`
+- Coq namespace: `mathcomp.real_closed`
 - Related publication(s):
   - [Formal proofs in real algebraic geometry: from ordered fields to quantifier elimination](https://hal.inria.fr/inria-00593738v4) doi:[10.2168/LMCS-8(1:2)2012](https://doi.org/10.2168/LMCS-8(1:2)2012)
   - [Construction of real algebraic numbers in Coq](https://hal.inria.fr/hal-00671809v2) doi:[10.1007/978-3-642-32347-8_6](https://doi.org/10.1007/978-3-642-32347-8_6)
@@ -115,10 +115,3 @@ library for the [Coq](https://coq.inria.fr) proof assistant.
      in order to get a temporary installation of emacs and
      proof-general.  Make sure you add `(require 'proof-site)` to your
      `$HOME/.emacs`.
-
-  ## Documentation
-
-  The documentation is available in the header of the file.
-
-  This library will be integrated to the mathematical components
-  library in the near future.
