@@ -1,9 +1,61 @@
-[![Build Status](https://travis-ci.org/math-comp/real-closed.svg?branch=master)](https://travis-ci.org/math-comp/real-closed)
+# Real closed fields
 
-# Theorems for real closed fields
+[![CI][action-shield]][action-link]
+
+[action-shield]: https://github.com/math-comp/real-closed/workflows/CI/badge.svg?branch=master
+[action-link]: https://github.com/math-comp/real-closed/actions?query=workflow%3ACI
+
+
+
+
+This library contains definitions and theorems about real closed
+fields, with a construction of the real closure and the algebraic
+closure (including a proof of the fundamental theorem of
+algebra). It also contains a proof of decidability of the first
+order theory of real closed field, through quantifier elimination.
+
+## Meta
+
+- Author(s):
+  - Cyril Cohen (initial)
+  - Assia Mahboubi (initial)
+- License: [CeCILL-B](CECILL-B)
+- Compatible Coq versions: Coq 8.10 to 8.12
+- Additional dependencies:
+  - [MathComp ssreflect 1.11](https://math-comp.github.io)
+  - [MathComp algebra 1.11](https://math-comp.github.io)
+  - [MathComp field 1.11](https://math-comp.github.io)
+  - [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
+- Coq namespace: `mathcomp`
+- Related publication(s):
+  - [Formal proofs in real algebraic geometry: from ordered fields to quantifier elimination](https://hal.inria.fr/inria-00593738v4) doi:[10.2168/LMCS-8(1:2)2012](https://doi.org/10.2168/LMCS-8(1:2)2012)
+  - [Construction of real algebraic numbers in Coq](https://hal.inria.fr/hal-00671809v2) doi:[10.1007/978-3-642-32347-8_6](https://doi.org/10.1007/978-3-642-32347-8_6)
+
+## Building and installation instructions
+
+The easiest way to install the latest released version of Real closed fields
+is via [OPAM](https://opam.ocaml.org/doc/Install.html):
+
+```shell
+opam repo add coq-released https://coq.inria.fr/opam/released
+opam install coq-mathcomp-real-closed
+```
+
+To instead build and install manually, do:
+
+``` shell
+git clone https://github.com/math-comp/real-closed.git
+cd real-closed
+make   # or make -j <number-of-cores-on-your-machine> 
+make install
+```
+
+
+
+## Documentation
 The repository contains
 - the decision procedure `rcf_sat` and its corectness lemma [`rcf_satP`](https://github.com/math-comp/real-closed/blob/3721886fffb13ea9c80824043f119ffed0c780f2/theories/qe_rcf.v#L991) for the first order theory of real closed fields through
-  [certified quantifier elimination](https://hal.inria.fr/inria-00593738v4)  
+[certified quantifier elimination](https://hal.inria.fr/inria-00593738v4)
 - the definition `{realclosure F}` , a [construction of the real closure of an archimedean field](https://hal.inria.fr/hal-00671809v2), which is canonically a [`rcfType`](https://github.com/math-comp/math-comp/blob/c1ec9cd8e7e50f73159613c492aad4c6c40bc3aa/mathcomp/algebra/ssrnum.v#L63) when `F` is an archimedean field, and the characteristic theorems of section [`RealClosureTheory`](https://github.com/math-comp/real-closed/blob/3721886fffb13ea9c80824043f119ffed0c780f2/theories/realalg.v#L1477).
 - the definition `complex R`,  a construction of the algebraic closure of a real closed field, which is canonically a [`numClosedFieldType`](https://github.com/math-comp/math-comp/blob/c1ec9cd8e7e50f73159613c492aad4c6c40bc3aa/mathcomp/algebra/ssrnum.v#L73) that additionally satisfies [`complexalg_algebraic`](https://github.com/math-comp/real-closed/blob/3721886fffb13ea9c80824043f119ffed0c780f2/theories/complex.v#L1324).
 
@@ -12,30 +64,8 @@ Except for the end-results listed above, one should not rely on anything.
 The formalization is based on the [Mathematical Components](https://github.com/math-comp/math-comp)
 library for the [Coq](https://coq.inria.fr) proof assistant.
 
-## Installation
 
-### Opam
-
-With opam, using the package
-
-```
-opam repo add coq-released https://coq.inria.fr/opam/released
-opam install coq-mathcomp-real-closed
-```
-
-Or locally:
-
-```
-opam pin add coq-mathcomp-real-closed .
-```
-
-Or manually, assuming mathematical componenents is installed
-```
-make
-make install
-```
-
-## Development
+## Development instructions
 
 ### With nix.
 
@@ -85,3 +115,10 @@ make install
      in order to get a temporary installation of emacs and
      proof-general.  Make sure you add `(require 'proof-site)` to your
      `$HOME/.emacs`.
+
+  ## Documentation
+
+  The documentation is available in the header of the file.
+
+  This library will be integrated to the mathematical components
+  library in the near future.
