@@ -7,6 +7,7 @@ From mathcomp
 Require Import bigop order ssralg ssrint div ssrnum rat poly closed_field.
 From mathcomp
 Require Import polyrcf matrix mxalgebra tuple mxpoly zmodp binomial realalg.
+From mathcomp Require Import mxpoly.
 
 (**********************************************************************)
 (*   This files defines the extension R[i] of a real field R,         *)
@@ -37,6 +38,7 @@ Local Notation sqrtr := Num.sqrt.
 
 Record complex (R : Type) : Type := Complex { Re : R; Im : R }.
 
+Declare Scope complex_scope.
 Delimit Scope complex_scope with C.
 Local Open Scope complex_scope.
 
@@ -797,7 +799,7 @@ rewrite !xpair_eqE /= [_ == i']eq_sym [_ == j']eq_sym (negPf neq'_ij) /=.
 set z := (_ && _); suff /negPf -> : ~~ z by rewrite subrr mulr0.
 by apply: contraL lt_j'i' => /andP [/eqP <- /eqP <-]; rewrite ltnNge ltnW.
 Qed.
-Hint Resolve skew_direct_sum.
+Hint Resolve skew_direct_sum : core.
 
 Lemma rank_skew : \rank skew = (n * n.-1)./2.
 Proof.
@@ -1054,7 +1056,7 @@ pose L2fun : 'M[R]_n -> _ :=
            \+ ((mulmx (u^T) \o trmx)               \+ (mulmx (v^T)))).
 pose L2 := lin_mx [linear of L2fun].
 have [] := @Lemma4 _ _ 1%:M _ [::L1; L2] (erefl _).
-+ by move: HrV; rewrite mxrank1 !dvdn2 ?negbK odd_mul andbb.
++ by move: HrV; rewrite mxrank1 !dvdn2 ?negbK oddM andbb.
 + by move=> ? _ /=; rewrite submx1.
 + suff {f fE}: L1 *m L2 = L2 *m L1.
     move: L1 L2 => L1 L2 commL1L2 La Lb.
@@ -1131,7 +1133,7 @@ have [] /= := IHk _ (leqnn _) _  _ (skew R[i] n.+1) _ [::L1; L2] (erefl _).
 + rewrite rank_skew; apply: contra Hn.
   rewrite -(@dvdn_pmul2r 2) //= -expnSr muln2 -[_.*2]add0n.
   have n_odd : odd n by rewrite dvdn2 /= ?negbK in dvd2n *.
-  have {2}<- : odd (n.+1 * n) = 0%N :> nat by rewrite odd_mul /= andNb.
+  have {2}<- : odd (n.+1 * n) = 0%N :> nat by rewrite oddM /= andNb.
   by rewrite odd_double_half Gauss_dvdl // coprime_pexpl // coprime2n.
 + move=> L; rewrite 2!in_cons in_nil orbF => /orP [] /eqP ->;
   apply/rV_subP => v /submxP [s -> {v}]; rewrite mulmxA; apply/skewP;

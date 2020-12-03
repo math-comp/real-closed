@@ -21,6 +21,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Declare Scope creal_scope.
 Delimit Scope creal_scope with CR.
 
 Section poly_extra.
@@ -43,7 +44,7 @@ Lemma size_nderivn (R : realDomainType) (p : {poly R}) n :
   size p^`N(n) = (size p - n)%N.
 Proof.
 rewrite -size_derivn nderivn_def -mulr_natl.
-by rewrite -polyC1 -!polyC_muln size_Cmul // pnatr_eq0 -lt0n fact_gt0.
+by rewrite -polyC1 -!polyCMn size_Cmul // pnatr_eq0 -lt0n fact_gt0.
 Qed.
 
 End poly_extra.
@@ -531,7 +532,7 @@ Lemma splitf (n : nat) (e : F) : e = iterop n +%R (e / n%:R) e.
 Proof.
 case: n=> // n; set e' := (e / _).
 have -> : e = e' * n.+1%:R by rewrite mulfVK ?pnatr_eq0.
-move: e'=> {e} e; rewrite iteropS.
+move: e'=> {}e; rewrite iteropS.
 by elim: n=> /= [|n <-]; rewrite !mulr_natr ?mulr1n.
 Qed.
 
@@ -694,7 +695,7 @@ Proof.
 apply: eq_crealP; exists (fun _ => 0%N).
 by move=> e i e_gt0 _; rewrite subrr normr0.
 Qed.
-Hint Resolve eq_creal_refl.
+Hint Resolve eq_creal_refl : core.
 
 Lemma neq_creal_sym x y : x != y -> y != x.
 Proof.
@@ -802,7 +803,7 @@ Qed.
 
 Lemma le_creal_refl (x : creal) : (x <= x)%CR.
 Proof. by apply: (@le_crealP 0%N). Qed.
-Hint Resolve le_creal_refl.
+Hint Resolve le_creal_refl : core.
 
 Lemma lt_neq_creal (x y : creal) : (x < y)%CR -> x != y.
 Proof.
@@ -1300,7 +1301,7 @@ have cop_q'_d': coprimep p' q'.
   by rewrite (dvdp_trans (dvdp_gcdr _ _)) ?dvdp_gdco.
 suff : (p' * q').[x]  * (d ^+ (size p + size q)).[x] == 0.
   case/poly_mul_creal_eq0_coprime.
-  + by rewrite coprimep_expr // coprimep_mull ?coprimep_gdco.
+  + by rewrite coprimep_expr // coprimepMl ?coprimep_gdco.
   + move=> p'q'x_eq0.
     have : p'.[x] * q'.[x] == 0 by rewrite -horner_crealM.
     case/poly_mul_creal_eq0_coprime=> // /dvdp_creal_eq0 hp'q'.
@@ -1493,7 +1494,7 @@ rewrite ger0_norm; last first.
 rewrite size_norm_poly2 ler_sum //= => l _.
 rewrite !{1}coef_nderivn normrMn ler_pmuln2r ?bin_gt0 ?leq_addr //.
 rewrite -!polyC_exp !coefMC coef_norm_poly2 normrM ler_wpmul2l ?normr_ge0 //.
-rewrite normrX; case: (val l)=> // {l} l.
+rewrite normrX; case: (val l)=> // {}l.
 by rewrite ler_pexpn2r -?topredE //= ?uboundP ?ltW ?ubound_gt0.
 Qed.
 
@@ -1670,8 +1671,7 @@ Notation "x ^+ n" := (exp_creal x n) : creal_scope.
 
 Notation "`| x |" := (norm_creal x) : creal_scope.
 
-Hint Resolve eq_creal_refl.
-Hint Resolve le_creal_refl.
+Hint Resolve eq_creal_refl le_creal_refl : core.
 
 Notation lbound_of p := (@lboundP _ _ _ p _ _ _).
 Notation lbound0_of p := (@lbound0P _ _ p _ _ _).

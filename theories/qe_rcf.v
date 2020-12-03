@@ -100,6 +100,7 @@ Definition to_rterm := fix loop (t : GRing.term R) : term :=
 
 End QF.
 
+Declare Scope qf_scope.
 Bind Scope qf_scope with term.
 Bind Scope qf_scope with formula.
 Delimit Scope qf_scope with qfT.
@@ -581,14 +582,14 @@ Lemma eval_NatMulPoly p n e :
   eval_poly e (n +** p)%qfT = (eval_poly e p) *+ n.
 Proof.
 elim: p; rewrite //= ?mul0rn // => c p ->.
-rewrite mulrnDl mulr_natl polyC_muln; congr (_+_).
+rewrite mulrnDl mulr_natl polyCMn; congr (_+_).
 by rewrite -mulr_natl mulrAC -mulrA mulr_natl mulrC.
 Qed.
 
 Lemma eval_OppPoly p e : eval_poly e (-- p)%qfT = - eval_poly e p.
 Proof.
 elim: p; rewrite //= ?oppr0 // => t ts ->.
-by rewrite !mulNr !opprD polyC_opp mul1r.
+by rewrite !mulNr !opprD polyCN mul1r.
 Qed.
 
 Lemma eval_Horner e p x : eval e (Horner p x) = (eval_poly e p).[eval e x].
@@ -804,12 +805,9 @@ Qed.
 Lemma eval_PolyComb e sq sc :
   eval_poly e (PolyComb sq sc) = poly_comb (map (eval_poly e) sq) sc.
 Proof.
-rewrite /PolyComb /poly_comb size_map.
-rewrite -BigOp.bigopE -val_enum_ord -filter_index_enum !big_map.
-apply: (big_ind2 (fun u v => eval_poly e u = v)).
-+ by rewrite /= mul0r add0r.
-+ by move=> x x' y y'; rewrite eval_MulPoly=> -> ->.
-by move=> i _; rewrite eval_ExpPoly /= (nth_map [::]).
+rewrite /PolyComb /poly_comb size_map -BigOp.bigopE -val_enum_ord/= big_map.
+rewrite (@big_morph _ _ _ 1%R *%R _ _ (eval_MulPoly _))/= ?mul0r ?add0r//.
+by rewrite big_enum; under eq_bigr do rewrite eval_ExpPoly/= -(nth_map _ 0)//.
 Qed.
 
 Definition pcq (sq : seq {poly F}) i :=

@@ -969,7 +969,7 @@ Qed.
 
 Lemma changes_mods_cindex p q : changes_mods p q = cindexR q p.
 Proof.
-elim: mods {-2}p {-2}q (erefl (mods p q)) => [|r s IHs] {p q} p q hrpq.
+elim: mods {-2}p {-2}q (erefl (mods p q)) => [|r s IHs] {}p {}q hrpq.
   move/eqP: hrpq; rewrite mods_eq0 => /eqP ->.
   by rewrite changes_mods0p cindexRpC.
 rewrite changes_mods_rec cindexR_rec IHs //.
@@ -1025,7 +1025,7 @@ Lemma changes_itv_mods_cindex a b : a < b -> forall p q,
   changes_itv_mods a b p q = cindex a b q p.
 Proof.
 move=> hab p q.
-elim: mods {-2}p {-2}q (erefl (mods p q)) => [|r s IHs] {p q} p q hrpq.
+elim: mods {-2}p {-2}q (erefl (mods p q)) => [|r s IHs] {}p {}q hrpq.
   move/eqP: hrpq; rewrite mods_eq0 => /eqP ->.
   by rewrite changes_itv_mods0p cindexpC.
 have p_neq0 : p != 0 by rewrite -(mods_eq0 p q) hrpq.
@@ -1279,7 +1279,7 @@ have [|bq_neq0] := boolP (bounding_poly sq == 0).
     apply/andP; split; apply/hasP;
     by exists 0; rewrite //= ?lead_coef0 ?mulr0 ltxx.
   move=> /size_prod_eq1 Hsq.
-  have {Hsq} Hsq q : q \in sq -> q = (lead_coef q)%:P.
+  have {}Hsq q : q \in sq -> q = (lead_coef q)%:P.
     by move=> /Hsq sq1; rewrite [q]size1_polyC ?sq1 // lead_coefC.
   apply: (@equivP (\big[andb/true]_(q <- sq) (0 < lead_coef q))); last first.
     split; [move=> sq0; exists 0; move: sq0|move=> [x]];

@@ -80,7 +80,7 @@ dependencies:
   description: |-
     [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
 
-namespace: mathcomp
+namespace: mathcomp.real_closed
 
 keywords:
 - name: real closed field
