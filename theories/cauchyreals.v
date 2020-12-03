@@ -1671,7 +1671,7 @@ Notation "x ^+ n" := (exp_creal x n) : creal_scope.
 
 Notation "`| x |" := (norm_creal x) : creal_scope.
 
-Hint Resolve eq_creal_refl le_creal_refl : core.
+#[global] Hint Resolve eq_creal_refl le_creal_refl : core.
 
 Notation lbound_of p := (@lboundP _ _ _ p _ _ _).
 Notation lbound0_of p := (@lbound0P _ _ p _ _ _).
