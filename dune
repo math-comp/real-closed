@@ -1,0 +1,4 @@
+(coq.theory
+ (name mathcomp)
+ (package coq-mathcomp-real-closed)
+ (synopsis "Mathematical Components Library on real closed fields"))
