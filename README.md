@@ -1,9 +1,13 @@
+<!---
+This file was generated from `meta.yml`, please do not edit manually.
+Follow the instructions on https://github.com/coq-community/templates to regenerate.
+--->
 # Real closed fields
 
-[![CI][action-shield]][action-link]
+[![Docker CI][docker-action-shield]][docker-action-link]
 
-[action-shield]: https://github.com/math-comp/real-closed/workflows/CI/badge.svg?branch=master
-[action-link]: https://github.com/math-comp/real-closed/actions?query=workflow%3ACI
+[docker-action-shield]: https://github.com/math-comp/real-closed/workflows/Docker%20CI/badge.svg?branch=master
+[docker-action-link]: https://github.com/math-comp/real-closed/actions?query=workflow:"Docker%20CI"
 
 
 
@@ -20,7 +24,7 @@ order theory of real closed field, through quantifier elimination.
   - Cyril Cohen (initial)
   - Assia Mahboubi (initial)
 - License: [CeCILL-B](CECILL-B)
-- Compatible Coq versions: Coq 8.10 to 8.12
+- Compatible Coq versions: Coq 8.10 to 8.13
 - Additional dependencies:
   - [MathComp ssreflect 1.12](https://math-comp.github.io)
   - [MathComp algebra 1.12](https://math-comp.github.io)
