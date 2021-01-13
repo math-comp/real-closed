@@ -942,7 +942,9 @@ Qed.
 Definition AlgNumFieldMixin := RealLtMixin add_alg_gt0 mul_alg_gt0
   gt0_alg_nlt0 sub_alg_gt0 lt0_alg_total norm_algN ge0_norm_alg le_alg_def.
 Canonical alg_porderType := POrderType ring_display alg AlgNumFieldMixin.
-Canonical alg_latticeType := LatticeType alg AlgNumFieldMixin.
+Canonical alg_meetSemilatticeType := MeetSemilatticeType alg AlgNumFieldMixin.
+Canonical alg_joinSemilatticeType := JoinSemilatticeType alg AlgNumFieldMixin.
+Canonical alg_latticeType := [latticeType of alg].
 Canonical alg_distrLatticeType := DistrLatticeType alg AlgNumFieldMixin.
 Canonical alg_orderType := OrderType alg AlgNumFieldMixin.
 Canonical alg_numDomainType := NumDomainType alg AlgNumFieldMixin.
@@ -1455,6 +1457,9 @@ Canonical RealAlg.alg_comUnitRing.
 Canonical RealAlg.alg_iDomain.
 Canonical RealAlg.alg_fieldType.
 Canonical RealAlg.alg_porderType.
+Canonical RealAlg.alg_meetSemilatticeType.
+Canonical RealAlg.alg_joinSemilatticeType.
+Canonical RealAlg.alg_latticeType.
 Canonical RealAlg.alg_distrLatticeType.
 Canonical RealAlg.alg_orderType.
 Canonical RealAlg.alg_numDomainType.
@@ -1523,6 +1528,9 @@ Canonical realalg_comUnitRingType := [comUnitRingType of realalg].
 Canonical realalg_idomainType := [idomainType of realalg].
 Canonical realalg_fieldTypeType := [fieldType of realalg].
 Canonical realalg_porderType := [porderType of realalg].
+Canonical realalg_meetSemilatticeType := [meetSemilatticeType of realalg].
+Canonical realalg_joinSemilatticeType := [joinSemilatticeType of realalg].
+Canonical realalg_latticeType := [latticeType of realalg].
 Canonical realalg_distrLatticeType := [distrLatticeType of realalg].
 Canonical realalg_orderType := [orderType of realalg].
 Canonical realalg_numDomainType := [numDomainType of realalg].
