@@ -286,6 +286,18 @@ Qed.
 Lemma normCM x y : normC (x * y) = normC x * normC y.
 Proof. by rewrite -rmorphM normcM. Qed.
 
+Lemma normcV x : normc (x ^-1) = (normc x)^-1.
+Proof.
+have [/eqP -> | xn0] := boolP(x == 0); last first.
+  have normxn0 : normc x != 0 by apply/eqP=> /eq0_normc /eqP; apply/negP.
+  apply: (mulfI normxn0); rewrite mulfV // -normcM mulfV //.
+  by rewrite /normc /= expr0n /= addr0 expr1n sqrtr1.
+by rewrite /= mul0r oppr0 expr0n addr0 sqrtr0 invr0.
+Qed.
+
+Lemma normCV x : normC(x ^-1) = (normC x) ^-1.
+Proof. by rewrite -fmorphV normcV. Qed.
+
 Lemma subc_ge0 x y : lec 0 (y - x) = lec x y.
 Proof. by move: x y => [a b] [c d] /=; simpc; rewrite subr_ge0 subr_eq0. Qed.
 
