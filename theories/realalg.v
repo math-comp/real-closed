@@ -1,5 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
+From HB Require Import structures.
 Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp
 Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
@@ -375,11 +376,7 @@ do 3?[case: eqP; rewrite ?monic_p ?r_ge0 ?monic_p //] => monic_p' r_ge0' hp'.
 by congr (Some (AlgDom _ _ _)); apply: bool_irrelevance.
 Qed.
 
-Definition algdom_EqMixin := PcanEqMixin encode_algdomK.
-Canonical algdom_eqType := EqType algdom algdom_EqMixin.
-
-Definition algdom_ChoiceMixin := PcanChoiceMixin encode_algdomK.
-Canonical algdom_choiceType := ChoiceType algdom algdom_ChoiceMixin.
+HB.instance Definition _ := Choice.copy algdom (pcan_type encode_algdomK).
 
 Fixpoint to_algcreal_of (p : {poly F}) (c r : F) (i : nat) : F :=
   match i with
@@ -670,10 +667,9 @@ elim/quotW=> x; rewrite !piE -equiv_alg /=.
 by apply: eq_crealP; exists m0=> *; rewrite /= addNr subr0 normr0.
 Qed.
 
-Definition alg_zmodMixin :=  ZmodMixin add_algA add_algC add_0alg add_Nalg.
-Canonical alg_zmodType := Eval hnf in ZmodType alg alg_zmodMixin.
-Canonical alg_of_zmodType := Eval hnf in ZmodType {alg F} alg_zmodMixin.
-
+HB.instance Definition _ := GRing.isZmodule.Build alg
+  add_algA add_algC add_0alg add_Nalg.
+HB.instance Definition _ := GRing.Zmodule.on {alg F}.
 
 Lemma add_pi x y : \pi_{alg F} x + \pi_{alg F} y
   = \pi_{alg F} (add_algcreal x y).
@@ -716,12 +712,9 @@ Prenex Implicits neq_creal_cst.
 Lemma nonzero1_alg : one_alg != zero_alg.
 Proof. by rewrite piE -(rwP neq_algcrealP) (rwP neq_creal_cst) oner_eq0. Qed.
 
-Definition alg_comRingMixin :=
-  ComRingMixin mul_algA mul_algC mul_1alg mul_alg_addl nonzero1_alg.
-Canonical alg_Ring := Eval hnf in RingType alg alg_comRingMixin.
-Canonical alg_comRing := Eval hnf in ComRingType alg mul_algC.
-Canonical alg_of_Ring := Eval hnf in RingType {alg F} alg_comRingMixin.
-Canonical alg_of_comRing := Eval hnf in ComRingType {alg F} mul_algC.
+HB.instance Definition _ := GRing.Zmodule_isComRing.Build alg
+  mul_algA mul_algC mul_1alg mul_alg_addl nonzero1_alg.
+HB.instance Definition _ := GRing.ComRing.on {alg F}.
 
 Lemma mul_pi x y : \pi_{alg F} x * \pi_{alg F} y
   = \pi_{alg F} (mul_algcreal x y).
@@ -752,7 +745,8 @@ move=> x y /=; rewrite !piE sub_pi -equiv_alg /=.
 by apply: eq_crealP; exists m0=> * /=; rewrite subrr normr0.
 Qed.
 
-Canonical to_alg_is_additive := Additive to_alg_additive.
+HB.instance Definition _ :=
+  GRing.isAdditive.Build F [zmodType of {alg F}] to_alg to_alg_additive.
 
 Lemma to_alg_multiplicative : multiplicative to_alg.
 Proof.
@@ -760,7 +754,9 @@ split=> [x y |] //; rewrite !piE mul_pi -equiv_alg.
 by apply: eq_crealP; exists m0=> * /=; rewrite subrr normr0.
 Qed.
 
-Canonical to_alg_is_rmorphism := AddRMorphism to_alg_multiplicative.
+HB.instance Definition _ :=
+  GRing.isMultiplicative.Build F [ringType of {alg F}] to_alg
+    to_alg_multiplicative.
 
 Lemma expn_pi (x : algcreal) (n : nat) :
   (\pi_{alg F} x) ^+ n = \pi (exp_algcreal x n).
@@ -798,23 +794,8 @@ Proof. by unlock annul_alg; rewrite monic_annul_creal. Qed.
 Lemma annul_alg_neq0 (x : {alg F}) : annul_alg x != 0.
 Proof. by rewrite monic_neq0 ?monic_annul_alg. Qed.
 
-Definition AlgFieldUnitMixin := FieldUnitMixin mul_Valg inv_alg0.
-Canonical alg_unitRing :=
-  Eval hnf in UnitRingType alg AlgFieldUnitMixin.
-Canonical alg_comUnitRing := Eval hnf in [comUnitRingType of alg].
-Canonical alg_of_unitRing :=
-  Eval hnf in UnitRingType {alg F} AlgFieldUnitMixin.
-Canonical alg_of_comUnitRing := Eval hnf in [comUnitRingType of {alg F}].
-
-Lemma field_axiom : GRing.Field.mixin_of alg_unitRing. Proof. exact. Qed.
-
-Definition AlgFieldIdomainMixin := (FieldIdomainMixin field_axiom).
-Canonical alg_iDomain :=
-  Eval hnf in IdomainType alg (FieldIdomainMixin field_axiom).
-Canonical alg_fieldType := FieldType alg field_axiom.
-Canonical alg_of_iDomain :=
-  Eval hnf in IdomainType {alg F} (FieldIdomainMixin field_axiom).
-Canonical alg_of_fieldType := FieldType {alg F} field_axiom.
+HB.instance Definition _ := GRing.ComRing_isField.Build alg mul_Valg inv_alg0.
+HB.instance Definition _ := GRing.Field.on {alg F}.
 
 Lemma inv_pi x : (\pi_{alg F} x)^-1  = \pi_{alg F} (inv_algcreal x).
 Proof. by rewrite [_^-1]piE. Qed.
@@ -939,25 +920,10 @@ rewrite -[x]reprK -[y]reprK piE [lt_alg _ _]piE; apply/le_algcrealP/orP.
 by move=> [/eqP/eqquotP/eq_algcrealP-> //| /lt_algcrealP /lt_crealW].
 Qed.
 
-Definition AlgNumFieldMixin := RealLtMixin add_alg_gt0 mul_alg_gt0
-  gt0_alg_nlt0 sub_alg_gt0 lt0_alg_total norm_algN ge0_norm_alg le_alg_def.
-Canonical alg_porderType := POrderType ring_display alg AlgNumFieldMixin.
-Canonical alg_latticeType := LatticeType alg AlgNumFieldMixin.
-Canonical alg_distrLatticeType := DistrLatticeType alg AlgNumFieldMixin.
-Canonical alg_orderType := OrderType alg AlgNumFieldMixin.
-Canonical alg_numDomainType := NumDomainType alg AlgNumFieldMixin.
-Canonical alg_normedZmodType := NormedZmodType alg alg AlgNumFieldMixin.
-Canonical alg_numFieldType := [numFieldType of alg].
-Canonical alg_of_porderType := [porderType of {alg F}].
-Canonical alg_of_distrLatticeType := [distrLatticeType of {alg F}].
-Canonical alg_of_orderType := [orderType of {alg F}].
-Canonical alg_of_numDomainType := [numDomainType of {alg F}].
-Canonical alg_of_normedZmodType := [normedZmodType {alg F} of {alg F}].
-Canonical alg_of_numFieldType := [numFieldType of {alg F}].
-Canonical alg_realDomainType := [realDomainType of alg].
-Canonical alg_realFieldType := [realFieldType of alg].
-Canonical alg_of_realDomainType := [realDomainType of {alg F}].
-Canonical alg_of_realFieldType := [realFieldType of {alg F}].
+HB.instance Definition _ := Num.IntegralDomain_isLtReal.Build alg
+  add_alg_gt0 mul_alg_gt0 gt0_alg_nlt0 sub_alg_gt0 lt0_alg_total norm_algN
+  ge0_norm_alg le_alg_def.
+HB.instance Definition _ := Num.RealDomain.on {alg F}.
 
 Lemma lt_pi x y : \pi_{alg F} x < \pi y = lt_algcreal x y.
 Proof. by rewrite [_ < _]lt_alg_pi. Qed.
@@ -1037,7 +1003,7 @@ Proof.
 by unlock approx; case: approx_proof=> /= y hy /hy /lt_le_trans hy' /hy'.
 Qed.
 
-Lemma alg_archi : Num.archimedean_axiom alg_of_numDomainType.
+Lemma alg_archi : Num.archimedean_axiom [numDomainType of {alg F}].
 Proof.
 move=> x; move: {x}`|x| (normr_ge0 x) => x x_ge0.
 pose a := approx x 1%:RA; exists (Num.bound (a + 1)).
@@ -1047,8 +1013,8 @@ rewrite -ler_to_alg rmorphD /= (le_trans _ (ltW hxa)) //.
 by move=> /(_ isT) /(lt_trans _)->.
 Qed.
 
-Canonical alg_archiFieldType := ArchiFieldType alg alg_archi.
-Canonical alg_of_archiFieldType := [archiFieldType of {alg F}].
+HB.instance Definition _ := Num.RealField_isArchimedean.Build alg alg_archi.
+HB.instance Definition _ := Num.ArchimedeanField.on {alg F}.
 
 (**************************************************************************)
 (* At this stage, algebraics form an archimedian field.  We now build the *)
@@ -1432,11 +1398,12 @@ rewrite -[x]from_algK fmorph_root=> rpx; exists (from_alg x)=> //.
 by rewrite -ler_to_alg from_algK hax -ler_to_alg from_algK.
 Qed.
 
-Canonical alg_rcfType := RcfType (alg F) ivt.
-Canonical alg_of_rcfType := [rcfType of {alg F}].
+HB.instance Definition _ := Num.RealField_isClosed.Build (alg F) ivt.
+HB.instance Definition _ := Num.RealClosedField.on {alg F}.
 
 End AlgAlgAlg.
 End RealAlg.
+HB.export RealAlg.
 
 Notation "{ 'realclosure'  F }" := (RealAlg.alg_of (Phant F)).
 
@@ -1445,48 +1412,7 @@ Notation realalg_of F := (@RealAlg.to_alg_def _ (Phant F)).
 Notation "x %:RA" := (realalg_of x)
   (at level 2, left associativity, format "x %:RA").
 
-Canonical RealAlg.alg_eqType.
-Canonical RealAlg.alg_choiceType.
-Canonical RealAlg.alg_zmodType.
-Canonical RealAlg.alg_Ring.
-Canonical RealAlg.alg_comRing.
-Canonical RealAlg.alg_unitRing.
-Canonical RealAlg.alg_comUnitRing.
-Canonical RealAlg.alg_iDomain.
-Canonical RealAlg.alg_fieldType.
-Canonical RealAlg.alg_porderType.
-Canonical RealAlg.alg_distrLatticeType.
-Canonical RealAlg.alg_orderType.
-Canonical RealAlg.alg_numDomainType.
-Canonical RealAlg.alg_normedZmodType.
-Canonical RealAlg.alg_numFieldType.
-Canonical RealAlg.alg_realDomainType.
-Canonical RealAlg.alg_realFieldType.
-Canonical RealAlg.alg_archiFieldType.
-Canonical RealAlg.alg_rcfType.
-
-Canonical RealAlg.alg_of_eqType.
-Canonical RealAlg.alg_of_choiceType.
-Canonical RealAlg.alg_of_zmodType.
-Canonical RealAlg.alg_of_Ring.
-Canonical RealAlg.alg_of_comRing.
-Canonical RealAlg.alg_of_unitRing.
-Canonical RealAlg.alg_of_comUnitRing.
-Canonical RealAlg.alg_of_iDomain.
-Canonical RealAlg.alg_of_fieldType.
-Canonical RealAlg.alg_of_porderType.
-Canonical RealAlg.alg_of_distrLatticeType.
-Canonical RealAlg.alg_of_orderType.
-Canonical RealAlg.alg_of_numDomainType.
-Canonical RealAlg.alg_of_normedZmodType.
-Canonical RealAlg.alg_of_numFieldType.
-Canonical RealAlg.alg_of_realDomainType.
-Canonical RealAlg.alg_of_realFieldType.
-Canonical RealAlg.alg_of_archiFieldType.
-Canonical RealAlg.alg_of_rcfType.
-
-Canonical RealAlg.to_alg_is_rmorphism.
-Canonical RealAlg.to_alg_is_additive.
+HB.instance Definition _ (F : archiFieldType) := GRing.RMorphism.on (to_alg F).
 
 Section RealClosureTheory.
 
@@ -1513,36 +1439,15 @@ Proof. by move=> x; exists (annul_realalg x). Qed.
 End RealClosureTheory.
 
 Definition realalg := {realclosure rat}.
-Canonical realalg_eqType := [eqType of realalg].
-Canonical realalg_choiceType := [choiceType of realalg].
-Canonical realalg_zmodType := [zmodType of realalg].
-Canonical realalg_ringType := [ringType of realalg].
-Canonical realalg_comRingType := [comRingType of realalg].
-Canonical realalg_unitRingType := [unitRingType of realalg].
-Canonical realalg_comUnitRingType := [comUnitRingType of realalg].
-Canonical realalg_idomainType := [idomainType of realalg].
-Canonical realalg_fieldTypeType := [fieldType of realalg].
-Canonical realalg_porderType := [porderType of realalg].
-Canonical realalg_distrLatticeType := [distrLatticeType of realalg].
-Canonical realalg_orderType := [orderType of realalg].
-Canonical realalg_numDomainType := [numDomainType of realalg].
-Canonical realalg_normedZmodType := [normedZmodType realalg of realalg].
-Canonical realalg_numFieldType := [numFieldType of realalg].
-Canonical realalg_realDomainType := [realDomainType of realalg].
-Canonical realalg_realFieldType := [realFieldType of realalg].
-Canonical realalg_archiFieldType := [archiFieldType of realalg].
-Canonical realalg_rcfType := [rcfType of realalg].
+HB.instance Definition _ := Num.RealClosedField.on realalg.
 
 Module RatRealAlg.
-Canonical RealAlg.algdom_choiceType.
-Definition realalgdom_CountMixin :=
-   PcanCountMixin (@RealAlg.encode_algdomK [archiFieldType of rat]).
-Canonical realalgdom_countType :=
-   CountType (RealAlg.algdom [archiFieldType of rat]) realalgdom_CountMixin.
-Definition realalg_countType := [countType of realalg].
+HB.instance Definition _ := Countable.copy
+  (RealAlg.algdom [archiFieldType of rat])
+  (pcan_type (@RealAlg.encode_algdomK [archiFieldType of rat])).
+HB.instance Definition _ := Countable.on realalg.
 End RatRealAlg.
-
-Canonical RatRealAlg.realalg_countType.
+HB.export RatRealAlg.
 
 (* From mathcomp
 Require Import countalg. *)
