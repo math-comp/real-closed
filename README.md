@@ -24,11 +24,11 @@ order theory of real closed field, through quantifier elimination.
   - Cyril Cohen (initial)
   - Assia Mahboubi (initial)
 - License: [CeCILL-B](CECILL-B)
-- Compatible Coq versions: Coq 8.10 to 8.13
+- Compatible Coq versions: Coq 8.10 or later
 - Additional dependencies:
-  - [MathComp ssreflect 1.12](https://math-comp.github.io)
-  - [MathComp algebra 1.12](https://math-comp.github.io)
-  - [MathComp field 1.12](https://math-comp.github.io)
+  - [MathComp ssreflect 1.12 or later](https://math-comp.github.io)
+  - [MathComp algebra 1.12 or later](https://math-comp.github.io)
+  - [MathComp field 1.12 or later](https://math-comp.github.io)
   - [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
 - Coq namespace: `mathcomp.real_closed`
 - Related publication(s):
