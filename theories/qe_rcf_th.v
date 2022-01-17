@@ -293,7 +293,7 @@ Proof. by rewrite size_sg_tab exp3n. Qed.
 
 
 Definition comb_exp (R : realDomainType) (s : R) :=
-  match sgz s with Posz 1 => 1%N | Negz 0 => 2 | _ => 0%N end.
+  match sgz s with Posz 1 => 1%N | Negz 0 => 2%N | _ => 0%N end.
 
 Definition poly_comb (sq : seq {poly R}) (sc : seq int) : {poly R} :=
   \prod_(i < size sq) ((sq`_i) ^+ (comb_exp sc`_i)).
