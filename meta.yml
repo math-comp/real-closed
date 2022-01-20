@@ -39,8 +39,8 @@ license:
   file: CECILL-B
 
 supported_coq_versions:
-  text: Coq 8.10 to 8.13
-  opam: '{ (>= "8.10" & < "8.14~") | (= "dev") }'
+  text: Coq 8.10 or later
+  opam: '{>= "8.10"}'
 
 tested_coq_opam_versions:
 - version: '1.12.0-coq-8.10'
@@ -51,11 +51,39 @@ tested_coq_opam_versions:
   repo: 'mathcomp/mathcomp'
 - version: '1.12.0-coq-8.13'
   repo: 'mathcomp/mathcomp'
-- version: 'coq-8.10'
-  repo: 'mathcomp/mathcomp-dev'
+- version: '1.12.0-coq-8.14'
+  repo: 'mathcomp/mathcomp'
+- version: '1.13.0-coq-8.11'
+  repo: 'mathcomp/mathcomp'
+- version: '1.13.0-coq-8.12'
+  repo: 'mathcomp/mathcomp'
+- version: '1.13.0-coq-8.13'
+  repo: 'mathcomp/mathcomp'
+- version: '1.13.0-coq-8.14'
+  repo: 'mathcomp/mathcomp'
+- version: '1.13.0-coq-8.15'
+  repo: 'mathcomp/mathcomp'
+- version: '1.14.0-coq-8.11'
+  repo: 'mathcomp/mathcomp'
+- version: '1.14.0-coq-8.12'
+  repo: 'mathcomp/mathcomp'
+- version: '1.14.0-coq-8.13'
+  repo: 'mathcomp/mathcomp'
+- version: '1.14.0-coq-8.14'
+  repo: 'mathcomp/mathcomp'
+- version: '1.14.0-coq-8.15'
+  repo: 'mathcomp/mathcomp'
+- version: '1.14.0-coq-dev'
+  repo: 'mathcomp/mathcomp'
 - version: 'coq-8.11'
   repo: 'mathcomp/mathcomp-dev'
 - version: 'coq-8.12'
+  repo: 'mathcomp/mathcomp-dev'
+- version: 'coq-8.13'
+  repo: 'mathcomp/mathcomp-dev'
+- version: 'coq-8.14'
+  repo: 'mathcomp/mathcomp-dev'
+- version: 'coq-8.15'
   repo: 'mathcomp/mathcomp-dev'
 - version: 'coq-dev'
   repo: 'mathcomp/mathcomp-dev'
@@ -63,19 +91,19 @@ tested_coq_opam_versions:
 dependencies:
 - opam:
     name: coq-mathcomp-ssreflect
-    version: '{ (>= "1.12.0" & < "1.13~") | (= "dev")  }'
+    version: '{>= "1.12.0"}'
   description: |-
-    [MathComp ssreflect 1.12](https://math-comp.github.io)
+    [MathComp ssreflect 1.12 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-algebra
-    version: '{ (>= "1.12.0" & < "1.13~") | (= "dev")  }'
+    version: '{>= "1.12.0"}'
   description: |-
-    [MathComp algebra 1.12](https://math-comp.github.io)
+    [MathComp algebra 1.12 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-field
-    version: '{ (>= "1.12.0" & < "1.13~") | (= "dev")  }'
+    version: '{>= "1.12.0"}'
   description: |-
-    [MathComp field 1.12](https://math-comp.github.io)
+    [MathComp field 1.12 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-bigenough
     version: '{>= "1.0.0"}'
