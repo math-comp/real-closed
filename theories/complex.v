@@ -92,7 +92,7 @@ apply/eqP/andP; first by move=> [-> ->]; split.
 by case; move/eqP->; move/eqP->.
 Qed.
 
-Lemma complexr0 : forall (R : ringType) (x : R), x +i* 0 = x%:C. Proof. by []. Qed.
+Lemma complexr0 (R : ringType) (x : R) : x +i* 0 = x%:C. Proof. by []. Qed.
 
 Module ComplexField.
 Section ComplexField_ringType.
@@ -390,10 +390,8 @@ Proof. by case=> a b; simpc. Qed.
 Lemma complexE x : x = (Re x)%:C + 'i%C * (Im x)%:C :> R[i].
 Proof. by case: x => *; simpc. Qed.
 
-Lemma real_complexE k : k%:C = k +i* 0 :> R[i]. Proof. done. Qed.
-
 Lemma sqr_i : 'i%C ^+ 2 = -1 :> R[i].
-Proof. by rewrite exprS; simpc; rewrite -real_complexE rmorphN. Qed.
+Proof. by rewrite exprS; simpc; rewrite complexr0 rmorphN. Qed.
 
 Lemma complexI : injective (real_complex R). Proof. by move=> x y []. Qed.
 
