@@ -24,7 +24,7 @@ order theory of real closed field, through quantifier elimination.
   - Cyril Cohen (initial)
   - Assia Mahboubi (initial)
 - License: [CeCILL-B](CECILL-B)
-- Compatible Coq versions: Coq 8.10 or later
+- Compatible Coq versions: Coq 8.13 or later
 - Additional dependencies:
   - [MathComp ssreflect 1.12 or later](https://math-comp.github.io)
   - [MathComp algebra 1.12 or later](https://math-comp.github.io)
