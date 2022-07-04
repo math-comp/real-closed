@@ -252,6 +252,12 @@ Definition normc (x : R[i]) : R :=
 
 Notation normC x := (normc x)%:C.
 
+Lemma normc0 : normc 0%C = 0.
+Proof. by rewrite /normc /= expr0n/= addr0 sqrtr0. Qed.
+
+Lemma normc1 : normc 1%C = 1.
+Proof. by rewrite /normc /= expr0n/= expr1n addr0 sqrtr1. Qed.
+
 Lemma ltc0_add : forall x y, ltc 0 x -> ltc 0 y -> ltc 0 (x + y).
 Proof.
 move=> [a b] [c d] /= /andP [/eqP-> ha] /andP [/eqP-> hc].
@@ -286,16 +292,14 @@ Qed.
 Lemma normCM x y : normC (x * y) = normC x * normC y.
 Proof. by rewrite -rmorphM normcM. Qed.
 
-Lemma normcV x : normc (x ^-1) = (normc x)^-1.
+Lemma normcV x : normc x^-1 = (normc x)^-1.
 Proof.
-have [/eqP -> | xn0] := boolP(x == 0); last first.
-  have normxn0 : normc x != 0 by apply/eqP=> /eq0_normc /eqP; apply/negP.
-  apply: (mulfI normxn0); rewrite mulfV // -normcM mulfV //.
-  by rewrite /normc /= expr0n /= addr0 expr1n sqrtr1.
-by rewrite /= mul0r oppr0 expr0n addr0 sqrtr0 invr0.
+have [->|x0] := eqVneq x 0; first by rewrite ?(invr0,normc0).
+have nx0 : normc x != 0 by apply: contra x0 => /eqP/eq0_normc ->.
+by apply: (mulfI nx0); rewrite -normcM !divrr ?unitfE// normc1.
 Qed.
 
-Lemma normCV x : normC(x ^-1) = (normC x) ^-1.
+Lemma normCV x : normC x^-1 = (normC x)^-1.
 Proof. by rewrite -fmorphV normcV. Qed.
 
 Lemma subc_ge0 x y : lec 0 (y - x) = lec x y.
