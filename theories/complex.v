@@ -390,6 +390,10 @@ Proof. by case=> a b; simpc. Qed.
 Lemma complexE x : x = (Re x)%:C + 'i%C * (Im x)%:C :> R[i].
 Proof. by case: x => *; simpc. Qed.
 
+Local Lemma real_complexE_deprecated k : k%:C = k +i* 0 :> R[i]. Proof. done. Qed.
+#[deprecated(since="1.1.3", note="Use complexr0 instead.")]
+Notation real_complexE := real_complexE_deprecated.
+
 Lemma sqr_i : 'i%C ^+ 2 = -1 :> R[i].
 Proof. by rewrite exprS; simpc; rewrite complexr0 rmorphN. Qed.
 
