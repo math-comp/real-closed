@@ -299,9 +299,6 @@ have nx0 : normc x != 0 by apply: contra x0 => /eqP/eq0_normc ->.
 by apply: (mulfI nx0); rewrite -normcM !divrr ?unitfE// normc1.
 Qed.
 
-Lemma normCV x : normC x^-1 = (normC x)^-1.
-Proof. by rewrite -fmorphV normcV. Qed.
-
 Lemma subc_ge0 x y : lec 0 (y - x) = lec x y.
 Proof. by move: x y => [a b] [c d] /=; simpc; rewrite subr_ge0 subr_eq0. Qed.
 
