@@ -219,9 +219,52 @@ Canonical real_complex_additive :=
 
 End ComplexField_realFieldType.
 
-Section ComplexField.
-
+Module Normc.
+Section Normc.
 Variable R : rcfType.
+Implicit Types x : R[i].
+
+(*  TODO: when Pythagorean Fields are added, weaken to Pythagorean Field *)
+Definition normc x :=
+  let: a +i* b := x in sqrtr (a ^+ 2 + b ^+ 2).
+
+Lemma normc0 : normc 0%C = 0 :> R.
+Proof. by rewrite /normc /= expr0n/= addr0 sqrtr0. Qed.
+
+Lemma normc1 : normc 1%C = 1 :> R.
+Proof. by rewrite /normc /= expr0n/= expr1n addr0 sqrtr1. Qed.
+
+Lemma eq0_normc x : normc x = 0 -> x = 0.
+Proof.
+case: x => a b /= /eqP; rewrite sqrtr_eq0 le_eqVlt => /orP[|]; last first.
+  by rewrite ltNge addr_ge0 ?sqr_ge0.
+by rewrite paddr_eq0 ?sqr_ge0 ?expf_eq0 //= => /andP[/eqP -> /eqP ->].
+Qed.
+
+Lemma normcM x y : normc (x * y) = normc x * normc y.
+Proof.
+move: x y => [a b] [c d] /=; rewrite -sqrtrM ?addr_ge0 ?sqr_ge0 //.
+rewrite sqrrB sqrrD mulrDl !mulrDr -!exprMn.
+rewrite mulrAC [b * d]mulrC !mulrA.
+suff -> : forall (u v w z t : R), (u - v + w) + (z + v + t) = u + w + (z + t).
+  by rewrite addrAC !addrA.
+by move=> u v w z t; rewrite [_ - _ + _]addrAC [z + v]addrC !addrA addrNK.
+Qed.
+
+Lemma normcV x : normc x^-1 = (normc x)^-1.
+Proof.
+have [->|x0] := eqVneq x 0; first by rewrite ?(invr0,normc0).
+have nx0 : normc x != 0 by apply: contra x0 => /eqP/eq0_normc ->.
+by apply: (mulfI nx0); rewrite -normcM !divrr ?unitfE// normc1.
+Qed.
+
+End Normc.
+End Normc.
+
+Section ComplexField.
+Variable R : rcfType.
+Implicit Types x y : R[i].
+
 Local Notation C := R[i].
 Local Notation C0 := ((0 : R)%:C).
 Local Notation C1 := ((1 : R)%:C).
@@ -238,34 +281,19 @@ Proof. by move=> a [b c] [d e]. Qed.
 Canonical Im_additive := Additive Im_is_scalar.
 Canonical Im_linear := Linear Im_is_scalar.
 
-Definition lec (x y : R[i]) :=
+Definition lec x y :=
   let: a +i* b := x in let: c +i* d := y in
     (d == b) && (a <= c).
 
-Definition ltc (x y : R[i]) :=
+Definition ltc x y :=
   let: a +i* b := x in let: c +i* d := y in
     (d == b) && (a < c).
 
-(*  TODO: when Pythagorean Fields are added, weaken to Pythagorean Field *)
-Definition normc (x : R[i]) : R :=
-  let: a +i* b := x in sqrtr (a ^+ 2 + b ^+ 2).
-
-Notation normC x := (normc x)%:C.
-
-Lemma ltc0_add : forall x y, ltc 0 x -> ltc 0 y -> ltc 0 (x + y).
+Lemma ltc0_add x y : ltc 0 x -> ltc 0 y -> ltc 0 (x + y).
 Proof.
-move=> [a b] [c d] /= /andP [/eqP-> ha] /andP [/eqP-> hc].
+move: x y => [a b] [c d] /= /andP [/eqP-> ha] /andP [/eqP-> hc].
 by rewrite addr0 eqxx addr_gt0.
 Qed.
-
-Lemma eq0_normc x : normc x = 0 -> x = 0.
-Proof.
-case: x => a b /= /eqP; rewrite sqrtr_eq0 le_eqVlt => /orP [|]; last first.
-  by rewrite ltNge addr_ge0 ?sqr_ge0.
-by rewrite paddr_eq0 ?sqr_ge0 ?expf_eq0 //= => /andP[/eqP -> /eqP ->].
-Qed.
-
-Lemma eq0_normC x : normC x = 0 -> x = 0. Proof. by case=> /eq0_normc. Qed.
 
 Lemma ge0_lec_total x y : lec 0 x -> lec 0 y -> lec x y || lec y x.
 Proof.
@@ -273,33 +301,29 @@ move: x y => [a b] [c d] /= /andP[/eqP -> a_ge0] /andP[/eqP -> c_ge0].
 by rewrite eqxx le_total.
 Qed.
 
-Lemma normcM x y : normc (x * y) = normc x * normc y.
+Lemma subc_ge0 x y : lec 0 (y - x) = lec x y.
+Proof. by move: x y => [a b] [c d] /=; simpc; rewrite subr_ge0 subr_eq0. Qed.
+
+Lemma ltc_def x y : ltc x y = (y != x) && lec x y.
 Proof.
-move: x y => [a b] [c d] /=; rewrite -sqrtrM ?addr_ge0 ?sqr_ge0 //.
-rewrite sqrrB sqrrD mulrDl !mulrDr -!exprMn.
-rewrite mulrAC [b * d]mulrC !mulrA.
-suff -> : forall (u v w z t : R), (u - v + w) + (z + v + t) = u + w + (z + t).
-  by rewrite addrAC !addrA.
-by move=> u v w z t; rewrite [_ - _ + _]addrAC [z + v]addrC !addrA addrNK.
+move: x y => [a b] [c d] /=; simpc; rewrite eq_complex /=.
+by have [] := altP eqP; rewrite ?(andbF, andbT) //= lt_def.
 Qed.
+
+Import Normc.
+
+Notation normC x := (normc x)%:C.
+
+Lemma eq0_normC x : normC x = 0 -> x = 0. Proof. by case=> /eq0_normc. Qed.
 
 Lemma normCM x y : normC (x * y) = normC x * normC y.
 Proof. by rewrite -rmorphM normcM. Qed.
-
-Lemma subc_ge0 x y : lec 0 (y - x) = lec x y.
-Proof. by move: x y => [a b] [c d] /=; simpc; rewrite subr_ge0 subr_eq0. Qed.
 
 Lemma lec_def x y : lec x y = (normC (y - x) == y - x).
 Proof.
 rewrite -subc_ge0; move: (_ - _) => [a b]; rewrite eq_complex /= eq_sym.
 have [<- /=|_] := altP eqP; last by rewrite andbF.
 by rewrite [0 ^+ _]mul0r addr0 andbT sqrtr_sqr ger0_def.
-Qed.
-
-Lemma ltc_def x y : ltc x y = (y != x) && lec x y.
-Proof.
-move: x y => [a b] [c d] /=; simpc; rewrite eq_complex /=.
-by have [] := altP eqP; rewrite ?(andbF, andbT) //= lt_def.
 Qed.
 
 Lemma lec_normD x y : lec (normC (x + y)) (normC x + normC y).
