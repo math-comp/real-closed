@@ -508,7 +508,7 @@ rewrite [_ +i* _]complexE.
 apply: integral_add => //; apply: integral_mul => //=.
 exists ('X^2 + 1).
   by rewrite monicE lead_coefDl ?size_polyXn ?size_poly1 ?lead_coefXn.
-by rewrite rmorphD rmorph1 /= ?map_polyXn rootE !hornerE -expr2 sqr_i addNr.
+by rewrite rmorphD rmorph1 /= ?map_polyXn rootE !hornerE sqr_i addNr.
 Qed.
 
 Lemma normc_def (z : R[i]) : `|z| = (sqrtr ((Re z)^+2 + (Im z)^+2))%:C.

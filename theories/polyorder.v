@@ -193,7 +193,7 @@ rewrite mu_exp mu_XsubC mul1n [\mu_x qqp]muNroot // add0n.
 rewrite exprD mulrA -mulrDl mu_mul; last first.
   by rewrite mulrDl -mulrA -exprD subnK 1?ltnW // -hp -hq.
 rewrite muNroot ?add0n ?mu_exp ?mu_XsubC ?mul1n //.
-rewrite rootE !hornerE horner_exp hornerXsubC subrr.
+rewrite rootE !hornerE subrr.
 by rewrite -subnSK // subnS exprS mul0r mulr0 addr0.
 Qed.
 
