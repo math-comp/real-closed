@@ -194,6 +194,7 @@ rewrite exprD mulrA -mulrDl mu_mul; last first.
   by rewrite mulrDl -mulrA -exprD subnK 1?ltnW // -hp -hq.
 rewrite muNroot ?add0n ?mu_exp ?mu_XsubC ?mul1n //.
 rewrite rootE !hornerE ?horner_exp ?hornerXsubC subrr.
+(* FIXME: remove ?horner_exp ?hornerXsubC when requiring MC >= 1.16.0 *)
 by rewrite -subnSK // subnS exprS mul0r mulr0 addr0.
 Qed.
 
