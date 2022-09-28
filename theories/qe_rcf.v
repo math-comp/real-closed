@@ -622,8 +622,8 @@ Lemma eval_SeqPInfty e ps k k' :
 Proof.
 elim: ps k k' => [|p ps ihps] k k' Pk /=; first by rewrite Pk.
 set X := lead_coef _; grab_eq k'' X; apply: (eval_LeadCoef k'') => lp {X}.
-rewrite (ihps _ (fun ps => k' (eval e lp :: ps))) => //= lps.
-by rewrite Pk.
+rewrite (ihps _ (fun ps => k' (eval e lp :: ps))) => [//|lps].
+by rewrite Pk.  (* use //= above and remove line when using Coq >= 8.17 *)
 Qed.
 
 Arguments eval_SeqPInfty [e ps k].

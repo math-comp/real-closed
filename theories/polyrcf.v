@@ -870,8 +870,9 @@ case pr1 : (root p r1); case => hrootsl; last 2 first.
     by case/andP => /itvP->.
   move=> x; rewrite in_cons; have [->|exr1] /= := eqVneq; first by rewrite hr1.
   rewrite -hroot (itv_splitUeq hr1) (negPf exr1) /=.
-  case: (_ \in `]r1, _[); rewrite (orbT, orbF) //.
+  case: (_ \in `]r1, _[); rewrite (orbT, orbF); [by []|].
   by apply: contraFF (hrootsl x) => ->.
+  (* use // above and remove above line when requiring Coq >= 8.17 *)
 - case: hrootsl => r0 /min_roots_on [] // hr0 har0 pr0 hr0r1.
   exists [:: r0, r1 & s]; constructor=> //=; last first.
     rewrite (itvP hr0) /= path_min_sorted //; apply/allP=> y.
