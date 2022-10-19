@@ -468,10 +468,10 @@ Definition asympt2 (R : numDomainType)  (P : R -> nat -> nat -> Prop)
   := {m : R -> nat | forall eps i j, 0 < eps -> (m eps <= i)%N -> (m eps <= j)%N -> P eps i j}.
 
 Notation "{ 'asympt' e : i / P }" := (asympt1 (fun e i => P))
-  (at level 0, e ident, i ident, format "{ 'asympt'  e  :  i  /  P }") : type_scope.
+  (at level 0, e name, i name, format "{ 'asympt'  e  :  i  /  P }") : type_scope.
 
 Notation "{ 'asympt' e : i j / P }" := (asympt2 (fun e i j => P))
-  (at level 0, e ident, i ident, j ident, format "{ 'asympt'  e  :  i  j  /  P }") : type_scope.
+  (at level 0, e name, i name, j name, format "{ 'asympt'  e  :  i  j  /  P }") : type_scope.
 
 Lemma asympt1modP (R : numDomainType) P (a : asympt1 P) e i :
   0 < e :> R -> (projT1 a e <= i)%N -> P e i.
@@ -1679,6 +1679,6 @@ Notation diff_of p := (@diffP _ _ _ p _ _ _).
 Notation diff0_of p := (@diff0P _ _ p _ _ _).
 
 Notation "{ 'asympt' e : i / P }" := (asympt1 (fun e i => P))
-  (at level 0, e ident, i ident, format "{ 'asympt'  e  :  i  /  P }") : type_scope.
+  (at level 0, e name, i name, format "{ 'asympt'  e  :  i  /  P }") : type_scope.
 Notation "{ 'asympt' e : i j / P }" := (asympt2 (fun e i j => P))
-  (at level 0, e ident, i ident, j ident, format "{ 'asympt'  e  :  i  j  /  P }") : type_scope.
+  (at level 0, e name, i name, j name, format "{ 'asympt'  e  :  i  j  /  P }") : type_scope.

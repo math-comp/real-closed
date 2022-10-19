@@ -716,12 +716,16 @@ have and_ok bcs1 bcs2: ok bcs1 -> ok bcs2 -> ok (and_odnf bcs1 bcs2).
   case/and3P=> ok11 ok12 ok1 ok2; rewrite cat_ok ?{}IH1 {bcs1 ok1}//.
   elim: bcs2 ok2 => //= cl2 bcs2 IH2 /andP[ok2 /IH2->].
   by rewrite /dnf_rterm /= !all_cat andbT ok11; case/and3P: ok12=> -> -> ->.
-elim: f b => //=; do ?by [move=> ? ? ? [] | move=> ? ? ? ? [] /= /andP[]; auto].
-- by do 2!case.
-- by rewrite /dnf_rterm => ? ? [] /= ->.
-- by rewrite /dnf_rterm => ? ? [] /=; rewrite andbC !andbT.
-- by rewrite /dnf_rterm => ? ? [] /=; rewrite andbC !andbT.
-by auto.
+elim: f b => //=; [ by move=> [] []
+| by  move=> ? ? []; rewrite /dnf_rterm /= !andbT
+| by move=> ? ? []; rewrite /dnf_rterm /= !andbT andbC
+| by move=> ? ? [] /andP[]; rewrite /dnf_rterm/= => -> ->
+| by move=> f hf g hg [] /andP[/hf ? /hg ?]; auto
+| by move=> f hf g hg [] /andP[/hf ? /hg ?]; auto
+| by move=> f hf g hg [] /andP[/hf ? /hg ?]; auto
+| by move=> ? h [] /= /h
+| by move=> _ ? ? []
+| by move=> _ ? ? [] ].
 Qed.
 
 Lemma dnf_to_rform bcs : rformula (odnf_to_oform bcs) = all dnf_rterm bcs.
