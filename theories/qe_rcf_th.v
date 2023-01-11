@@ -1085,7 +1085,7 @@ rewrite castmxE mxE /= /ccount_weak.
 transitivity (\sum_(0 <= i < 3 ^ size sq) taqsR p sq i * coefs R (size sq) i).
   rewrite unlock /reducebig /= -foldr_map /= /index_iota subn0 foldr_map.
   elim: (3 ^ size sq)%N 0%R => [|n ihn] u //.
-  by rewrite -[X in iota _ X]addn1 iota_add add0n /= foldr_cat ihn.
+  by rewrite -[X in iota _ X]addn1 iotaD add0n /= foldr_cat ihn.
 rewrite big_mkord; apply: congr_big=> // i _.
 rewrite /taqsR /coefs /tvecR /=.
 have o : 'I_(3 ^ size sq) by rewrite exp3n; apply: ord0.
