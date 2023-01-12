@@ -43,10 +43,6 @@ supported_coq_versions:
   opam: '{>= "8.13"}'
 
 tested_coq_opam_versions:
-- version: '1.12.0-coq-8.13'
-  repo: 'mathcomp/mathcomp'
-- version: '1.12.0-coq-8.14'
-  repo: 'mathcomp/mathcomp'
 - version: '1.13.0-coq-8.13'
   repo: 'mathcomp/mathcomp'
 - version: '1.13.0-coq-8.14'
@@ -77,19 +73,19 @@ tested_coq_opam_versions:
 dependencies:
 - opam:
     name: coq-mathcomp-ssreflect
-    version: '{>= "1.12.0"}'
+    version: '{>= "1.13.0"}'
   description: |-
-    [MathComp ssreflect 1.12 or later](https://math-comp.github.io)
+    [MathComp ssreflect 1.13 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-algebra
-    version: '{>= "1.12.0"}'
+    version: '{>= "1.13.0"}'
   description: |-
-    [MathComp algebra 1.12 or later](https://math-comp.github.io)
+    [MathComp algebra 1.13 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-field
-    version: '{>= "1.12.0"}'
+    version: '{>= "1.13.0"}'
   description: |-
-    [MathComp field 1.12 or later](https://math-comp.github.io)
+    [MathComp field 1.13 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-bigenough
     version: '{>= "1.0.0"}'

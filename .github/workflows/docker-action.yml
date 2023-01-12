@@ -17,8 +17,6 @@ jobs:
     strategy:
       matrix:
         image:
-          - 'mathcomp/mathcomp:1.12.0-coq-8.13'
-          - 'mathcomp/mathcomp:1.12.0-coq-8.14'
           - 'mathcomp/mathcomp:1.13.0-coq-8.13'
           - 'mathcomp/mathcomp:1.13.0-coq-8.14'
           - 'mathcomp/mathcomp:1.13.0-coq-8.15'
@@ -34,11 +32,12 @@ jobs:
           - 'mathcomp/mathcomp-dev:coq-dev'
       fail-fast: false
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: coq-community/docker-coq-action@v1
         with:
           opam_file: 'coq-mathcomp-real-closed.opam'
           custom_image: ${{ matrix.image }}
+
 
 # See also:
 # https://github.com/coq-community/docker-coq-action#readme

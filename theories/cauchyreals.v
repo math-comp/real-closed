@@ -878,7 +878,7 @@ pose_big_enough i; first set b := 1 + `|x i|.
     by elim: iota b => //= a l IHl b b_gt0; rewrite IHl ?lt_maxr ?b_gt0.
   have [|le_in] := (ltnP n i).
     elim: i b => [|i IHi] b //.
-    rewrite ltnS -addn1 iota_add add0n map_cat foldl_cat /= le_maxr leq_eqVlt.
+    rewrite ltnS -addn1 iotaD add0n map_cat foldl_cat /= le_maxr leq_eqVlt.
     by case/orP=> [/eqP->|/IHi->] //; rewrite lexx orbT.
   set xn := `|x n|; suff : xn <= b.
     by elim: iota xn b => //= a l IHl xn b Hxb; rewrite IHl ?le_maxr ?Hxb.
