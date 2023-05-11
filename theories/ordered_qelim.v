@@ -1,5 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
+From HB Require Import structures.
 Require Import mathcomp.ssreflect.ssreflect.
 From mathcomp
 Require Import ssrfun ssrbool eqtype ssrnat seq div choice fintype.
@@ -72,9 +73,7 @@ elim: t1 t2.
 - by move=> s1 hs1 n1 [] //= s2 n2 /andP [] /hs1 -> /eqP ->.
 Qed.
 
-Canonical term_eqMixin (T : eqType) := EqMixin (@term_eqP T).
-Canonical term_eqType (T : eqType) :=
-   Eval hnf in EqType (term T) (@term_eqMixin T).
+HB.instance Definition _ (T : eqType) := hasDecEq.Build (term T) (@term_eqP T).
 
 Arguments term_eqP T {x y}.
 Prenex Implicits term_eq.
@@ -196,9 +195,8 @@ case: t1 => [l1 l2 l3 l4]; case: t2 => m1 m2 m3 m4 /=; case/and4P.
 by move/eqP=> -> /eqP -> /eqP -> /eqP ->.
 Qed.
 
-Canonical oclause_eqMixin (T : eqType) := EqMixin (@oclause_eqP T).
-Canonical oclause_eqType (T : eqType) :=
-   Eval hnf in EqType (oclause T) (@oclause_eqMixin T).
+HB.instance Definition _ (T : eqType) := hasDecEq.Build (oclause T)
+  (@oclause_eqP T).
 
 Arguments oclause_eqP T {x y}.
 Prenex Implicits oclause_eq.

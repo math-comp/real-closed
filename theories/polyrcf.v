@@ -156,7 +156,7 @@ rewrite !hornerE le_maxl => /andP[/Hy Hq Hc].
 apply: le_trans (_ : lead_coef q * z + c <= _); last first.
   rewrite ler_add2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pmul2r //.
   by rewrite ler_pmul2l // (lt_le_trans _ Hq).
-rewrite mulrDr mulr1 mulVKf ?gt_eqF // addrA -addrA ler_paddr //.
+rewrite mulrDr mulr1 mulVKf ?gt_eqF // addrA -(addrA _ _ c) ler_paddr //.
   by rewrite -[c]opprK subr_ge0 normrN ler_norm.
 by rewrite ler_paddl ?ler_norm // ?ltW.
 Qed.
@@ -183,7 +183,7 @@ rewrite ler_pdivl_mull // /lead_coef e /= big_ord_recr /= ler_paddr //.
 case es: n e => [|m] e.
   by move: rpx np0; rewrite (@size1_polyC _ p) ?e // hornerC => -> /eqP.
 have/ler_pmul2r <-: 0 < `|x| ^+ m by rewrite exprn_gt0.
-rewrite -mulrA -exprS -normrX -normrM -es big_distrl /=.
+rewrite -mulrA -exprS -(normrX m.+1) -normrM -es big_distrl /=.
 apply: le_trans (_ : \sum_(i < n) `|p`_i * x ^+ i| <= _).
   move/eqP: rpx; rewrite horner_coef e -es big_ord_recr /= addrC addr_eq0.
   by move/eqP ->; rewrite normrN ler_norm_sum.
