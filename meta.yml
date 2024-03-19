@@ -39,33 +39,37 @@ license:
   file: CECILL-B
 
 supported_coq_versions:
-  text: Coq 8.13 or later
-  opam: '{>= "8.13"}'
+  text: Coq 8.16 or later
+  opam: '{>= "8.16"}'
 
 tested_coq_opam_versions:
-- version: '1.13.0-coq-8.13'
+- version: '2.0.0-coq-8.16'
   repo: 'mathcomp/mathcomp'
-- version: '1.13.0-coq-8.14'
+- version: '2.0.0-coq-8.17'
   repo: 'mathcomp/mathcomp'
-- version: '1.13.0-coq-8.15'
+- version: '2.0.0-coq-8.18'
   repo: 'mathcomp/mathcomp'
-- version: '1.14.0-coq-8.13'
+- version: '2.1.0-coq-8.16'
   repo: 'mathcomp/mathcomp'
-- version: '1.14.0-coq-8.14'
+- version: '2.1.0-coq-8.17'
   repo: 'mathcomp/mathcomp'
-- version: '1.14.0-coq-8.15'
+- version: '2.1.0-coq-8.18'
   repo: 'mathcomp/mathcomp'
-- version: '1.15.0-coq-8.13'
+- version: '2.2.0-coq-8.16'
   repo: 'mathcomp/mathcomp'
-- version: '1.15.0-coq-8.14'
+- version: '2.2.0-coq-8.17'
   repo: 'mathcomp/mathcomp'
-- version: '1.15.0-coq-8.15'
+- version: '2.2.0-coq-8.18'
   repo: 'mathcomp/mathcomp'
-- version: 'coq-8.13'
+- version: '2.2.0-coq-8.19'
+  repo: 'mathcomp/mathcomp'
+- version: '2.2.0-coq-dev'
+  repo: 'mathcomp/mathcomp'
+- version: 'coq-8.17'
   repo: 'mathcomp/mathcomp-dev'
-- version: 'coq-8.14'
+- version: 'coq-8.18'
   repo: 'mathcomp/mathcomp-dev'
-- version: 'coq-8.15'
+- version: 'coq-8.19'
   repo: 'mathcomp/mathcomp-dev'
 - version: 'coq-dev'
   repo: 'mathcomp/mathcomp-dev'
@@ -73,19 +77,17 @@ tested_coq_opam_versions:
 dependencies:
 - opam:
     name: coq-mathcomp-ssreflect
-    version: '{>= "1.13.0"}'
+    version: '{>= "2.0"}'
   description: |-
-    [MathComp ssreflect 1.13 or later](https://math-comp.github.io)
+    [MathComp ssreflect 2.0 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-algebra
-    version: '{>= "1.13.0"}'
   description: |-
-    [MathComp algebra 1.13 or later](https://math-comp.github.io)
+    [MathComp algebra](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-field
-    version: '{>= "1.13.0"}'
   description: |-
-    [MathComp field 1.13 or later](https://math-comp.github.io)
+    [MathComp field](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-bigenough
     version: '{>= "1.0.0"}'
