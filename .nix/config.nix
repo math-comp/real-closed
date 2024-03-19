@@ -37,20 +37,43 @@
   ## alternative configuration
   ## When generating GitHub Action CI, one workflow file
   ## will be created per bundle
-  bundles."8.16".coqPackages = {
+  bundles = let
+    common-bundles = {
+      coqeal.override.version = "master";
+      mathcomp-apery.override.version = "master";
+      mathcomp-algebra-tactics.override.version = "master";
+      mathcomp-bigenough.override.version = "master";
+      mathcomp-finmap.override.version = "master";
+      mathcomp-zify.override.version = "master";
+      multinomials.override.version = "master";
+    }; in {
+  "8.16".coqPackages = common-bundles // {
     coq.override.version = "8.16";
     mathcomp.override.version = "2.0.0";
+    multinomials.job = false;  # broken with dune on 8.16 in nixpkgs
+    coqeal.job = false;
+    mathcomp-apery.job = false;
   };
-  bundles."8.17".coqPackages = {
+  "8.17".coqPackages = common-bundles // {
     coq.override.version = "8.17";
-    mathcomp.override.version = "2.0.0";
+    mathcomp.override.version = "2.1.0";
   };
-  bundles."master".coqPackages = {
+  "8.18".coqPackages = common-bundles // {
+    coq.override.version = "8.18";
+    mathcomp.override.version = "2.2.0";
+  };
+  "8.19".coqPackages = common-bundles // {
+    coq.override.version = "8.19";
+    mathcomp.override.version = "2.2.0";
+  };
+  "master".coqPackages = common-bundles // {
     coq.override.version = "master";
+    bignums.override.version = "master";
+    paramcoq.override.version = "master";
     coq-elpi.override.version = "coq-master";
-    hierarchy-builder.override.version = "coq-master";
+    hierarchy-builder.override.version = "master";
     mathcomp.override.version = "master";
-    mathcomp-bigenough.override.version = "1.0.1";
+  };
   };
 
   ## Cachix caches to use in CI
