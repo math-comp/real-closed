@@ -1,12 +1,7 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq choice path fintype.
-From mathcomp
-Require Import div bigop order ssralg poly polydiv ssrnum perm zmodp ssrint.
-From mathcomp
-Require Import polyorder polyrcf interval matrix mxtens.
+From mathcomp Require Import all_ssreflect all_algebra.
+Require Import polyorder polyrcf mxtens.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -21,24 +16,6 @@ Section extra.
 
 Variable R : rcfType.
 Implicit Types (p q : {poly R}).
-
-
-(* Proof. *)
-(* move=> sq; rewrite comp_polyE; case hp: (size p) => [|n]. *)
-(*   move/eqP: hp; rewrite size_poly_eq0 => /eqP ->. *)
-(*   by rewrite !big_ord0 mulr1 lead_coef0. *)
-(* rewrite big_ord_recr /= addrC lead_coefDl. *)
-(*   by rewrite lead_coefZ lead_coef_exp // !lead_coefE hp. *)
-(* rewrite (leq_ltn_trans (size_sum _ _ _)) // size_scale; last first. *)
-(*   rewrite -[n]/(n.+1.-1) -hp -lead_coefE ?lead_coef_eq0 //. *)
-(*   by rewrite -size_poly_eq0 hp. *)
-(* rewrite polySpred ?ltnS ?expf_eq0; last first. *)
-(*   by rewrite andbC -size_poly_eq0 gtn_eqF // ltnW. *)
-(* apply/bigmax_leqP => i _; rewrite size_exp. *)
-(* have [->|/size_scale->] := eqVneq p`_i 0; first by rewrite scale0r size_poly0. *)
-(* by rewrite (leq_trans (size_exp_leq _ _)) // ltn_mul2l -subn1 subn_gt0 sq /=. *)
-(* Qed. *)
-
 
 Lemma mul2n n : (2 * n = n + n)%N. Proof. by rewrite mulSn mul1n. Qed.
 Lemma mul3n n : (3 * n = n + (n + n))%N. Proof. by rewrite !mulSn addn0. Qed.
@@ -148,9 +125,6 @@ rewrite leq_min mu_opp mu_mul ?mulf_neq0 ?qpq0 ?q0 // leq_addl.
 by rewrite mu_mulC // lcn_neq0.
 Qed.
 
-(* Lemma sgp_right0 : forall (x : R), sgp_right 0 x = 0. *)
-(* Proof. by move=> x; rewrite /sgp_right size_poly0. Qed. *)
-
 End extra.
 
 Section ctmat.
@@ -240,7 +214,7 @@ Notation midf a b := ((a + b) / 2%:~R).
 Local Notation sgp_is q s := (fun x => (sgr q.[x] == s)).
 
 Definition constraints (z : seq R) (sq : seq {poly R}) (sigma : seq int) :=
-  (\sum_(x <- z) \prod_(i < size sq) (sgz (sq`_i).[x] == sigma`_i))%N.
+  (\sum_(x <- z) \prod_(i < size sq) (sgz (sq`_i).[x] == (sigma`_i)%R))%N.
 
 Definition taq (z : seq R) (q : {poly R}) : int := \sum_(x <- z) (sgz q.[x]).
 
@@ -753,8 +727,7 @@ Lemma noroot_cross p a b : a <= b ->
 Proof.
 move=> le_ab noroot_ab; rewrite /cross /variation.
 have [] := ltrP; last by rewrite mulr0.
-rewrite mulr1 -sgr_cp0 sgrM => /eqP.
-by move=> /(ivt_sign le_ab) [x /noroot_ab /negPf->].
+by move=> /(poly_ivtoo le_ab) [x /noroot_ab /negPf->].
 Qed.
 
 Lemma cross_pmul p q a b : q.[a] > 0 -> q.[b] > 0 ->
@@ -1005,7 +978,7 @@ Qed.
 
 Lemma changes_itv_mods_rec a b : a < b -> forall p q,
   ~~ root (p * q) a -> ~~ root (p * q) b ->
-  changes_itv_mods a b p q = cross (p * q) a b 
+  changes_itv_mods a b p q = cross (p * q) a b
                           + changes_itv_mods a b q (next_mod p q).
 Proof.
 move=> lt_ab p q rpqa rpqb.
@@ -1205,7 +1178,7 @@ move=> y2 _ rqy2 hy2xb hy2 q_neq0.
 have lty12 : y2 < y1.
   by apply: lt_trans (_ : x < _); rewrite 1?(itvP hy1xb) 1?(itvP hy2xb).
 have : q.[y2] = q.[y1] by rewrite rqy1 rqy2.
-case/(rolle lty12) => z hz rz; constructor 3; exists z.
+case/(poly_rolle lty12) => z hz rz; constructor 3; exists z.
 rewrite rz eqxx /= big_all; apply/allP => r r_sq.
 have xy : x \in `]y2, y1[ by rewrite in_itv /= 1?(itvP hy1xb) 1?(itvP hy2xb).
 rewrite -sgr_cp0 (@polyrN0_itv _ `]y2, y1[ _ _ x) ?sgr_cp0 ?hsq // => t.
