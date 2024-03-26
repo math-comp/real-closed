@@ -1071,7 +1071,7 @@ Lemma ccount_weakP p sq : p != 0 ->
   (ccount_weak p sq > 0).
 Proof.
 move=> p_neq0; rewrite -constraints1P /constraints ltr0n lt0n.
-rewrite -(@pnatr_eq0 [numDomainType of int]) natr_sum psumr_eq0 //.
+rewrite -(@pnatr_eq0 int) natr_sum psumr_eq0 //.
 rewrite -has_predC /=.
 apply: (iffP hasP) => [[x rpx /= prod_neq0]|[x /andP[rpx]]].
   exists x; rewrite -rootE [root _ _]roots_on_rootsR // rpx /=.

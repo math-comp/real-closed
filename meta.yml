@@ -39,23 +39,13 @@ license:
   file: CECILL-B
 
 supported_coq_versions:
-  text: Coq 8.16 or later
-  opam: '{>= "8.16"}'
+  text: Coq 8.17 or later
+  opam: '{>= "8.17"}'
 
 tested_coq_opam_versions:
-- version: '2.0.0-coq-8.16'
-  repo: 'mathcomp/mathcomp'
-- version: '2.0.0-coq-8.17'
-  repo: 'mathcomp/mathcomp'
-- version: '2.0.0-coq-8.18'
-  repo: 'mathcomp/mathcomp'
-- version: '2.1.0-coq-8.16'
-  repo: 'mathcomp/mathcomp'
 - version: '2.1.0-coq-8.17'
   repo: 'mathcomp/mathcomp'
 - version: '2.1.0-coq-8.18'
-  repo: 'mathcomp/mathcomp'
-- version: '2.2.0-coq-8.16'
   repo: 'mathcomp/mathcomp'
 - version: '2.2.0-coq-8.17'
   repo: 'mathcomp/mathcomp'
@@ -77,9 +67,9 @@ tested_coq_opam_versions:
 dependencies:
 - opam:
     name: coq-mathcomp-ssreflect
-    version: '{>= "2.0"}'
+    version: '{>= "2.1"}'
   description: |-
-    [MathComp ssreflect 2.0 or later](https://math-comp.github.io)
+    [MathComp ssreflect 2.1 or later](https://math-comp.github.io)
 - opam:
     name: coq-mathcomp-algebra
   description: |-
