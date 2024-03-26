@@ -31,7 +31,7 @@
 
   ## select an entry to build in the following `bundles` set
   ## defaults to "default"
-  default-bundle = "8.16";
+  default-bundle = "8.19";
 
   ## write one `bundles.name` attribute set per
   ## alternative configuration
@@ -47,13 +47,6 @@
       mathcomp-zify.override.version = "master";
       multinomials.override.version = "master";
     }; in {
-  "8.16".coqPackages = common-bundles // {
-    coq.override.version = "8.16";
-    mathcomp.override.version = "2.0.0";
-    multinomials.job = false;  # broken with dune on 8.16 in nixpkgs
-    coqeal.job = false;
-    mathcomp-apery.job = false;
-  };
   "8.17".coqPackages = common-bundles // {
     coq.override.version = "8.17";
     mathcomp.override.version = "2.1.0";

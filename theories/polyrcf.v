@@ -1,12 +1,7 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
-From mathcomp
-Require Import bigop order ssralg poly polydiv ssrnum zmodp.
-From mathcomp
-Require Import polyorder path interval ssrint.
+From mathcomp Require Import all_ssreflect all_algebra.
+Require Import polyorder.
 
 (****************************************************************************)
 (* This files contains basic (and unformatted) theory for polynomials       *)
@@ -35,7 +30,7 @@ Require Import polyorder path interval ssrint.
 (****************************************************************************)
 
 
-Import Order.TTheory GRing.Theory Num.Theory Num.Def Pdiv.Idomain.
+Import Order.Theory GRing.Theory Num.Theory Pdiv.Idomain.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -46,6 +41,9 @@ Local Open Scope ring_scope.
 
 Local Notation noroot p := (forall x, ~~ root p x).
 Local Notation mid x y := ((x + y) / 2%:R).
+Local Notation maxr := Num.max.
+Local Notation minr := Num.min.
+Local Notation sgr := Num.sg.
 
 Section more.
 Section SeqR.
@@ -96,9 +94,9 @@ Section PolyNumDomain.
 Variable R : numDomainType.
 Implicit Types (p q : {poly R}).
 
-Definition sgp_pinfty (p : {poly R}) := sgr (lead_coef p).
+Definition sgp_pinfty (p : {poly R}) := Num.sg (lead_coef p).
 Definition sgp_minfty (p : {poly R}) :=
-  sgr ((-1) ^+ (size p).-1 * (lead_coef p)).
+  Num.sg ((-1) ^+ (size p).-1 * (lead_coef p)).
 
 End PolyNumDomain.
 
@@ -129,12 +127,12 @@ rewrite lead_coefDl ?size_mulX ?size_polyC // ?lead_coefMX; last first.
   by apply: (leq_trans (leq_b1 _)); rewrite size_poly_gt0.
 move=> lq_gt0; have [y Hy] := IHq lq_gt0.
 pose z := (1 + (lead_coef q) ^-1 * `|c|); exists (maxr y z) => x.
-have z_gt0: 0 < z by rewrite ltr_spaddl ?ltr01 ?mulr_ge0 ?invr_ge0 // ltW.
-rewrite !hornerE le_maxl => /andP[/Hy Hq Hc].
+have z_gt0: 0 < z by rewrite ltr_pwDl ?ltr01 ?mulr_ge0 ?invr_ge0 // ltW.
+rewrite !hornerE ge_max => /andP[/Hy Hq Hc].
 apply: le_trans (_ : lead_coef q * z + c <= _); last first.
-  rewrite ler_add2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pmul2r //.
-  by rewrite ler_pmul2l // (lt_le_trans _ Hq).
-rewrite mulrDr mulr1 -addrA ler_addl mulVKf ?gt_eqF //.
+  rewrite lerD2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pM2r //.
+  by rewrite ler_pM2l // (lt_le_trans _ Hq).
+rewrite mulrDr mulr1 -addrA lerDl mulVKf ?gt_eqF //.
 by rewrite -[c]opprK subr_ge0 normrN ler_norm.
 Qed.
 
@@ -151,14 +149,14 @@ rewrite lead_coefDl ?size_mulX ?size_polyC // ?lead_coefMX; last first.
 move=> lq_gt0; have [y Hy _] := poly_pinfty_gt_lc lq_gt0.
 pose z := (1 + (lead_coef q) ^-1 * (`|m| + `|c|)); exists (maxr y z) => x.
 have z_gt0 : 0 < z.
-  by rewrite ltr_spaddl ?ltr01 ?mulr_ge0 ?invr_ge0 ?addr_ge0 // ?ltW.
-rewrite !hornerE le_maxl => /andP[/Hy Hq Hc].
+  by rewrite ltr_pwDl ?ltr01 ?mulr_ge0 ?invr_ge0 ?addr_ge0 // ?ltW.
+rewrite !hornerE ge_max => /andP[/Hy Hq Hc].
 apply: le_trans (_ : lead_coef q * z + c <= _); last first.
-  rewrite ler_add2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pmul2r //.
-  by rewrite ler_pmul2l // (lt_le_trans _ Hq).
-rewrite mulrDr mulr1 mulVKf ?gt_eqF // addrA -(addrA _ _ c) ler_paddr //.
+  rewrite lerD2r (le_trans (_ : _ <= q.[x] * z)) // ?ler_pM2r //.
+  by rewrite ler_pM2l // (lt_le_trans _ Hq).
+rewrite mulrDr mulr1 mulVKf ?gt_eqF // addrA -(addrA _ _ c) ler_wpDr //.
   by rewrite -[c]opprK subr_ge0 normrN ler_norm.
-by rewrite ler_paddl ?ler_norm // ?ltW.
+by rewrite ler_wpDl ?ler_norm // ?ltW.
 Qed.
 
 End SgpInfty.
@@ -172,51 +170,70 @@ Definition cauchy_bound (p : {poly R}) :=
 Lemma cauchy_boundP (p : {poly R}) x :
   p != 0 -> p.[x] = 0 -> `| x | < cauchy_bound p.
 Proof.
-move=> np0 rpx; rewrite ltr_spaddl ?ltr01 //.
-case e: (size p) => [|n]; first by move: np0; rewrite -size_poly_eq0 e eqxx.
-have lcp : `|lead_coef p| > 0 by move: np0; rewrite -lead_coef_eq0 -normr_gt0.
-case: (lerP `|x| 1) => cx1.
-  rewrite (le_trans cx1) // ler_pdivl_mull // mulr1.
-  by rewrite big_ord_recr /= /lead_coef e ler_addr sumr_ge0.
-have xp : 0 < `|x| by rewrite (lt_trans _ cx1) ?ltr01.
-rewrite ler_pdivl_mull // /lead_coef e /= big_ord_recr /= ler_paddr //.
-case es: n e => [|m] e.
-  by move: rpx np0; rewrite (@size1_polyC _ p) ?e // hornerC => -> /eqP.
-have/ler_pmul2r <-: 0 < `|x| ^+ m by rewrite exprn_gt0.
-rewrite -mulrA -exprS -(normrX m.+1) -normrM -es big_distrl /=.
-apply: le_trans (_ : \sum_(i < n) `|p`_i * x ^+ i| <= _).
-  move/eqP: rpx; rewrite horner_coef e -es big_ord_recr /= addrC addr_eq0.
-  by move/eqP ->; rewrite normrN ler_norm_sum.
-rewrite es; apply: ler_sum => i _.
-by rewrite normrM normrX ler_pmul ?exprn_ge0 // ler_eexpn2l // leq_ord.
-(* this could be improved a little bit with int exponents *)
+move=> np0 rpx; rewrite ltr_pwDl ?ltr01 //.
+have sp_gt0 : (size p > 0)%N by rewrite size_poly_gt0.
+have lcn0 : `|lead_coef p| != 0 by rewrite normr_eq0 lead_coef_eq0.
+have lcp : `|lead_coef p| > 0 by rewrite lt_def lcn0 /=.
+have [x_le1|x_gt1] := lerP `|x| 1.
+  rewrite (le_trans x_le1) // ler_pdivlMl // mulr1.
+  by rewrite polySpred// big_ord_recr/= lerDr sumr_ge0.
+have x_gt0 : `|x| > 0 by rewrite (lt_trans ltr01).
+have [sp_le1|sp_gt1] := leqP (size p) 1.
+  by move: rpx np0; rewrite [p]size1_polyC// hornerC polyC_eq0 => /eqP->.
+rewrite ler_pdivlMl//.
+pose n := (size p).-1; have n_gt0 : (n > 0)%N by rewrite /n -subn1 subn_gt0.
+have : `|p`_n| * `|x| ^+ n <= \sum_(i < n) `|p`_i * x ^+ i|.
+  rewrite (le_trans _ (ler_norm_sum _ _ _))//.
+  have := rpx; rewrite horner_coef polySpred// !big_ord_recr/=.
+  by move=> /(canRL (@addrK _ _))->; rewrite sub0r normrN normrM normrX.
+rewrite -[n in _ ^+ n]prednK// exprS mulrA.
+rewrite -[X in _ X -> _]ler_pdivlMr ?exprn_gt0// => /le_trans->//.
+rewrite polySpred// big_ord_recr/= ler_wpDr// mulr_suml ler_sum => //i _.
+rewrite normrM normrX ler_pdivrMr ?exprn_gt0// ler_pM ?exprn_ge0//.
+by rewrite ler_weXn2l// 1?ltW// -ltnS prednK//.
 Qed.
+
+Lemma root_in_cauchy_bound (p : {poly R}) : p != 0 ->
+  {subset root p <= `](- cauchy_bound p), (cauchy_bound p)[ }.
+Proof. by move=> p_neq0 x /eqP /(cauchy_boundP p_neq0); rewrite ltr_norml. Qed.
+
+Definition root_cauchy_boundP (p : {poly R}) pN0 x (rpx : root p x) :=
+ itvP (root_in_cauchy_bound pN0 rpx).
 
 Lemma le_cauchy_bound p : p != 0 -> {in `]-oo, (- cauchy_bound p)], noroot p}.
 Proof.
 move=> p_neq0 x; rewrite in_itv /=; apply/contra_leN.
-by case/rootP/(cauchy_boundP p_neq0)/ltr_normlP; rewrite ltr_oppl.
+by case/rootP/(cauchy_boundP p_neq0)/ltr_normlP; rewrite ltrNl.
 Qed.
 Hint Resolve le_cauchy_bound : core.
 
 Lemma ge_cauchy_bound p : p != 0 -> {in `[cauchy_bound p, +oo[, noroot p}.
 Proof.
 move=> p_neq0 x; rewrite in_itv andbT /=; apply/contra_leN.
-by case/rootP/(cauchy_boundP p_neq0)/ltr_normlP; rewrite ltr_oppl.
+by case/rootP/(cauchy_boundP p_neq0)/ltr_normlP; rewrite ltrNl.
 Qed.
 Hint Resolve ge_cauchy_bound : core.
 
 Lemma cauchy_bound_gt0 p : cauchy_bound p > 0.
-Proof. by rewrite ltr_spaddl ?ltr01 // mulrC divr_ge0 ?normr_ge0 ?sumr_ge0. Qed.
+Proof. by rewrite ltr_pwDl ?ltr01 // mulrC divr_ge0 ?normr_ge0 ?sumr_ge0. Qed.
 Hint Resolve cauchy_bound_gt0 : core.
 
 Lemma cauchy_bound_ge0 p : cauchy_bound p >= 0.
 Proof. by rewrite ltW. Qed.
 Hint Resolve cauchy_bound_ge0 : core.
 
+Lemma cauchy_bound_neq0 p : cauchy_bound p != 0. Proof. by rewrite gt_eqF. Qed.
+Hint Resolve cauchy_bound_neq0 : core.
+
 End CauchyBound.
 
 End PolyRealField.
+#[export]
+Hint Resolve le_cauchy_bound ge_cauchy_bound : core.
+#[export]
+Hint Resolve cauchy_bound_gt0 cauchy_bound_ge0 : core.
+#[export]
+Hint Resolve cauchy_bound_neq0 : core.
 
 (************************************************************)
 (* Definitions and properties for polynomials in a rcfType. *)
@@ -234,134 +251,157 @@ Implicit Types p q r : {poly R}.
 (* we restate poly_ivt in a nicer way. Perhaps the def of PolyRCF should *)
 (* be moved in this file, juste above this section                       *)
 
-Lemma poly_ivt (p : {poly R}) (a b : R) :
-  a <= b -> 0 \in `[p.[a], p.[b]] -> { x : R | x \in `[a, b] & root p x }.
-Proof. by move=> leab root_p_ab; apply/sig2W/poly_ivt. Qed.
+Definition poly_ivtW := poly_ivt.
 
-Lemma polyrN0_itv (i : interval R) (p : {poly R}) :
-    {in i, noroot p} ->
-  forall y x : R, y \in i -> x \in i -> sgr p.[x] = sgr p.[y].
+Lemma poly_ivt p a b : a <= b -> p.[a] * p.[b] <= 0 ->
+   {x | x \in `[a, b] & root p x}.
 Proof.
-move=> hi y x hy hx; wlog xy: x y hx hy / x <= y.
-  by move=> hwlog; case: (leP x y) => [|/ltW] /hwlog ->.
-have hxyi: (`[x, y] <= i)%O.
-  by case: i hx hy {hi} => [bl br] /andP [hx _] /andP []; rewrite /<=%O /= hx.
-move: (hi _ hx) (hi _ hy); rewrite /root; do 2 case: sgrP => //.
-  move=> /ltW py0 /ltW p0x; case: (@poly_ivt (- p) x y) => //.
-    by rewrite !hornerN -oppr_itvcc oppr0 in_itv /= py0.
-  by move=> z hz; rewrite rootN (negPf (hi z _)) //; apply: (le_trans hz).
-move=> /ltW p0y /ltW px0; case: (@poly_ivt p x y); rewrite ?in_itv /= ?px0 //=.
-by move=> z hz; rewrite (negPf (hi z _)) //; apply: (le_trans hz).
+move=> le_ab sgp; apply/sig2W; have []//= := @poly_ivt _ (p.[b] *: p) a b.
+  by rewrite !hornerZ sqr_ge0 mulrC sgp.
+move=> x axb; have [|?] := boolP (root p b); last by rewrite rootZ //; exists x.
+by move=> rpb; exists b; rewrite // in_itv/= lexx andbT.
 Qed.
 
-Lemma poly_div_factor (a : R) (P : {poly R} -> Prop) :
-    (forall k, P k%:P) ->
-    (forall p n k, p.[a] != 0 -> P p -> P (p * ('X - a%:P)^+(n.+1) + k%:P)%R)
-  -> forall p, P p.
+Lemma poly_ivtoo p a b : a <= b -> p.[a] * p.[b] < 0 ->
+   {x | x \in `]a, b[ & root p x}.
 Proof.
-move=> Pk Pq p.
-move: {-2}p (leqnn (size p)); elim: (size p)=> {p} [|n ihn] p spn.
-  by move: spn; rewrite leqn0 size_poly_eq0 -polyC0; move/eqP->; exact: Pk.
-case: (leqP (size p) 1)=> sp1; first by rewrite [p]size1_polyC ?sp1//.
-rewrite (Pdiv.IdomainMonic.divp_eq (monicXsubC a) p).
-rewrite [_ %% _]size1_polyC; last first.
-  by rewrite -ltnS (@leq_trans (size ('X - a%:P))) //
-     ?ltn_modp ?polyXsubC_eq0 ?size_XsubC.
-have [n' [q hqa hp]] := multiplicity_XsubC (p %/ ('X - a%:P)) a.
-rewrite divpN0 ?size_XsubC ?polyXsubC_eq0 ?sp1 //= in hqa.
-rewrite hp -mulrA -exprSr; apply: Pq=> //; apply: ihn.
-rewrite (@leq_trans (size (q * ('X - a%:P) ^+ n'))) //.
-  rewrite size_mul ?expf_eq0 ?polyXsubC_eq0 ?andbF //; last first.
-    by apply: contraNneq hqa => ->; rewrite root0.
-  by rewrite size_exp_XsubC addnS leq_addr.
-by rewrite -hp size_divp ?polyXsubC_eq0 ?size_XsubC // leq_subLR.
+move=> le_ab; rewrite lt_neqAle mulf_eq0 negb_or -andbA => /and3P[pa0 pb0].
+move=> /(poly_ivt le_ab) [c cab rpc].
+exists c => //; rewrite in_itv; apply/andP => /=.
+by split; rewrite lt_neqAle (itvP cab) andbT; [move: pa0|move: pb0];
+   apply: contraNneq; [move->|move<-].
+Qed.
+
+Definition has_ivt_root p a b :=
+  if (a <= b) && (p.[a] * p.[b] <= 0) =P true isn't ReflectT pp then None
+  else Some (projT1 (poly_ivt (proj1 (andP pp)) (proj2 (andP pp)))).
+Notation ivt_root p a b := (odflt 0 (has_ivt_root p a b)).
+
+CoInductive has_itv_root_spec p a b : bool -> option R -> Type :=
+| HasItvRoot x of (p.[a] * p.[b] <= 0) & x \in `[a, b] & root p x :
+    has_itv_root_spec p a b true (Some x)
+| NoItvRoot of (p.[a] * p.[b] > 0) : has_itv_root_spec p a b false None.
+
+Lemma has_itv_rootP p a b : a <= b ->
+  has_itv_root_spec p a b (p.[a] * p.[b] <= 0) (has_ivt_root p a b).
+Proof.
+move=> le_ab; rewrite /has_ivt_root; case: eqP => /= [pp|/negP].
+  move: {-}(pp) => /andP[_ pab]; rewrite {1}pab; constructor => //;
+  by case: poly_ivt.
+by rewrite le_ab /= -ltNge => pab; rewrite lt_geF //; constructor.
+Qed.
+
+Lemma some_ivt_root p a b x : has_ivt_root p a b = Some x -> root p x.
+Proof.
+by rewrite /has_ivt_root; case: eqP => //= pp; case: poly_ivt => //= ??? [<-].
+Qed.
+
+Lemma has_ivt_rootE p a b :
+   has_ivt_root p a b = (a <= b) && (p.[a] * p.[b] <= 0) :> bool.
+Proof. by rewrite /has_ivt_root; case: eqP => //= /negP/negPf->. Qed.
+
+Lemma ivt_root_in p a b : a <= b -> p.[a] * p.[b] <= 0 ->
+  ivt_root p a b \in `[a, b].
+Proof. by move=> ab; case: has_itv_rootP. Qed.
+
+Lemma ivt_rootP p a b : a <= b -> p.[a] * p.[b] <= 0 ->
+  root p (ivt_root p a b).
+Proof. by move=> leab; case: has_itv_rootP. Qed.
+
+Lemma sub_cc_itv a b (i : interval R) :
+  (a \in i) -> (b \in i) -> (`[a, b] <= i)%O.
+Proof.
+case: i => [c d]; rewrite !inE/=  !/(_ <= Interval _ _)%O/=.
+by move=> /andP[-> _] /andP[_ ->].
+Qed.
+
+Lemma sub_oo_itv a b (i : interval R) :
+  (a \in i) -> (b \in i) -> (`]a, b[ <= i)%O.
+Proof.
+case: i => [c d]; rewrite !inE/=  !/(_ <= Interval _ _)%O/=.
+move=> /andP[ca _] /andP[_ bd].
+by rewrite (le_trans ca) ?bnd_simp// (le_trans _ bd) ?bnd_simp.
+Qed.
+
+Lemma polyrN0_itv (i : interval R) (p : {poly R}) : {in i, noroot p} ->
+  {in i & , forall y x : R, sgr p.[x] = sgr p.[y]}.
+Proof.
+move=> hi y x hy hx; wlog xy: x y hx hy / x <= y => [hwlog|].
+  by case/orP: (le_total x y)=> xy; [|symmetry]; apply: hwlog.
+have hxyi: {subset `[x, y] <= i} by apply/subitvP; rewrite sub_cc_itv.
+have [r _ rin|] := @has_itv_rootP p x y xy.
+  by rewrite (negPf (hi _ _)) // hxyi.
+rewrite -sgr_cp0 sgrM eq_sym; do 2!case: sgzP => //;
+by rewrite ?(mul0r, mulr0, mul1r, mulr1, oner_eq0) // => _ _ /eqP.
 Qed.
 
 Lemma nth_root x n : x > 0 -> { y | y > 0 & y ^+ (n.+1) = x }.
 Proof.
-move=> l0x.
-case: (ltrgtP x 1)=> hx; last by exists 1; rewrite ?hx ?lter01// expr1n.
-  case: (@poly_ivt ('X ^+ n.+1 - x%:P) 0 1); first by rewrite ler01.
-    rewrite in_itv /= ?(hornerE, horner_exp) expr0n expr1n.
-    by rewrite sub0r oppr_le0 subr_ge0 !ltW.
-  move=> y hy; rewrite rootE ?(hornerE, horner_exp) subr_eq0.
-  move/eqP=> hyx; exists y; rewrite //= lt0r (itvP hy) andbT.
-  by apply: contra_eq_neq hyx => ->; rewrite expr0n /=; case: sgrP l0x.
-case: (@poly_ivt ('X ^+ n.+1 - x%:P) 0 x); first by rewrite ltW.
-  rewrite in_itv /= ?(hornerE, horner_exp) expr0n sub0r oppr_le0 subr_ge0.
-  by rewrite ler_eexpr // ltW.
-move=> y hy; rewrite rootE ?(hornerE, horner_exp) subr_eq0.
-move/eqP=> hyx; exists y; rewrite //= lt0r (itvP hy) andbT.
-by apply: contra_eq_neq hyx => ->; rewrite expr0n /=; case: sgrP l0x.
+move=> x_gt0; apply/sig2_eqW; pose p := ('X ^+ n.+1 - x%:P).
+have xS_ge1: x + 1 >= 1 by rewrite ler_wpDl // ltW.
+have xS_ge0: x + 1 > 0 by rewrite (lt_le_trans (@ltr01 _)).
+have [//||y /andP[y_ge0 _]] := @poly_ivtW _ p 0 (x + 1); first exact: ltW.
+  rewrite !(hornerE, horner_exp) expr0n /= sub0r oppr_le0 (ltW x_gt0) /=.
+  by rewrite subr_ge0 (le_trans _ (ler_eXnr _ _)) // ler_wpDr ?ler01.
+rewrite /root !(hornerE, horner_exp) subr_eq0 => /eqP x_eq; exists y => //.
+rewrite lt_neqAle y_ge0 andbT; apply: contra_eqN x_eq => /eqP<-.
+by rewrite eq_sym expr0n gt_eqF.
 Qed.
 
-Lemma poly_cont x p e :
-  e > 0 -> exists2 d, d > 0 & forall y, `|y - x| < d -> `|p.[y] - p.[x]| < e.
+(* REMOVE or DISPLACE *)
+Lemma poly_div_factor (a : R) (P : {poly R} -> Prop) : (forall k, P k%:P) ->
+  (forall p n k, ~~ root p a -> P p -> P (p * ('X - a%:P) ^+ n.+1 + k%:P)%R) ->
+  forall p, P p.
 Proof.
-elim/(@poly_div_factor x): p e => [|p n k pxn0 Pp] e ep.
-  by exists 1; rewrite ?ltr01// => y hy; rewrite !hornerC subrr normr0.
-case: (Pp (`|p.[x]|/2%:R)).
-  by rewrite pmulr_lgt0 ?invr_gte0//= ?ltr0Sn// normrE.
-move=> d' d'p He'.
-case: (@nth_root (e / ((3%:R / 2%:R) * `|p.[x]|)) n).
-  by rewrite ltr_pdivl_mulr ?mul0r ?pmulr_rgt0 ?invr_gt0 ?normrE ?ltr0Sn.
-move=> d dp rootd.
-exists (minr d d'); first by rewrite lt_minr dp.
-move=> y; rewrite lt_minr; case/andP=> hxye hxye'.
-rewrite !(hornerE, horner_exp) subrr expr0n mulr0n mulr0 add0r addrK normrM.
-apply: le_lt_trans (_ : `|p.[y]| * d ^+ n.+1 < _).
-  by rewrite ler_wpmul2l ?normrE // normrX ler_expn2r -?topredE /= ?normrE 1?ltW.
-rewrite rootd mulrCA gtr_pmulr //.
-rewrite ltr_pdivr_mulr ?mul1r ?pmulr_rgt0 ?invr_gt0 ?ltr0Sn ?normrE //.
-rewrite mulrDl mulrDl divff; last by rewrite -mulr2n pnatr_eq0.
-rewrite !mul1r mulrC -ltr_subl_addr.
-by rewrite (le_lt_trans _ (He' y _)) // ler_sub_dist.
+move=> Pk Pq p; elim: size {-2}p (leqnn (size p)) => {p} [p|n ihn p size_p].
+  by rewrite size_poly_leq0 => /eqP->; apply: Pk.
+have [/size1_polyC->//|p_gt1] := leqP (size p) 1.
+have p_neq0 : p != 0 by rewrite -size_poly_eq0 -lt0n ltnW.
+rewrite (Pdiv.IdomainMonic.divp_eq (monicXsubC a) p).
+have [n' [q /implyP rqa pmod_eq]] := multiplicity_XsubC (p %/ ('X - a%:P)) a.
+have Xsuba_neq0 : 'X - a%:P != 0 by rewrite -size_poly_eq0 size_XsubC.
+have /size1_polyC-> : (size (p %% ('X - a%:P))%R <= 1)%N.
+  by rewrite -ltnS (leq_trans (ltn_modpN0 _ _))// ?size_XsubC.
+rewrite pmod_eq -mulrA -exprSr; apply: Pq; last apply: ihn.
+  by rewrite rqa// divpN0// ?size_XsubC.
+have [->//|q_neq0] := eqVneq q 0; first by rewrite size_poly0.
+rewrite (@leq_trans (size (q * ('X - a%:P) ^ n')))//.
+  rewrite size_Mmonic// ?monic_exp ?monicXsubC//.
+  by rewrite size_exp_XsubC addnS/= leq_addr.
+rewrite -pmod_eq -ltnS (leq_trans _ size_p)// ltn_divpl//.
+by rewrite size_Mmonic// ?monicXsubC// ?size_XsubC ?addn2.
 Qed.
 
 Lemma poly_ltsp_roots p (rs : seq R) :
   (size rs >= size p)%N -> uniq rs -> all (root p) rs -> p = 0.
 Proof.
-move=> hrs urs rrs; apply: contraTeq hrs => np0.
+move=> hrs urs rrs; apply/eqP; apply: contraLR hrs=> np0.
 by rewrite -ltnNge; apply: max_poly_roots.
 Qed.
 
-Lemma ivt_sign (p : {poly R}) (a b : R) :
-  a <= b -> sgr p.[a] * sgr p.[b] = -1 -> { x : R | x \in `]a, b[ & root p x}.
+Theorem poly_rolle a b p :
+  a < b -> p.[a] = p.[b] -> {c | c \in `]a, b[ & p^`().[c] = 0}.
 Proof.
-move=> hab /eqP; rewrite mulrC mulr_sg_eqN1=> /andP [spb0 /eqP spb].
-case: (@poly_ivt (sgr p.[b] *: p) a b) => //.
-  by rewrite in_itv /= !hornerZ {1}spb mulNr -!normrEsg oppr_cp0 !normrE.
-move=> c hc; rewrite rootZ ?sgr_eq0 // => rpc; exists c=> //.
-(* need for a lemma reditvP *)
-rewrite !in_itv /= !lt_neqAle andbACA [(_ <= _) && _]hc andbT eq_sym -negb_or.
-apply: contraL rpc => /orP [] /eqP ->; rewrite /root ?(negPf spb0) //.
-by rewrite -sgr_cp0 -[sgr _]opprK -spb eqr_oppLR oppr0 sgr_cp0.
-Qed.
-
-Let rolle_weak a b p :
-     a < b -> p.[a] = 0 -> p.[b] = 0 ->
+gen have rolle_weak : a b p / a < b -> p.[a] = 0 -> p.[b] = 0 ->
    {c | (c \in `]a, b[) & (p^`().[c] == 0) || (p.[c] == 0)}.
-Proof.
-move=> lab  pa0 pb0; apply/sig2W.
-have [->|p0] := eqVneq p 0.
-  by exists (mid a b); rewrite ?mid_in_itv // derivC horner0 eqxx.
-have [n [p' p'a0 hp]] := multiplicity_XsubC p a; rewrite p0 /= in p'a0.
-case: n hp pa0 p0 pb0 p'a0=> [ | n -> _ p0 pb0 p'a0].
-  by rewrite {1}expr0 mulr1 rootE=> -> /eqP ->.
-have [m [q qb0 hp']] := multiplicity_XsubC p' b.
-rewrite (contraNneq _ p'a0) /= in qb0 => [|->]; last exact: root0.
-case: m hp' pb0 p0 p'a0 qb0=> [|m].
-  rewrite {1}expr0 mulr1=> -> /eqP.
-  rewrite !(hornerE, horner_exp, mulf_eq0).
-  by rewrite !expf_eq0 !subr_eq0 !(gt_eqF lab) !andbF !orbF !rootE=> ->.
-move=> -> _ p0 p'a0 qb0; case: (sgrP (q.[a] * q.[b])); first 2 last.
-- move=> sqasb; case: (@ivt_sign q a b)=> //; first exact: ltW.
-    by apply/eqP; rewrite -sgrM sgr_cp0.
-  move=> c lacb rqc; exists c=> //.
-  by rewrite !hornerM (eqP rqc) !mul0r eqxx orbT.
-- move/eqP; rewrite mulf_eq0 (rootPf qb0) orbF; move/eqP=> qa0.
-  by move: p'a0; rewrite ?rootM rootE qa0 eqxx.
-- move=> hspq; rewrite !derivCE /= !mul1r mulrDl !pmulrn.
+  move=> lab pa0 pb0; have ltab := ltW lab; apply/sig2W.
+  have [->|p_neq0] := eqVneq p 0.
+    by exists (mid a b); rewrite ?mid_in_itv// derivC horner0 eqxx.
+  have [n [p' p'a0 hp]] := multiplicity_XsubC p a; rewrite p_neq0 /= in p'a0.
+  case: n hp pa0 p_neq0 pb0 p'a0 => [ | n -> _ p0 pb0 p'a0].
+    by rewrite {1}expr0 mulr1 rootE=> ->; move/eqP->.
+  have [m [q qb0 hp']] := multiplicity_XsubC p' b.
+  rewrite (contraNneq _ p'a0) /= in qb0 => [|->]; last exact: root0.
+  case: m hp' pb0 p0 p'a0 qb0=> [|m].
+    rewrite {1}expr0 mulr1=> ->; move/eqP.
+    rewrite !(hornerE, horner_exp, mulf_eq0).
+    by rewrite !expf_eq0 !subr_eq0 !(gt_eqF lab) !andbF !orbF !rootE=> ->.
+  move=> -> _ p0 p'a0 qb0; case: (sgrP (q.[a] * q.[b])); first 2 last.
+  - move=> /poly_ivtoo [] // c lacb rqc; exists c=> //.
+    by rewrite !hornerM (eqP rqc) !mul0r eqxx orbT.
+  - move/eqP; rewrite mulf_eq0 (rootPf qb0) orbF; move/eqP=> qa0.
+    by move: p'a0; rewrite ?rootM rootE qa0 eqxx.
+  move=> hspq; rewrite !derivCE /= !mul1r mulrDl !pmulrn.
   set xan := (('X - a%:P) ^+ n); set xbm := (('X - b%:P) ^+ m).
   have ->: ('X - a%:P) ^+ n.+1 = ('X - a%:P) * xan by rewrite exprS.
   have ->: ('X - b%:P) ^+ m.+1 = ('X - b%:P) * xbm by rewrite exprS.
@@ -370,79 +410,105 @@ move=> -> _ p0 p'a0 qb0; case: (sgrP (q.[a] * q.[b])); first 2 last.
     = (y * z * x) * (xbm * xan).
     by move=> x y z; rewrite mulrCA !mulrA [_ * y]mulrC mulrA.
   rewrite !fac -!mulrDl; set r := _ + _ + _.
-  case: (@ivt_sign (sgr q.[b] *: r) a b); first exact: ltW.
-    rewrite !hornerZ !sgr_smul mulrACA -expr2 sqr_sg (rootPf qb0) mul1r.
+  case: (@poly_ivtoo (sgr q.[b] *: r) a b) => // [|c lecb].
+    rewrite !hornerZ mulrACA -expr2 sqr_sg (rootPf qb0) mul1r.
     rewrite !(subrr, mul0r, mulr0, addr0, add0r, hornerC, hornerXsubC,
-      hornerD, hornerN, hornerM, hornerMn).
-    rewrite [_ * _%:R]mulrC -!mulrA !pmulrn !mulrzl !sgrMz -sgrM.
-    rewrite mulrAC mulrA -mulrA sgrM -opprB mulNr sgrN sgrM.
-    by rewrite !gtr0_sg ?subr_gt0 ?mulr1 // mulrC.
-move=> c lacb; rewrite rootE hornerZ mulf_eq0.
-rewrite sgr_cp0 (rootPf qb0) orFb=> rc0.
-by exists c=> //; rewrite !hornerM !mulf_eq0 rc0.
-Qed.
-
-Theorem rolle a b p :
-  a < b -> p.[a] = p.[b] -> {c | c \in `]a, b[ & p^`().[c] = 0}.
-Proof.
-move=> lab pab.
-wlog pb0 : p pab / p.[b] = 0.
-  case/(_ (p - p.[b]%:P)); rewrite ?hornerE ?pab ?subrr //.
-  by move=> c acb; rewrite derivE derivC subr0 => hc; exists c.
+      hornerD, hornerN, hornerM, hornerMn) [_ * _%:R]mulrC.
+    rewrite mulrACA pmulr_llt0 // mulrACA pmulr_rlt0 ?mulr_gt0 ?ltr0n //.
+    by rewrite -opprB mulNr oppr_lt0 mulr_gt0 ?subr_gt0.
+  rewrite rootE hornerZ mulf_eq0 sgr_cp0 (rootPf qb0) orFb => rc0.
+  by exists c => //; rewrite !hornerM !mulf_eq0 rc0.
+move=> lab pab; wlog pb0 : p pab / p.[b] = 0 => [hwlog|].
+  case: (hwlog (p - p.[b]%:P)); rewrite ?hornerE ?pab ?subrr //.
+  by move=> c acb; rewrite derivE derivC subr0=> hc; exists c.
 move: pab; rewrite pb0=> pa0.
-have: forall rs : seq R, {subset rs <= `]a, b[} ->
-    (size p <= size rs)%N -> uniq rs -> all (root p) rs -> p = 0.
+have: (forall rs : seq R, {subset rs <= `]a, b[} ->
+    (size p <= size rs)%N -> uniq rs -> all (root p) rs -> p = 0).
   by move=> rs hrs; apply: poly_ltsp_roots.
 elim: (size p) a b lab pa0 pb0=> [|n ihn] a b lab pa0 pb0 max_roots.
   rewrite (@max_roots [::]) //=.
   by exists (mid a b); rewrite ?mid_in_itv // derivE horner0.
 case: (@rolle_weak a b p); rewrite // ?pa0 ?pb0 //=.
-move=> c hc; case: eqVneq => p'c0 pc0; first by exists c.
+move=> c hc; case: (altP (_ =P 0))=> //= p'c0 pc0; first by exists c.
 suff: { d : R | d \in `]a, c[ & (p^`()).[d] = 0 }.
   case=> [d hd] p'd0; exists d=> //.
-  by apply: subitvPr hd; rewrite /<=%O /= (itvP hc).
-apply: ihn => //; [by rewrite (itvP hc) | exact/eqP |].
+  by apply: subitvPr hd; rewrite bnd_simp (itvP hc).
+  apply: ihn => //; [by rewrite (itvP hc)|exact/eqP|].
 move=> rs hrs srs urs rrs; apply: (max_roots (c :: rs))=> //=; last exact/andP.
-  move=> x; rewrite in_cons; case/predU1P=> [-> //|hx].
-  by apply: subitvPr (hrs _ _); rewrite /<=%O //= (itvP hc).
-by rewrite urs andbT; apply/negP; move/hrs; rewrite bound_in_itv.
+  move=> x; rewrite in_cons; case/predU1P=> hx; first by rewrite hx.
+  have: x \in `]a, c[ by apply: hrs.
+  by apply: subitvPr; rewrite bnd_simp (itvP hc).
+by rewrite urs andbT; apply/negP => /hrs; rewrite bound_in_itv.
 Qed.
 
-Theorem mvt a b p :
-  a < b -> {c | c \in `]a, b[ & p.[b] - p.[a] = p^`().[c] * (b - a)}.
+Theorem poly_mvt a b p : a < b ->
+  {c | c \in `]a, b[ & p.[b] - p.[a] = p^`().[c] * (b - a)}.
 Proof.
-move=> lab.
 pose q := (p.[b] - p.[a])%:P * ('X - a%:P) - (b - a)%:P * (p - p.[a]%:P).
-case: (@rolle a b q) => // [|c lacb q'x0].
-  by rewrite !hornerE !subrr !mulr0 mulrC !subrr.
-exists c=> //; move/eqP: q'x0; rewrite !derivE !(mul0r,add0r,subr0,mulr1).
-by rewrite !hornerE mulrC subr_eq0; move/eqP.
+move=> lt_ab; have [//||c le_acb q'x0] := @poly_rolle a b q.
+  by rewrite /q !hornerE !(subrr,mulr0) mulrC subrr.
+exists c=> //; move: q'x0; rewrite /q !derivE !(mul0r,add0r,subr0,mulr1).
+by move/eqP; rewrite !hornerE mulrC subr_eq0; move/eqP.
 Qed.
 
-Lemma ler_hornerW a b p : {in `]a, b[, forall x, p^`().[x] >= 0} ->
+Lemma poly_lipshitz p a b :
+  { k | k >= 1 & {in `[a, b] &, forall x y, `|p.[y] - p.[x]| <= k * `|y - x| }}.
+Proof.
+have [ub p_le] := @poly_itv_bound _ p^`() a b; exists (1 + `|ub|).
+  by rewrite lerDl.
+move=> x y xi yi; wlog lt_xy : x y xi yi / x < y => [hw|].
+  set d := `|y - _|; have [/hw->//|xy|xy//] := ltrgtP x y; last first.
+    by rewrite /d xy !subrr normr0 mulr0.
+  by rewrite /d (distrC y) (distrC p.[y]) hw.
+have [c ci ->] := poly_mvt p lt_xy; rewrite normrM ler_pM2r ?p_le //; last first.
+  by rewrite ?normr_gt0 ?subr_eq0 gt_eqF.
+rewrite ler_wpDl // (le_trans _ (ler_norm _)) // p_le //.
+by have: c \in `[a, b] by apply: subitvP ci; rewrite sub_oo_itv.
+Qed.
+
+Lemma poly_cont x p e : e > 0 ->
+  exists2 d, d > 0 & forall y, `|y - x| < d -> `|p.[y] - p.[x]| < e.
+Proof.
+move=> e_gt0; have [k k_ge1 kP] := poly_lipshitz p (x - e) (x + e).
+have k_gt0 : k > 0 by rewrite (lt_le_trans ltr01).
+exists (e / k) => [|y]; first by rewrite mulr_gt0 ?invr_gt0.
+have [y_small|y_big] := lerP `|y - x| e.
+  rewrite ltr_pdivlMr // mulrC; apply/le_lt_trans/kP => //;
+  by rewrite -![_ \in _]ler_distl ?subrr ?normr0 // ?ltW.
+by move=> /(lt_trans y_big); rewrite ltr_pMr // invf_gt1 // le_gtF.
+Qed.
+
+Lemma ler_hornerW a b p : (forall x, x \in `]a, b[ -> p^`().[x] >= 0) ->
   {in `[a, b] &, {homo horner p : x y / x <= y}}.
 Proof.
-move=> der_nneg x y axb ayb; rewrite le_eqVlt => /predU1P[->//|ltxy].
-have [c xcy /(canRL (@subrK _ _))->]:= mvt p ltxy.
-rewrite ler_addr mulr_ge0 ?subr_ge0 ?(ltW ltxy) ?der_nneg //.
-by apply: subitvP xcy; rewrite /<=%O /= /<=%O /= (itvP axb) (itvP ayb).
+move=> der_nneg x y axb ayb; rewrite le_eqVlt => /orP[/eqP->//|ltxy].
+have [c xcy /(canRL (@subrK _ _))->]:= poly_mvt p ltxy.
+rewrite lerDr mulr_ge0 ?subr_ge0 ?(ltW ltxy) ?der_nneg //.
+by apply: subitvP xcy; rewrite /(_ <= _)%O/= !bnd_simp ?(itvP axb) ?(itvP ayb).
 Qed.
 
 End Prelim.
+
+Lemma le_itv (a a' b b' : itv_bound R) :
+  (Interval a b <= Interval a' b')%O = (a' <= a)%O && (b <= b')%O.
+Proof. by []. Qed.
 
 Section MonotonictyAndRoots.
 
 Section DerPos.
 
-Variables (p : {poly R}) (a b : R).
+Variable (p : {poly R}).
 
-Hypothesis der_pos : {in `]a, b[, forall x, p^`().[x] > 0}.
+Variables (a b : R).
+
+Hypothesis der_gt0 : forall x, x \in `]a, b[ -> (p^`()).[x] > 0.
 
 Lemma ltr_hornerW : {in `[a, b] &, {homo horner p : x y / x < y}}.
 Proof.
-move=> x y axb ayb ltxy; have [c xcy /(canRL (@subrK _ _))->]:= mvt p ltxy.
-rewrite ltr_addr mulr_gt0 ?subr_gt0 ?der_pos //.
-by apply: subitvP xcy; rewrite /<=%O /= /<=%O /= (itvP axb) (itvP ayb).
+move=> x y axb ayb ltxy; have [c xcy /(canRL (@subrK _ _))->]:= poly_mvt p ltxy.
+rewrite ltrDr mulr_gt0 ?subr_gt0 ?der_gt0 //.
+apply: subitvP xcy; rewrite le_itv !bnd_simp.
+by rewrite /= (itvP axb) (itvP ayb).
 Qed.
 
 Lemma ler_horner : {in `[a, b] &, {mono horner p : x y / x <= y}}.
@@ -451,16 +517,17 @@ Proof. exact/le_mono_in/ltr_hornerW. Qed.
 Lemma ltr_horner : {in `[a, b] &, {mono horner p : x y / x < y}}.
 Proof. exact/leW_mono_in/ler_horner. Qed.
 
+Lemma derp_inj : {in `[a, b] &, injective (horner p)}.
+Proof. exact/inc_inj_in/ler_horner. Qed.
+
 Lemma derpr x : x \in `]a, b] -> p.[x] > p.[a].
 Proof.
-move=> axb; rewrite ltr_horner ?(itvP axb) //.
-by apply: subitvPl axb; rewrite bound_lexx.
+by move=> axb; rewrite ltr_horner ?(itvP axb) // subset_itv_oc_cc.
 Qed.
 
 Lemma derpl x : x \in `[a, b[ -> p.[x] < p.[b].
 Proof.
-move=> axb; rewrite ltr_horner ?(itvP axb) //.
-by apply: subitvPr axb; rewrite bound_lexx.
+by move=> axb; rewrite ltr_horner ?(itvP axb) // subset_itv_co_cc.
 Qed.
 
 Lemma derprW x : x \in `[a, b] -> p.[x] >= p.[a].
@@ -468,76 +535,149 @@ Proof. by move=> axb; rewrite ler_horner ?(itvP axb). Qed.
 
 Lemma derplW x : x \in `[a, b] -> p.[x] <= p.[b].
 Proof. by move=> axb; rewrite ler_horner ?(itvP axb). Qed.
-
 End DerPos.
 
 Section NoRoot_sg.
 
-Variables (p : {poly R}) (a b c : R).
+Variable (p : {poly R}).
 
+Variables (a b c : R).
+
+Hypothesis lt_ab : a < b.
 Hypothesis derp_neq0 : {in `]a, b[, noroot p^`()}.
-Hypothesis acb : c \in `]a, b[.
+Let mid_in : mid a b \in `]a, b[. Proof. exact: mid_in_itv. Qed.
+Hint Resolve mid_in : core.
 
-Local Notation sp'c := (sgr p^`().[c]).
-Local Notation q := (sp'c *: p).
+Local Notation s := (p^`().[mid a b] < 0).
+Local Notation sp' := ((- 1) ^+ s).
+Let q := (sp' *: p).
 
-Fact derq_pos x : x \in `]a, b[ -> (q^`()).[x] > 0.
+Lemma sgr_sign : sgr ((-1) ^+ s) = (-1) ^+ s :> R.
+Proof. by case: s; rewrite ?(sgr1, sgrN1). Qed.
+
+Fact signpE : p = (sp' *: q).
+Proof. by rewrite scalerA [_ ^+ _ * _]sqrr_sign scale1r. Qed.
+
+Fact sgp x : sgr p.[x] = sp' * sgr q.[x].
+Proof. by rewrite {1}signpE hornerZ sgrM sgr_sign. Qed.
+
+Fact derq_gt0 x : x \in `]a, b[ -> (q^`()).[x] > 0.
 Proof.
-move=> hx; rewrite derivZ hornerZ -sgr_cp0 sgr_smul mulr_sg_eq1 derp_neq0 //.
-exact/eqP/(@polyrN0_itv `]a, b[).
+move=> hx; rewrite derivZ hornerZ -sgr_cp0 neqr0_sign ?(derp_neq0 _) //.
+rewrite sgrM sgr_id mulr_sg_eq1 ?derp_neq0 //=.
+by apply/eqP; apply: (@polyrN0_itv `]a, b[).
 Qed.
-Definition derq0r := derpr derq_pos.
-Definition derq0l := derpl derq_pos.
-Definition derqpr := derprW derq_pos.
-Definition derqnl := derplW derq_pos.
+Hint Resolve derq_gt0 : core.
 
-Fact sgp x : sgr p.[x] = sp'c * sgr q.[x].
-Proof. by rewrite hornerZ sgr_smul mulrA -expr2 sqr_sg derp_neq0 ?mul1r. Qed.
-
-Fact hsgp x : 0 < q.[x] -> sgr p.[x] = sp'c.
-Proof. by rewrite -sgr_cp0 sgp => /eqP->; rewrite mulr1. Qed.
-
-Fact hsgpN x : q.[x] < 0 -> sgr p.[x] = - sp'c.
-Proof. by rewrite -sgr_cp0 sgp => /eqP->; rewrite mulrN1. Qed.
-
-Lemma ders0r : p.[a] = 0 -> {in `]a, b], forall x, sgr p.[x] = sp'c}.
+Lemma lgtr_horner : {in `[a, b] &, forall x y,
+  p.[x] < p.[y] = (sp' * x < sp' * y)}.
 Proof.
-move=> pa0 x hx; rewrite hsgp // (le_lt_trans _ (derq0r _)) //.
-by rewrite hornerZ pa0 mulr0.
-Qed.
-
-Lemma derspr : sgr p.[a] = sp'c -> {in `[a, b], forall x, sgr p.[x] = sp'c}.
-Proof.
-move=> spa x hx; rewrite hsgp // (lt_le_trans _ (derqpr _)) //.
-by rewrite -sgr_cp0 hornerZ sgr_smul spa -expr2 sqr_sg derp_neq0.
+move=> x y axb ayb; rewrite /= [in LHS]signpE ![(_ *: q).[_]]hornerZ.
+by case: s; rewrite ?mul1r ?mulN1r ?ltrN2 (ltr_horner derq_gt0).
 Qed.
 
-Lemma ders0l : p.[b] = 0 -> {in `[a, b[, forall x, sgr p.[x] = -sp'c}.
+Lemma lger_horner : {in `[a, b] &, forall x y,
+  p.[x] <= p.[y] = (sp' * x <= sp' * y)}.
 Proof.
-move=> pb0 x hx; rewrite hsgpN // (lt_le_trans (derq0l _)) //.
-by rewrite hornerZ pb0 mulr0.
+move=> x y axb ayb; rewrite /= [in LHS]signpE ![(_ *: q).[_]]hornerZ.
+by case: s; rewrite ?mul1r ?mulN1r ?lerN2 (ler_horner derq_gt0).
 Qed.
 
-Lemma derspl : sgr p.[b] = -sp'c -> {in `[a, b], forall x, sgr p.[x] = -sp'c}.
+Lemma horner_inj : {in `[a, b] &, injective (horner p)}.
 Proof.
-move=> spb x hx; rewrite hsgpN // (le_lt_trans (derqnl _)) //.
-by rewrite -sgr_cp0 hornerZ sgr_smul spb mulrN -expr2 sqr_sg derp_neq0.
+move=> x y xab yab; rewrite signpE ![(_ *: q).[_]]hornerE.
+by move=> /mulfI /(derp_inj derq_gt0)-> //; rewrite signr_eq0.
+Qed.
+
+Lemma uniq_root : {in `[a, b] &, forall x y, root p x -> root p y -> x = y}.
+Proof. by move=> x y ?? /eqP? /eqP rpy; apply: horner_inj; rewrite //rpy. Qed.
+
+Lemma sgrB (x y : R) : sgr (x - y) = (- 1) ^+ (x < y)%R *+ (x != y).
+Proof.
+case: ltrgtP => //= [xy|xy|->]; last by rewrite subrr sgr0.
+  by rewrite ltr0_sg ?subr_lt0.
+by rewrite gtr0_sg ?subr_gt0.
+Qed.
+
+Lemma root_sgp : {in `[a, b] &, forall x y, root p x ->
+  sgr p.[y] = (- 1) ^+ s * sgr (y - x)}.
+Proof.
+move=> x y xab yab rpx; rewrite {1}signpE hornerZ sgrM sgr_sign; congr (_ * _).
+have rqx : root q x by rewrite /root hornerZ mulf_eq0 [p.[_] == _]rpx orbT.
+rewrite sgrB; have [xy|xy|<-]/= := ltrgtP x y; last first.
+- by rewrite hornerZ sgrM (eqP rpx) sgr0 mulr0.
+- by apply/eqP; rewrite sgr_cp0 -(eqP rqx) (ltr_horner derq_gt0).
+- by apply/eqP; rewrite sgr_cp0 -(eqP rqx) (ltr_horner derq_gt0).
+Qed.
+
+
+Lemma root_has_ivt r : r \in `[a, b] -> root p r ->
+  {in `[a, r] & `[r, b], forall x y, p.[x] * p.[y] <= 0}.
+Proof.
+move=> rab rpr x y xar yrb; rewrite -sgr_le0 sgrM.
+have xab : x \in `[a, b]
+  by apply: subitvP xar; rewrite /= le_itv !bnd_simp ?(itvP rab).
+have yab : y \in `[a, b]
+  by apply: subitvP yrb; rewrite /= le_itv !bnd_simp ?(itvP rab).
+rewrite ?(root_sgp _ _ rpr)// mulrACA [_ ^+ _ * _]sqrr_sign mul1r -sgrM sgr_le0.
+by rewrite mulr_le0_ge0 ?subr_ge0 ?subr_le0 ?(itvP xar) ?(itvP yrb).
+Qed.
+
+Lemma noroot_noivt : {in `[a, b], forall r, ~~ root p r} ->
+  {in `[a, b] &, forall x y, p.[x] * p.[y] > 0}.
+Proof.
+move=> rpr x y xar yrb; wlog lt_xy : x y xar yrb / x <= y => [hw|].
+  by have /orP[/hw->//|/hw] := le_total x y; rewrite mulrC; apply.
+rewrite ltNge; case: has_itv_rootP => // r _ r_in.
+rewrite (negPf (rpr _ _)) //; apply: subitvP r_in;
+by rewrite le_itv !bnd_simp /= ?(itvP xar) ?(itvP yrb).
+Qed.
+
+Fact gtr0_sgp x : 0 < q.[x] -> sgr p.[x] = sp'.
+Proof. by move=> qx_gt0; rewrite sgp gtr0_sg ?mulr1. Qed.
+
+Fact ltr0_sgpN x : q.[x] < 0 -> sgr p.[x] = - sp'.
+Proof. by move=> qx_gt0; rewrite sgp ltr0_sg ?mulrN1. Qed.
+
+Lemma root_dersr : p.[a] = 0 -> {in `]a, b], forall x, sgr p.[x] = sp'}.
+Proof.
+move=> pa0 x xab; have qa0 : q.[a] = 0 by rewrite hornerE pa0 mulr0.
+by rewrite gtr0_sgp// -qa0 (derpr derq_gt0).
+Qed.
+
+Lemma derspr : sgr p.[a] = sp' -> {in `[a, b], forall x, sgr p.[x] = sp'}.
+Proof.
+move=> pa_sp' x xab; rewrite gtr0_sgp// (lt_le_trans _ (derprW derq_gt0 _))//.
+by rewrite hornerE -sgr_cp0 sgrM sgr_sign pa_sp' [_ * _]sqrr_sign.
+Qed.
+
+Lemma root_dersl : p.[b] = 0 -> {in `[a, b[, forall x, sgr p.[x] = - sp'}.
+Proof.
+move=> pb0 x xab; have qb0 : q.[b] = 0 by rewrite hornerE pb0 mulr0.
+by rewrite ltr0_sgpN// -qb0 (derpl derq_gt0).
+Qed.
+
+Lemma derspl : sgr p.[b] = - sp' -> forall x, x \in `[a, b] -> sgr p.[x] = - sp'.
+Proof.
+move=> pbNsp' x xab; rewrite ltr0_sgpN// (le_lt_trans (derplW derq_gt0 _))//.
+by rewrite hornerE -sgr_cp0 sgrM sgr_sign pbNsp' mulrN [_ * _]sqrr_sign.
 Qed.
 
 End NoRoot_sg.
 
 Section DerNeg.
 
-Variables (p : {poly R}) (a b : R).
+Variable (p : {poly R}).
 
-Hypothesis der_neg : {in `]a, b[, forall x, (p^`()).[x] < 0}.
+Variables (a b : R).
 
-Let dern_pos x : x \in `]a, b[ -> ((- p)^`()).[x] > 0.
+Hypothesis der_neg : forall x, x \in `]a, b[ -> (p^`()).[x] < 0.
+Let dern_gt0 x : x \in `]a, b[ -> ((- p)^`()).[x] > 0.
 Proof. by move=> axb; rewrite derivN hornerN oppr_gt0 der_neg. Qed.
 
 Lemma gtr_hornerW : {in `[a, b] &, {homo horner p : x y /~ x < y}}.
 Proof.
-by move=> x y axb ayb yx; rewrite -ltr_opp2 -!hornerN (ltr_hornerW dern_pos).
+by move=> x y axb ayb yx; rewrite -ltrN2 -!hornerN (ltr_hornerW dern_gt0).
 Qed.
 
 Lemma ger_horner : {in `[a, b] &, {mono horner p : x y /~ x <= y}}.
@@ -548,14 +688,12 @@ Proof. exact/leW_nmono_in/ger_horner. Qed.
 
 Lemma dernr x : x \in `]a, b] -> p.[x] < p.[a].
 Proof.
-move=> axb; rewrite gtr_horner ?(itvP axb) //.
-by apply: subitvPl axb; rewrite bound_lexx.
+by move=> axb; rewrite gtr_horner ?(itvP axb) //; apply: subset_itv_oc_cc.
 Qed.
 
 Lemma dernl x : x \in `[a, b[ -> p.[x] > p.[b].
 Proof.
-move=> axb; rewrite gtr_horner ?(itvP axb) //.
-by apply: subitvPr axb; rewrite bound_lexx.
+by move=> axb; rewrite gtr_horner ?(itvP axb) //; apply: subset_itv_co_cc.
 Qed.
 
 Lemma dernrW x : x \in `[a, b] -> p.[x] <= p.[a].
@@ -566,23 +704,22 @@ Proof. by move=> axb; rewrite ger_horner ?(itvP axb). Qed.
 
 End DerNeg.
 
+
 Variable (p : {poly R}) (a b : R).
 
 Section der_root.
 
 Hypothesis der_pos : forall x, x \in `]a, b[ ->  (p^`()).[x] > 0.
 
-Lemma derp_root : a <= b -> 0 \in `]p.[a], p.[b][ ->
+Lemma derp_root : a <= b -> p.[a] * p.[b] < 0 ->
   { r : R |
     [/\ forall x, x \in `[a, r[ -> p.[x] < 0,
       p.[r] = 0,
       r \in `]a, b[ &
       forall x, x \in `]r, b] -> p.[x] > 0] }.
 Proof.
-move=> leab hpab.
-have /eqP hs : sgr p.[a] * sgr p.[b] == -1.
-  by rewrite -sgrM sgr_cp0 pmulr_llt0 ?(itvP hpab).
-case: (ivt_sign leab hs) => r arb pr0; exists r; split => //; last 2 first.
+move=> leab hpab; have [r arb pr0] := poly_ivtoo leab hpab.
+exists r; split => //; last 2 first.
 - by move/eqP: pr0.
 - move=> x rxb; have hd : forall t, t \in `]r, b[ ->  0 < (p^`()).[t].
     by move=> t ht; rewrite der_pos // ?(subitvPl _ ht) /<=%O //= ?(itvP arb).
@@ -593,32 +730,6 @@ case: (ivt_sign leab hs) => r arb pr0; exists r; split => //; last 2 first.
 Qed.
 
 End der_root.
-
-(* Section der_root_sg. *)
-
-(* Hypothesis der_pos : forall x, x \in `]a, b[ ->  (p^`()).[x] != 0. *)
-
-(* Lemma derp_root : a <= b -> sgr p.[a] != sgr p.[b] -> *)
-(*   { r : R | *)
-(*     [/\ forall x, x \in `[a, r[ -> p.[x] < 0, *)
-(*       p.[r] = 0, *)
-(*       r \in `]a, b[ & *)
-(*       forall x, x \in `]r, b] -> p.[x] > 0] }. *)
-(* Proof. *)
-(* move=> leab hpab. *)
-(* have hs : sgr p.[a] * sgr p.[b] == -1. *)
-(*   by rewrite -sgrM sgr_cp0 mulr_lt0_gt0 ?(itvP hpab). *)
-(* case: (ivt_sign ivt leab hs) => r arb pr0; exists r; split => //; last 2 first. *)
-(* - by move/eqP: pr0. *)
-(* - move=> x rxb; have hd : forall t, t \in `]r, b[ ->  0 < (p^`()).[t]. *)
-(*     by move=> t ht; rewrite der_pos // ?(subitvPl _ ht) //= ?(itvP arb). *)
-(*   by rewrite (derpr hd) ?(eqP pr0). *)
-(* - move=> x rxb; have hd : forall t, t \in `]a, r[ ->  0 < (p^`()).[t]. *)
-(*     by move=> t ht; rewrite der_pos // ?(subitvPr _ ht) //= ?(itvP arb). *)
-(*   by rewrite (derpl hd) ?(eqP pr0). *)
-(* Qed. *)
-
-(* End der_root. *)
 
 End MonotonictyAndRoots.
 
@@ -666,13 +777,13 @@ End RootsOn.
 (* Proof. by move=> a; apply: inv_inj; apply: symr_inv. Qed. *)
 
 (* Lemma ltr_sym : forall a x y, (symr a x < symr a y) = (y < x). *)
-(* Proof. by move=> a x y; rewrite lter_add2r lter_oppr opprK. Qed. *)
+(* Proof. by move=> a x y; rewrite lterD2rr lterNr opprK. Qed. *)
 
 (* Lemma symr_add_itv : forall a b x,  *)
 (*   (a < symr (a + b) x < b) = (a < x < b). *)
 (* Proof.  *)
 (* move=> a b x; rewrite andbC.    *)
-(* by rewrite lter_subrA lter_add2r -lter_addlA lter_add2l. *)
+(* by rewrite lter_subrA lterD2rr -lter_addlA lterD2rl. *)
 (* Qed. *)
 
 Lemma roots_on_comp p a b s :
@@ -708,7 +819,7 @@ Lemma max_roots_on p a b x s :
 Proof.
 move/allP=> lsx /roots_on_comp/=/min_roots_on[].
   apply/allP=> y; rewrite -[y]opprK (mem_map oppr_inj).
-  by move/lsx; rewrite ltr_opp2.
+  by move/lsx; rewrite ltrN2.
 rewrite oppr_itv root_comp !hornerE !opprK=> -> rxb -> rax.
 by split=> //; apply/roots_on_comp.
 Qed.
@@ -785,7 +896,8 @@ case: (lerP 0 p.[a]) => ha.
 case: (lerP p.[b] 0) => hb.
   left => x; case: (boolP (x \in _)) => //= axb; rewrite rootE lt_eqF //.
   by rewrite (lt_le_trans (derpl hp'pos _)) // (subitvPl _ axb) /<=%O /=.
-case: (derp_root hp'pos (ltW leab) _) => [|r [h1 h2 h3] h4]; first exact/andP.
+case: (derp_root hp'pos (ltW leab) _) => [|r [h1 h2 h3] h4];
+  first by rewrite pmulr_llt0.
 right; exists r => x; rewrite in_cons in_nil (itv_splitUeq h3).
 have [->|exr] := eqVneq; rewrite ?orbT ?orbF /=; first by apply/eqP.
 case: rootP => px0; rewrite (andbT, andbF) //; apply/negP; case/orP=> hx.
@@ -1105,9 +1217,9 @@ Qed.
 Lemma next_root_in p a b : next_root p a b \in `[a, maxr b a].
 Proof.
 case: next_rootP => [p0|y np0 py0 hy _|c np0 hc _].
-* by rewrite bound_in_itv /<=%O /= le_maxr lexx orbT.
-* by apply: subitvP hy; rewrite /<=%O /= /<=%O /= le_maxr !lexx.
-* by rewrite hc bound_in_itv /<=%O /= le_maxr lexx orbT.
+* by rewrite bound_in_itv /<=%O /= le_max lexx orbT.
+* by apply: subitvP hy; rewrite /<=%O /= /<=%O /= le_max !lexx.
+* by rewrite hc bound_in_itv /<=%O /= le_max lexx orbT.
 Qed.
 
 Lemma next_root_gt p a b : a < b -> p != 0 -> next_root p a b > a.
@@ -1115,7 +1227,7 @@ Proof.
 move=> ab np0; case: next_rootP=> [p0|y _ py0 hy _|c _ -> _].
 * by rewrite p0 eqxx in np0.
 * by rewrite (itvP hy).
-* by rewrite lt_maxr ab.
+* by rewrite lt_max ab.
 Qed.
 
 Lemma next_noroot p a b : {in `]a, (next_root p a b)[, noroot p}.
@@ -1173,9 +1285,9 @@ Qed.
 Lemma prev_root_in p a b : prev_root p a b \in `[minr a b, b].
 Proof.
 case: prev_rootP => [p0|y np0 py0 hy _|c np0 hc _].
-* by rewrite bound_in_itv /<=%O /= le_minl lexx orbT.
-* by apply: subitvP hy; rewrite /<=%O /= /<=%O /= le_minl !lexx.
-* by rewrite hc bound_in_itv /<=%O /= le_minl lexx orbT.
+* by rewrite bound_in_itv /<=%O /= ge_min lexx orbT.
+* by apply: subitvP hy; rewrite /<=%O /= /<=%O /= ge_min !lexx.
+* by rewrite hc bound_in_itv /<=%O /= ge_min lexx orbT.
 Qed.
 
 Lemma prev_noroot p a b : {in `](prev_root p a b), b[, noroot p}.
@@ -1191,7 +1303,7 @@ Proof.
 move=> ab np0; case: prev_rootP=> [p0|y _ py0 hy _|c _ -> _].
 * by rewrite p0 eqxx in np0.
 * by rewrite (itvP hy).
-* by rewrite lt_minl ab.
+* by rewrite gt_min ab.
 Qed.
 
 Lemma is_prev_root p a b x :
@@ -1348,18 +1460,18 @@ case: leP => //; case: next_rootP=> [|y np0 py0 hy|c np0 ->] hp hpq _.
   - move=> z hz /=; rewrite rootM negb_or ?hp //.
     by rewrite (@next_noroot _ a b) //; apply: subitvPr hz.
 * case: (eqVneq q 0) hpq => [->|q0 hpq].
-    rewrite mulr0 root0 next_root0 le_maxl lexx andbT.
+    rewrite mulr0 root0 next_root0 ge_max lexx andbT.
     by move/max_r->; constructor.
   constructor=> //; first by rewrite mulf_neq0.
   move=> z hz /=; rewrite rootM negb_or ?hp // (@next_noroot _ a b) //.
-  by apply: subitvPr hz=> /=; move: hpq; rewrite le_maxl; case/andP.
+  by apply: subitvPr hz=> /=; move: hpq; rewrite ge_max; case/andP.
 Qed.
 
 Lemma neighpr_mul a b p q :
   (neighpr (p * q) a b) =i [predI (neighpr p a b) & (neighpr q a b)].
 Proof.
 move=> x; rewrite !inE /<=%O /= /<=%O /= next_rootM.
-by case: (a < x); rewrite // lt_minr.
+by case: (a < x); rewrite // lt_min.
 Qed.
 
 Lemma prev_rootM a b (p q : {poly R}) :
@@ -1377,18 +1489,18 @@ case: ltP => //; case: (@prev_rootP p)=> [|y np0 py0 hy|c np0 ->] hp hpq _.
   - move=> z hz /=; rewrite rootM negb_or ?hp //.
     by rewrite (@prev_noroot _ a b) //; apply: subitvPl hz.
 * case: (eqVneq q 0) hpq => [->|q0 hpq].
-    rewrite mulr0 root0 prev_root0 le_minr lexx andbT.
+    rewrite mulr0 root0 prev_root0 le_min lexx andbT.
     by move/min_r->; constructor.
   constructor=> //; first by rewrite mulf_neq0.
   move=> z hz /=; rewrite rootM negb_or ?hp // (@prev_noroot _ a b) //.
-  by apply: subitvPl hz=> /=; move: hpq; rewrite le_minr; case/andP.
+  by apply: subitvPl hz=> /=; move: hpq; rewrite le_min; case/andP.
 Qed.
 
 Lemma neighpl_mul a b p q :
   (neighpl (p * q) a b) =i [predI (neighpl p a b) & (neighpl q a b)].
 Proof.
 move=> x; rewrite !inE /<=%O /= /<=%O /= prev_rootM.
-by case: (x < b); rewrite // lt_maxl !(andbT, andbF).
+by case: (x < b); rewrite // gt_max !(andbT, andbF).
 Qed.
 
 Lemma neighpr_wit p x b : x < b -> p != 0 -> {y | y \in neighpr p x b}.
@@ -1422,39 +1534,42 @@ Proof. by rewrite /sgp_right size_poly0. Qed.
 Lemma sgr_neighpr b p x :
   {in neighpr p x b, forall y, (sgr p.[y] = sgp_right p x)}.
 Proof.
-elim: (size p) {-2}p (leqnn (size p))=> [|n ihn] {}p.
-  rewrite leqn0 size_poly_eq0 /neighpr; move/eqP=> -> /= y.
-  by rewrite next_root0 itv_xx.
-rewrite leq_eqVlt ltnS; case/predU1P => [sp|]; last exact: ihn.
-rewrite /sgp_right sp /=; case px0: root=> /=; last first.
-  move=> y; rewrite /neighpr => hy /=.
-  apply/esym/(@polyrN0_itv `[x, y]) => [z||];
-    do ?by rewrite bound_in_itv /<=%O /= (itvP hy).
-  rewrite (@itv_splitU _ _ (BRight x)) ?bound_lexx /<=%O /= ?(itvP hy) //.
-  rewrite itv_xx; case/predU1P=> hz; first by rewrite hz px0.
+have [n] := ubnP (size p); elim: n => // -[_|n ihn] in p *; rewrite ltnS.
+  by move=> /size_poly_leq0P-> y; rewrite /neighpr next_root0 itv_xx.
+rewrite leq_eqVlt ltnS; case/orP; last exact: ihn.
+move/eqP=> sp; rewrite /sgp_right sp /=.
+have pN0 : p != 0 by apply: contra_eq_neq sp => ->; rewrite size_poly0.
+case px0: root=> /=; last first.
+  move=> y; rewrite /neighpr => hy /=; symmetry.
+  apply: (@polyrN0_itv `[x, y]); do ?by rewrite bound_in_itv ?bnd_simp /= (itvP hy).
+  move=> z; rewrite (@itv_splitU _ _ (BRight x))
+     ?bound_in_itv /= ?bnd_simp ?(itvP hy) //.
+  rewrite itv_xx /=; case/predU1P=> hz; first by rewrite hz px0.
   rewrite (@next_noroot p x b) //.
-  by apply: subitvPr hz; rewrite /<=%O /= (itvP hy).
+  by apply: subitvPr hz=> /=; rewrite !bnd_simp (itvP hy).
 have <-: size p^`() = n by rewrite size_deriv sp.
-rewrite -/(sgp_right p^`() x) /neighpr => y hy /=.
-case: (@neighpr_wit (p * p^`()) x b)=> [||m].
-* case: next_rootP hy => [|? ? ? /itvP -> //|c p0 -> _].
-    by rewrite itv_xx.
-  by case: leP; rewrite ?itv_xx.
+rewrite -/(sgp_right p^`() x).
+move=> y; rewrite /neighpr=> hy /=.
+case: (@neighpr_wit (p * p^`()) x b)=> [||m hm].
+* case: next_rootP hy; first by rewrite itv_xx.
+    by move=> ? ? ?; move/itvP->.
+  by move=> c p0 -> _; case: lerP => _; rewrite ?itv_xx //; move/itvP->.
 * rewrite mulf_neq0 //.
-    by apply: contra_eq_neq sp => ->; rewrite size_poly0.
-  (* Todo : a lemma for this *)
-  apply: contra_eq_neq (size_deriv p) => ->; rewrite sp /=.
+  move: (size_deriv p); rewrite sp /=; move/eqP; apply: contraTneq=> ->.
   rewrite size_poly0; apply: contraTneq px0=> hn; rewrite -hn in sp.
-  by case/eqP/size_poly1P: sp => c nc0 ->; rewrite rootC.
-* rewrite neighpr_mul; case/andP=> /= hmp hmp'.
+  by move/eqP: sp; case/size_poly1P=> c nc0 ->; rewrite rootC.
+* move: hm; rewrite neighpr_mul /neighpr inE /=; case/andP=> hmp hmp'.
+  have lt_xm : x < m by rewrite (itvP hmp).
   rewrite (polyrN0_itv _ hmp) //; last exact: next_noroot.
-  rewrite (@ders0r p x m (mid x m)) ?(eqP px0) ?mid_in_itv ?bound_in_itv //;
-    rewrite /<=%O /= ?(itvP hmp) //; last first.
+  have midxmxb : mid x m \in neighpr p^`() x b.
+    rewrite (subitvP _ (@mid_in_itv _ false true _ _ _)) //=.
+    by rewrite ?lerr le_itv !bnd_simp (itvP hmp').
+  rewrite (@root_dersr p x m) ?(eqP px0) ?mid_in_itv ?bound_in_itv //;
+    rewrite ?bnd_simp /= ?(itvP hmp) //; last first.
     move=> u hu /=; rewrite (@next_noroot _ x b) //.
-    by apply: subitvPr hu; rewrite /<=%O /= (itvP hmp').
-  rewrite ihn ?size_deriv ?sp /neighpr //.
-  by rewrite (subitvP _ (@mid_in_itv _ false false _ _ _));
-    rewrite /<=%O /= /<=%O //= ?lexx (itvP hmp').
+    by apply: subitvPr hu; rewrite /= ?bnd_simp (itvP hmp').
+  rewrite neqr0_sign// ?(@next_noroot _ x b)//.
+  by rewrite ihn ?size_deriv ?sp /neighpr.
 Qed.
 
 Lemma sgr_neighpl a p x :
@@ -1462,44 +1577,45 @@ Lemma sgr_neighpl a p x :
     (sgr p.[y] = (-1) ^+ (odd (\mu_x p)) * sgp_right p x)
   }.
 Proof.
-elim: (size p) {-2}p (leqnn (size p))=> [|n ihn] {}p.
-  rewrite leqn0 size_poly_eq0 /neighpl; move/eqP=> -> /= y.
-  by rewrite prev_root0 itv_xx.
-rewrite leq_eqVlt ltnS; case/predU1P => [sp y|]; last exact: ihn.
-rewrite /sgp_right sp /=; case px0: root=> /=; last first.
-  rewrite /neighpl => hy /=; symmetry.
+have [n] := ubnP (size p); elim: n => // -[_|n ihn] in p *; rewrite ltnS.
+  by move=> /size_poly_leq0P-> y; rewrite /neighpl prev_root0 itv_xx.
+rewrite leq_eqVlt ltnS; case/orP; last exact: ihn.
+move/eqP=> sp; rewrite /sgp_right sp /=.
+have pN0 : p != 0 by apply: contra_eq_neq sp => ->; rewrite size_poly0.
+case px0: root=> /=; last first.
+  move=> y; rewrite /neighpl => hy /=; symmetry.
   move: (negbT px0); rewrite -mu_gt0; last first.
-    by apply: contraFneq px0 => ->; rewrite rootC.
-  rewrite -leqNgt leqn0; move/eqP ->; rewrite /= expr0 mul1r.
-  apply/esym/(@polyrN0_itv `[y, x]) => [z||];
-    do ?by rewrite bound_in_itv /<=%O /= (itvP hy).
-  rewrite (@itv_splitU _ _ (BLeft x)) ?bound_lexx /<=%O /= ?(itvP hy) //.
-  rewrite itv_xx /= orbC; case/predU1P=> [->|hz]; first by rewrite px0.
+    by apply: contraFN px0; move/eqP->; rewrite rootC.
+  rewrite -leqNgt leqn0; move/eqP=> -> /=; rewrite expr0 mul1r.
+  symmetry; apply: (@polyrN0_itv `[y, x]);
+    do ?by rewrite bound_in_itv  ?bnd_simp /= (itvP hy).
+  move=> z; rewrite (@itv_splitU _ _ (BLeft x)) ?bound_in_itv ?bnd_simp /= ?(itvP hy) //.
+  rewrite itv_xx /= orbC; case/predU1P=> hz; first by rewrite hz px0.
   rewrite (@prev_noroot p a x) //.
-  by apply: subitvPl hz; rewrite /<=%O /= (itvP hy).
+  by apply: subitvPl hz=> /=; rewrite bnd_simp (itvP hy).
 have <-: size p^`() = n by rewrite size_deriv sp.
-rewrite -/(sgp_right p^`() x) /neighpl=> hy /=.
-case: (@neighpl_wit (p * p^`()) a x)=> [||m].
+rewrite -/(sgp_right p^`() x).
+move=> y; rewrite /neighpl=> hy /=.
+case: (@neighpl_wit (p * p^`()) a x)=> [||m hm].
 * case: prev_rootP hy; first by rewrite itv_xx.
-    by move=> ? ? ? /itvP ->.
-  by move=> c p0 -> _; case: ltP; rewrite ?itv_xx.
+    by move=> ? ? ?; move/itvP->.
+  by move=> c p0 -> _; case: lerP => _; rewrite ?itv_xx //; move/itvP->.
 * rewrite mulf_neq0 //.
-    by apply: contra_eq_neq sp => ->; rewrite size_poly0.
-  (* Todo : a lemma for this *)
-  apply: contra_eq_neq (size_deriv p) => ->; rewrite sp /=.
+  move: (size_deriv p); rewrite sp /=; move/eqP; apply: contraTneq=> ->.
   rewrite size_poly0; apply: contraTneq px0=> hn; rewrite -hn in sp.
-  by case/eqP/size_poly1P: sp => c nc0 ->; rewrite rootC.
-* rewrite neighpl_mul; case/andP=> /= hmp hmp'.
+  by move/eqP: sp; case/size_poly1P=> c nc0 ->; rewrite rootC.
+* move: hm; rewrite neighpl_mul /neighpl inE /=; case/andP=> hmp hmp'.
+  have lt_xm : m < x by rewrite (itvP hmp).
+  have midxmxb : mid m x \in neighpl p^`() a x.
+    rewrite (subitvP _ (@mid_in_itv _ false true _ _ _)) //=
+       ?le_itv ?bnd_simp (itvP hmp')//.
   rewrite (polyrN0_itv _ hmp) //; last exact: prev_noroot.
-  rewrite (@ders0l p m x (mid m x)) ?(eqP px0) ?mid_in_itv ?bound_in_itv;
-    rewrite /<=%O //= ?(itvP hmp) //; last first.
+  rewrite (@root_dersl p m x) ?(eqP px0) ?mid_in_itv ?bound_in_itv //;
+    rewrite /= ?bnd_simp ?(itvP hmp) //; last first.
     move=> u hu /=; rewrite (@prev_noroot _ a x) //.
-    by apply: subitvPl hu; rewrite /<=%O /= (itvP hmp').
-  rewrite ihn ?size_deriv ?sp /neighpl //; last first.
-    by rewrite (subitvP _ (@mid_in_itv _ true true _ _ _));
-      rewrite /<=%O /= /<=%O //= ?lexx (itvP hmp').
-  rewrite mu_deriv // oddB ?mu_gt0 //=; last by rewrite -size_poly_eq0 sp.
-  by rewrite signr_addb /= mulrN1 mulNr opprK.
+    by apply: subitvPl hu; rewrite /= ?bnd_simp (itvP hmp').
+  rewrite neqr0_sign ?(@prev_noroot _ a x)// ihn// ?size_deriv ?sp//.
+  by rewrite mu_deriv// oddB ?mu_gt0//= signr_addb mulrN1 mulNr opprK.
 Qed.
 
 Lemma sgp_right_deriv (p : {poly R}) x :
@@ -1523,7 +1639,7 @@ Proof.
 have [->|q0] := eqVneq q 0; first by rewrite /sgp_right !(size_poly0,mulr0).
 have [->|p0] := eqVneq p 0; first by rewrite /sgp_right !(size_poly0,mul0r).
 case: (@neighpr_wit (p * q) x (1 + x))=> [||m hpq]; do ?by rewrite mulf_neq0.
-  by rewrite ltr_spaddl ?ltr01.
+  by rewrite ltr_pwDl ?ltr01.
 rewrite -(@sgr_neighpr (1 + x) _ _ m) //; move: hpq; rewrite neighpr_mul.
 by case/andP=> /= hp hq; rewrite hornerM sgrM !(@sgr_neighpr (1 + x) _ x).
 Qed.
@@ -1537,7 +1653,7 @@ Qed.
 Lemma sgp_right_square p x : p != 0 -> sgp_right p x * sgp_right p x = 1.
 Proof.
 move=> np0; case: (@neighpr_wit p x (1 + x))=> [||m hpq] //.
-  by rewrite ltr_spaddl ?ltr01.
+  by rewrite ltr_pwDl ?ltr01.
 rewrite -(@sgr_neighpr (1 + x) _ _ m) //.
 by rewrite -expr2 sqr_sg (@next_noroot _ x (1 + x)).
 Qed.
@@ -1684,8 +1800,8 @@ have [z Hz] := poly_pinfty_gt_lc lp_gt0.
 have {}Hz u : u \in `[z, +oo[ -> Num.sg p.[u] = 1.
   rewrite in_itv andbT => /Hz pu_ge1.
   by rewrite gtr0_sg // (lt_le_trans lp_gt0).
-rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?in_itv /= ?le_maxr ?(itvP Hy) //.
-by rewrite Hz ?gtr0_sg // in_itv /= le_maxr lexx orbT.
+rewrite (@polyrN0_itv _ _ rpx (maxr y z)) ?in_itv /= ?le_max ?(itvP Hy) //.
+by rewrite Hz ?gtr0_sg // in_itv /= le_max lexx orbT.
 Qed.
 
 Lemma sgp_minftyP x (p : {poly R}) :
@@ -1695,8 +1811,8 @@ Proof.
 move=> rpx y Hy; rewrite -sgp_pinfty_sym.
 have ->: p.[y] = (p \Po -'X).[-y] by rewrite horner_comp !hornerE opprK.
 apply: (@sgp_pinftyP (- x)) => /= [z Hz|].
-  by rewrite root_comp !hornerE rpx // in_itv /= ler_oppl (itvP Hz).
-by rewrite in_itv /= ler_opp2 (itvP Hy).
+  by rewrite root_comp !hornerE rpx // in_itv /= lerNl (itvP Hz).
+by rewrite in_itv /= lerN2 (itvP Hy).
 Qed.
 
 Lemma odd_poly_root (p : {poly R}) : ~~ odd (size p) -> {x | root p x}.
@@ -1704,8 +1820,9 @@ Proof.
 move=> size_p_even.
 have [->|p_neq0] := eqVneq p 0; first by exists 0; rewrite root0.
 pose b := cauchy_bound p.
-have [] := @ivt_sign p (-b) b; last by move=> x _; exists x.
+have [] := @poly_ivtoo p (-b) b; last by move=> x _; exists x.
   by rewrite ge0_cp // ?cauchy_bound_ge0.
+rewrite -sgr_cp0 sgrM.
 rewrite (sgp_minftyP (le_cauchy_bound p_neq0)) ?bound_in_itv //.
 rewrite (sgp_pinftyP (ge_cauchy_bound p_neq0)) ?bound_in_itv //.
 move: size_p_even; rewrite polySpred //= negbK /sgp_minfty -signr_odd => ->.
