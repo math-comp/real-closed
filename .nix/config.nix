@@ -46,6 +46,7 @@
       mathcomp-finmap.override.version = "master";
       mathcomp-zify.override.version = "master";
       multinomials.override.version = "master";
+      mathcomp-abel.override.version = "master";
     }; in {
   "8.17".coqPackages = common-bundles // {
     coq.override.version = "8.17";
