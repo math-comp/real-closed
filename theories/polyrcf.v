@@ -272,6 +272,14 @@ by split; rewrite lt_neqAle (itvP cab) andbT; [move: pa0|move: pb0];
    apply: contraNneq; [move->|move<-].
 Qed.
 
+Lemma ivt_sign_deprecated (p : {poly R}) (a b : R) :
+    a <= b -> sgr p.[a] * sgr p.[b] = -1 ->
+  { x : R | x \in `]a, b[ & root p x}.
+Proof.
+move=> le_ab sgpab_eqN1; apply: poly_ivtoo => //.
+by rewrite -sgr_cp0 sgrM sgpab_eqN1.
+Qed.
+
 Definition has_ivt_root p a b :=
   if (a <= b) && (p.[a] * p.[b] <= 0) =P true isn't ReflectT pp then None
   else Some (projT1 (poly_ivt (proj1 (andP pp)) (proj2 (andP pp)))).
@@ -1831,3 +1839,13 @@ Qed.
 End PolyRCFPdiv.
 
 End PolyRCF.
+
+#[deprecated(since="mathcomp-real-closed 2.1.0",
+  note="Use `poly_rolle` instead")]
+Notation rolle := poly_rolle.
+#[deprecated(since="mathcomp-real-closed 2.1.0",
+  note="Use `poly_mvt` instead")]
+Notation mvt := poly_mvt.
+#[deprecated(since="mathcomp-real-closed 1.1.0",
+             note="Use `poly_ivtoo` instead.")]
+Notation ivt_sign := ivt_sign_deprecated.
