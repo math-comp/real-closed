@@ -1,9 +1,8 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra all_field.
-From mathcomp Require Import archimedean bigenough.
-Require Import polyorder cauchyreals.
+From mathcomp Require Import all_ssreflect all_algebra all_field bigenough.
+From mathcomp Require Import polyorder cauchyreals.
 
 (*************************************************************************)
 (* This files constructs the real closure of an archimedian field in the *)

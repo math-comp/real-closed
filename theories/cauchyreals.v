@@ -1,12 +1,9 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
-From mathcomp
-Require Import bigop order ssralg ssrnum ssrint rat poly polydiv polyorder.
-From mathcomp
-Require Import perm matrix mxpoly polyXY binomial bigenough.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
+From mathcomp Require Import fintype bigop binomial order perm ssralg poly.
+From mathcomp Require Import polydiv ssrnum ssrint rat matrix mxpoly polyXY.
+From mathcomp Require Import bigenough polyorder.
 
 (***************************************************************************)
 (* This is a standalone construction of Cauchy reals over an arbitrary     *)
@@ -15,7 +12,7 @@ Require Import perm matrix mxpoly polyXY binomial bigenough.
 (*               cannot be equipped with any ssreflect algebraic structure *)
 (***************************************************************************)
 
-Import Order.TTheory GRing.Theory Num.Theory Num.Def BigEnough.
+Import Order.TTheory GRing.Theory Num.Theory BigEnough.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -107,7 +104,7 @@ Lemma poly_bound_ge0 p a r : 0 <= poly_bound p a r.
 Proof. by rewrite ltW // poly_bound_gt0. Qed.
 
 Definition poly_accr_bound (p : {poly F}) (a r : F) : F
-  := (maxr 1 (2%:R * r)) ^+ (size p).-1
+  := (Num.max 1 (2%:R * r)) ^+ (size p).-1
   * (1 + \sum_(i < (size p).-1) poly_bound p^`N(i.+1) a r).
 
 Lemma poly_accr_bound1P p a r x y :
@@ -131,7 +128,7 @@ have := le_trans (ler_norm_sum _ _ _); apply.
 rewrite ler_sum // => i _.
 rewrite exprSr mulrA !normrM mulrC ler_wpM2l ?normr_ge0 //.
 suff /ler_wpM2l /le_trans :
-  `|(y - x) ^+ i| <=  maxr 1 (2%:R * r) ^+ (size p).-1.
+  `|(y - x) ^+ i| <=  Num.max 1 (2%:R * r) ^+ (size p).-1.
   apply; rewrite ?normr_ge0 // mulrC ler_wpM2l ?poly_boundP //.
   by rewrite ?exprn_ge0 // le_max ler01 mulr_ge0 ?ler0n ?ltW.
 case: (leP _ 1)=> hr.
@@ -205,7 +202,7 @@ Variable F : realFieldType.
 Local Open Scope ring_scope.
 
 Definition poly_accr_bound2 (p : {poly F}) (a r : F) : F
-  := (maxr 1 (2%:R * r)) ^+ (size p).-2
+  := (Num.max 1 (2%:R * r)) ^+ (size p).-2
   * (1 + \sum_(i < (size p).-2) poly_bound p^`N(i.+2) a r).
 
 Lemma poly_accr_bound2_gt0 p a r : 0 < poly_accr_bound2 p a r.
@@ -249,7 +246,7 @@ have := le_trans (ler_norm_sum _ _ _); apply.
 rewrite ler_sum // => i _ /=; rewrite /bump /= !add1n.
 rewrite normrM normrX 3!exprSr expr1 !mulrA !ler_wpM2r ?normr_ge0 //.
 suff /ler_wpM2l /le_trans :
-  `|(y - x)| ^+ i <=  maxr 1 (2%:R * r) ^+ (size p^`()).-1.
+  `|(y - x)| ^+ i <= Num.max 1 (2%:R * r) ^+ (size p^`()).-1.
   apply; rewrite ?normr_ge0 // mulrC ler_wpM2l ?poly_boundP //.
   by rewrite ?exprn_ge0 // le_max ler01 mulr_ge0 ?ler0n ?ltW.
 case: (leP _ 1)=> hr.
@@ -341,8 +338,8 @@ by rewrite -normfV -normrM ler_normr lexx ?orbT.
 Qed.
 
 Definition merge_intervals (ar1 ar2 : F * F) :=
-  let l := minr (ar1.1 - ar1.2) (ar2.1 - ar2.2) in
-  let u := maxr (ar1.1 + ar1.2) (ar2.1 + ar2.2) in
+  let l := Num.min (ar1.1 - ar1.2) (ar2.1 - ar2.2) in
+  let u := Num.max (ar1.1 + ar1.2) (ar2.1 + ar2.2) in
     ((l + u) / 2%:R, (u - l) / 2%:R).
 Local Notation center ar1 ar2 := ((merge_intervals ar1 ar2).1).
 Local Notation radius ar1 ar2 := ((merge_intervals ar1 ar2).2).
@@ -354,7 +351,7 @@ Lemma split_interval (a1 a2 r1 r2 x : F) :
 Proof.
 move=> r1_gt0 r2_gt0 le_ar.
 rewrite /merge_intervals /=.
-set l : F := minr _ _; set u : F := maxr _ _.
+set l : F := Num.min _ _; set u : F := Num.max _ _.
 rewrite ler_pdivlMr ?gtr0E // -{2}[2%:R]ger0_norm ?ger0E //.
 rewrite -normrM mulrBl mulfVK ?pnatr_eq0 // ler_distl.
 rewrite opprB addrCA addrK (addrC (l + u)) addrA addrNK.
@@ -406,7 +403,7 @@ move=> [] accr2_p; last first.
   by rewrite mulrC ler_wpM2r // ltW.
 case: accr2_p=> [[k2 k2_gt0 hk2]] h2.
 left; split; last by move=> x; rewrite split_interval // => /orP [/h1|/h2].
-exists (minr k1 k2); first by rewrite lt_min k1_gt0.
+exists (Num.min k1 k2); first by rewrite lt_min k1_gt0.
 move=> x y neq_xy; rewrite !split_interval //.
 wlog lt_xy: x y neq_xy / y < x.
   move=> hwlog; have [] := ltrP y x; first exact: hwlog.
@@ -457,7 +454,6 @@ End monotony.
 
 Section CauchyReals.
 
-Local Open Scope nat_scope.
 Local Open Scope creal_scope.
 Local Open Scope ring_scope.
 
@@ -873,7 +869,7 @@ Notation "x - y" := (x + - y)%CR : creal_scope.
 Lemma ubound_subproof (x : creal) : {b : F | b > 0 & forall i, `|x i| <= b}.
 Proof.
 pose_big_enough i; first set b := 1 + `|x i|.
-  exists (foldl maxr b [seq `|x n| | n <- iota 0 i]) => [|n].
+  exists (foldl Num.max b [seq `|x n| | n <- iota 0 i]) => [|n].
     have : 0 < b by rewrite ltr_pwDl.
     by elim: iota b => //= a l IHl b b_gt0; rewrite IHl ?lt_max ?b_gt0.
   have [|le_in] := (ltnP n i).
@@ -1360,7 +1356,7 @@ wlog : p px_neq0 / (0 < p^`().[x])%CR.
 move=> px_gt0.
 pose b1 := poly_accr_bound p^`() 0 (1 + ubound x).
 pose b2 := poly_accr_bound2 p 0 (1 + ubound x).
-pose r : F := minr 1 (minr
+pose r : F := Num.min 1 (Num.min
   (diff px_gt0 / 4%:R / b1)
   (diff px_gt0 / 4%:R / b2 / 2%:R)).
 exists r.
@@ -1504,7 +1500,7 @@ by rewrite (le_trans _ (bound_poly_boundP _ 0%N _ _ _ _)) ?poly_bound_ge0.
 Qed.
 
 Definition bound_poly_accr_bound (z : creal) (q : {poly {poly F}}) (a r : F) :=
-   maxr 1 (2%:R * r) ^+ (sizeY q).-1 *
+   Num.max 1 (2%:R * r) ^+ (sizeY q).-1 *
    (1 + \sum_(i < (sizeY q).-1) bound_poly_bound z q a r i).
 
 Lemma bound_poly_accr_boundP (z : creal) i (q : {poly {poly F}}) (a r : F) :

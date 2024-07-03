@@ -1,14 +1,9 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq div choice fintype.
-From mathcomp
-Require Import bigop order ssralg finset fingroup zmodp.
-From mathcomp
-Require Import poly ssrnum.
-
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
+From mathcomp Require Import choice fintype bigop finset order fingroup.
+From mathcomp Require Import ssralg zmodp poly ssrnum.
 
 Set Implicit Arguments.
 Unset Strict Implicit.

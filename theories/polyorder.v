@@ -1,15 +1,9 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
-From mathcomp
-Require Import ssralg poly ssrnum zmodp polydiv interval.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
+From mathcomp Require Import fintype ssralg zmodp poly polydiv ssrnum interval.
 
-Import GRing.Theory.
-Import Num.Theory.
-
-Import Pdiv.Idomain.
+Import GRing.Theory Num.Theory Pdiv.Idomain.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
