@@ -64,9 +64,12 @@
     coq.override.version = "master";
     bignums.override.version = "master";
     paramcoq.override.version = "master";
-    coq-elpi.override.version = "coq-master";
+    coq-elpi.override.version = "master";
     hierarchy-builder.override.version = "master";
     mathcomp.override.version = "master";
+  };
+  "master".ocamlPackages = {
+    elpi.override.version = "1.19.2";
   };
   };
 

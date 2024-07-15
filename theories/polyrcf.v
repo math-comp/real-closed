@@ -1,7 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-From mathcomp Require Import all_ssreflect all_algebra.
-Require Import polyorder.
+From mathcomp Require Import all_ssreflect all_algebra polyorder.
 
 (****************************************************************************)
 (* This files contains basic (and unformatted) theory for polynomials       *)
@@ -36,7 +35,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Local Open Scope nat_scope.
 Local Open Scope ring_scope.
 
 Local Notation noroot p := (forall x, ~~ root p x).

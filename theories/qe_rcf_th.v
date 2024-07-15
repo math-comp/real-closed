@@ -1,15 +1,14 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From mathcomp Require Import all_ssreflect all_algebra.
-Require Import polyorder polyrcf mxtens.
+From mathcomp Require Import polyorder polyrcf mxtens.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Import Order.TTheory GRing.Theory Num.Theory Num.Def Pdiv.Ring Pdiv.ComRing.
+Import Order.TTheory GRing.Theory Num.Theory Pdiv.Ring Pdiv.ComRing.
 
-Local Open Scope nat_scope.
 Local Open Scope ring_scope.
 
 Section extra.
@@ -211,7 +210,7 @@ Notation midf a b := ((a + b) / 2%:~R).
 
 (* Constraints and Tarski queries *)
 
-Local Notation sgp_is q s := (fun x => (sgr q.[x] == s)).
+Local Notation sgp_is q s := (fun x => (Num.sg q.[x] == s)).
 
 Definition constraints (z : seq R) (sq : seq {poly R}) (sigma : seq int) :=
   (\sum_(x <- z) \prod_(i < size sq) (sgz (sq`_i).[x] == (sigma`_i)%R))%N.

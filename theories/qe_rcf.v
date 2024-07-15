@@ -1,16 +1,9 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
-From mathcomp
-Require Import finfun path matrix.
-From mathcomp
-Require Import bigop order ssralg poly polydiv ssrnum zmodp div ssrint.
-From mathcomp
-Require Import polyorder polyrcf interval polyXY.
-From mathcomp
-Require Import qe_rcf_th ordered_qelim mxtens.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq path.
+From mathcomp Require Import div choice fintype finfun bigop order ssralg zmodp.
+From mathcomp Require Import poly polydiv ssrnum ssrint interval matrix polyXY.
+From mathcomp Require Import polyorder polyrcf mxtens qe_rcf_th ordered_qelim.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -18,7 +11,6 @@ Unset Printing Implicit Defensive.
 
 Import Order.TTheory GRing.Theory Num.Theory.
 
-Local Open Scope nat_scope.
 Local Open Scope ring_scope.
 
 Definition grab (X Y : Type) (pattern : Y -> Prop) (P : Prop -> Prop) 

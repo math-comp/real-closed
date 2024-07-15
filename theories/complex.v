@@ -1,14 +1,10 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
-Require Import mathcomp.ssreflect.ssreflect.
-From mathcomp
-Require Import ssrfun ssrbool eqtype ssrnat seq choice fintype.
-From mathcomp
-Require Import bigop order ssralg ssrint div ssrnum rat poly closed_field.
-From mathcomp
-Require Import polyrcf matrix mxalgebra tuple mxpoly zmodp binomial realalg.
-From mathcomp Require Import mxpoly.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
+From mathcomp Require Import choice fintype tuple bigop binomial order ssralg.
+From mathcomp Require Import zmodp poly ssrnum ssrint archimedean rat matrix.
+From mathcomp Require Import mxalgebra mxpoly closed_field polyrcf realalg.
 
 (**********************************************************************)
 (*   This files defines the extension R[i] of a real field R,         *)
