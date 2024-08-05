@@ -287,7 +287,8 @@ rewrite !(expr0,expr1,mulr1) /=.
 case: j=> [] [|[|[|j]]] hj //.
 * by rewrite !mxE /= mulr0 add0r mulr1 mulrN1 addr0 taq_constraint1.
 * by rewrite !mxE /= mulr0 !mulr1 add0r addr0 taq_constraint2.
-* by rewrite !mxE /= addrA (@taq_constraint0 _ q) !mulr1 addr0 -addrA addrC.
+* rewrite !mxE /= addrA (@taq_constraint0 _ q) !mulr1 addr0 -[LHS]addrA.
+  exact/addrC.
 Qed.
 
 Lemma cvec_rec z q sq :
