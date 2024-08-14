@@ -123,7 +123,7 @@ have [->|p_neq0] := eqVneq p 0.
   rewrite size_poly0 big_ord0 horner0 subr0 normr0 mulr_ge0 ?normr_ge0 //.
   by rewrite big_ord0 mulr0 lexx.
 rewrite -[size _]prednK ?lt0n ?size_poly_eq0 //.
-rewrite big_ord_recl expr0 mulr1 nderivn0 addrC addKr !mulr_sumr.
+rewrite big_ord_recl expr0 mulr1 nderivn0 [X in `|X|]addrC addKr !mulr_sumr.
 have := le_trans (ler_norm_sum _ _ _); apply.
 rewrite ler_sum // => i _.
 rewrite exprSr mulrA !normrM mulrC ler_wpM2l ?normr_ge0 //.
@@ -362,11 +362,11 @@ have [] := lerP=> /= a1N; have [] := lerP=> //= a1P;
 have [] := lerP=> //= a2P; rewrite ?(andbF, andbT) //; symmetry.
   rewrite ltW // (le_lt_trans _ a1P) //.
   rewrite (monoLR (addrK _) (lerD2r _)) -addrA.
-  rewrite (monoRL (addNKr _) (lerD2l _)) addrC.
+  rewrite (monoRL (addNKr _) (lerD2l _)) [leLHS]addrC.
   by rewrite (le_trans _ le_ar) // ler_normr opprB lexx orbT.
 rewrite ltW // (lt_le_trans a1N) //.
 rewrite (monoLR (addrK _) (lerD2r _)) -addrA.
-rewrite (monoRL (addNKr _) (lerD2l _)) addrC ?[r2 + _]addrC.
+rewrite (monoRL (addNKr _) (lerD2l _)) [leRHS]addrC [leLHS]addrC.
 by rewrite (le_trans _ le_ar) // ler_normr lexx.
 Qed.
 

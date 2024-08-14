@@ -334,16 +334,16 @@ rewrite [X in _ <= X] sqrrD ?sqr_sqrtr;
    do ?by rewrite ?(ler_wpDr, sqrtr_ge0, sqr_ge0, mulr_ge0) //.
 rewrite -addrA addrCA (monoRL (addrNK _) (lerD2r _)) !sqrrD.
 set u := _ *+ 2; set v := _ *+ 2.
-rewrite [a ^+ _ + _ + _]addrAC [b ^+ _ + _ + _]addrAC -addrA.
-rewrite [u + _] addrC [X in _ - X]addrAC [b ^+ _ + _]addrC.
+rewrite [a ^+ _ + _ + _]addrAC [b ^+ _ + _ + _]addrAC -[X in X - _]addrA.
+rewrite [u + _]addrC [X in _ - X]addrAC [b ^+ _ + _]addrC.
 rewrite [u]lock [v]lock !addrA; set x := (a ^+ 2 + _ + _ + _).
-rewrite -addrA addrC addKr -!lock addrC.
+rewrite -addrA [leLHS]addrC addKr -!lock addrC.
 have [huv|] := ger0P (u + v); last first.
   by move=> /ltW /le_trans -> //; rewrite pmulrn_lge0 // mulr_ge0 ?sqrtr_ge0.
 rewrite -(@ler_pXn2r _ 2) -?topredE //=; last first.
   by rewrite ?(pmulrn_lge0, mulr_ge0, sqrtr_ge0) //.
 rewrite -mulr_natl !exprMn !sqr_sqrtr ?(ler_wpDr, sqr_ge0) //.
-rewrite -mulrnDl -mulr_natl !exprMn ler_pM2l ?exprn_gt0 ?ltr0n //.
+rewrite -mulrnDl -[in leLHS]mulr_natl !exprMn ler_pM2l ?exprn_gt0 ?ltr0n //.
 rewrite sqrrD mulrDl !mulrDr -!exprMn addrAC -!addrA lerD2l !addrA.
 rewrite [_ + (b * d) ^+ 2]addrC -addrA lerD2l.
 have: 0 <= (a * d - b * c) ^+ 2 by rewrite sqr_ge0.
