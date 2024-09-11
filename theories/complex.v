@@ -1,10 +1,11 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
-From mathcomp Require Import choice fintype tuple bigop binomial order ssralg.
-From mathcomp Require Import zmodp poly ssrnum ssrint archimedean rat matrix.
-From mathcomp Require Import mxalgebra mxpoly closed_field polyrcf realalg.
+From mathcomp Require Import ssreflect ssrfun ssrbool ssrnotations eqtype.
+From mathcomp Require Import ssrnat seq div choice fintype tuple bigop binomial.
+From mathcomp Require Import order ssralg zmodp poly ssrnum ssrint archimedean.
+From mathcomp Require Import rat matrix mxalgebra mxpoly closed_field polyrcf.
+From mathcomp Require Import realalg.
 
 (**********************************************************************)
 (*   This files defines the extension R[i] of a real field R,         *)
@@ -361,7 +362,7 @@ HB.export ComplexField.
 (* indeed, this would prevent C fril having a normed module over C *)
 
 Definition conjc {R : ringType} (x : R[i]) := let: a +i* b := x in a -i* b.
-Notation "x ^*" := (conjc x) (at level 2, format "x ^*") : complex_scope.
+Notation "x ^*" := (conjc x) : complex_scope.
 Local Open Scope complex_scope.
 Delimit Scope complex_scope with C.
 
