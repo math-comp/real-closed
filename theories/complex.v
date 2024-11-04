@@ -1069,6 +1069,7 @@ have [] := @Lemma4 _ _ 1%:M _ [::L1; L2] (erefl _).
   rewrite 4!mul_rV_lin !mxvecK /= /L1fun /L2fun /=; congr (mxvec (_ *: _)).
   move=> {L1 L2 L1fun L2fun}.
   case: n {x} (vec_mx x) => [//|n] x in HrV u v *.
+  rewrite !GRing.sub_funE.
   do ?[rewrite -(scalemxAl, scalemxAr, scalerN, scalerDr)
       |rewrite (mulmxN, mulNmx, trmxK, trmx_mul)
       |rewrite ?[(_ *: _)^T]linearZ ?[(_ + _)^T]linearD ?[(- _)^T]linearN /=].
