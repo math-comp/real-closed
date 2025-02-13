@@ -1,5 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
+From Coq Require Setoid.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
 From mathcomp Require Import fintype bigop binomial order perm ssralg poly.
 From mathcomp Require Import polydiv ssrnum ssrint rat matrix mxpoly polyXY.
