@@ -48,33 +48,44 @@
       multinomials.override.version = "master";
       mathcomp-abel.override.version = "master";
     }; in {
-  "8.17".coqPackages = common-bundles // {
-    coq.override.version = "8.17";
-    mathcomp.override.version = "2.1.0";
-  };
   "8.18".coqPackages = common-bundles // {
     coq.override.version = "8.18";
-    mathcomp.override.version = "2.3.0";
+    coqeal.job = false;
+    mathcomp-apery.job = false;
   };
   "8.19".coqPackages = common-bundles // {
     coq.override.version = "8.19";
-    mathcomp.override.version = "2.3.0";
+    coqeal.job = false;
+    mathcomp-apery.job = false;
   };
   "8.20".coqPackages = common-bundles // {
     coq.override.version = "8.20";
+    coq-elpi.override.version = "2.5.0";
+    coq-elpi.override.elpi-version = "2.0.7";
+    hierarchy-builder.override.version = "1.8.1";
     mathcomp.override.version = "2.3.0";
   };
-  "master".coqPackages = common-bundles // {
-    coq.override.version = "master";
+  "9.0".coqPackages = common-bundles // {
+    coq.override.version = "9.0";
+    coq-elpi.job = true;
+    hierarchy-builder.job = true;
+    mathcomp.override.version = "2.3.0";
+  };
+  "master" = { rocqPackages = {
+    rocq-core.override.version = "master";
+    stdlib.override.version = "master";
     bignums.override.version = "master";
-    paramcoq.override.version = "master";
+    rocq-elpi.override.version = "master";
+    rocq-elpi.override.elpi-version = "2.0.7";
+  }; coqPackages = common-bundles // {
+    coq.override.version = "master";
+    stdlib.override.version = "master";
+    bignums.override.version = "master";
     coq-elpi.override.version = "master";
+    coq-elpi.override.elpi-version = "2.0.7";
     hierarchy-builder.override.version = "master";
     mathcomp.override.version = "master";
-  };
-  "master".ocamlPackages = {
-    elpi.override.version = "1.19.2";
-  };
+  }; };
   };
 
   ## Cachix caches to use in CI
