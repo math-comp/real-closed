@@ -2,6 +2,7 @@ jobs:
   bignums:
     needs:
     - coq
+    - stdlib
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -28,7 +29,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -37,16 +38,26 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (bignums)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"bignums\" \\\n   --dry-run 2> err > out || (touch
+        fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target bignums
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"bignums\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "coq"
+    - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -79,7 +90,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -88,12 +99,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (coq)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"coq\" \\\n   --dry-run 2> err > out || (touch fail;
+        true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target coq
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"coq\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -127,7 +144,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -136,12 +153,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (coq-elpi)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"coq-elpi\" \\\n   --dry-run 2> err > out || (touch
+        fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target coq-elpi
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"coq-elpi\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -154,7 +177,6 @@ jobs:
     needs:
     - coq
     - bignums
-    - paramcoq
     - multinomials
     - mathcomp-real-closed
     runs-on: ubuntu-latest
@@ -183,7 +205,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -192,12 +214,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (coqeal)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"coqeal\" \\\n   --dry-run 2> err > out || (touch
+        fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target coqeal
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"coqeal\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -210,10 +238,6 @@ jobs:
       name: 'Building/fetching previous CI target: bignums'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "bignums"
-    - if: steps.stepCheck.outputs.status == 'built'
-      name: 'Building/fetching previous CI target: paramcoq'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
-        --argstr job "paramcoq"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: multinomials'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -230,6 +254,7 @@ jobs:
     needs:
     - coq
     - coq-elpi
+    - stdlib
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -256,7 +281,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -265,12 +290,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (hierarchy-builder)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"hierarchy-builder\" \\\n   --dry-run 2> err > out
+        || (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target hierarchy-builder
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"hierarchy-builder\" \\\n   --dry-run 2>&1
-        > /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\"\
-        \ | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -280,13 +311,19 @@ jobs:
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "coq-elpi"
     - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
+    - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "hierarchy-builder"
   mathcomp:
     needs:
     - coq
+    - stdlib
     - hierarchy-builder
+    - stdlib
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -313,7 +350,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -322,16 +359,26 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp\" \\\n   --dry-run 2> err > out || (touch
+        fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "coq"
+    - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: mathcomp-ssreflect'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -360,6 +407,10 @@ jobs:
       name: 'Building/fetching previous CI target: hierarchy-builder'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "hierarchy-builder"
+    - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -394,7 +445,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -403,12 +454,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-abel)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-abel\" \\\n   --dry-run 2> err > out ||
+        (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-abel
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-abel\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -456,7 +513,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -465,12 +522,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-algebra-tactics)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-algebra-tactics\" \\\n   --dry-run 2> err
+        > out || (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-algebra-tactics
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-algebra-tactics\" \\\n   --dry-run
-        2>&1 > /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep
-        \"built:\" | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -525,7 +588,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -534,12 +597,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-apery)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-apery\" \\\n   --dry-run 2> err > out ||
+        (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-apery
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-apery\" \\\n   --dry-run 2>&1 >
-        /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\"\
-        \ | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -601,7 +670,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -610,12 +679,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-bigenough)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-bigenough\" \\\n   --dry-run 2> err > out
+        || (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-bigenough
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-bigenough\" \\\n   --dry-run 2>&1
-        > /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\"\
-        \ | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -631,6 +706,7 @@ jobs:
   mathcomp-finmap:
     needs:
     - coq
+    - stdlib
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -657,7 +733,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -666,12 +742,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-finmap)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-finmap\" \\\n   --dry-run 2> err > out
+        || (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-finmap
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-finmap\" \\\n   --dry-run 2>&1 >
-        /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\"\
-        \ | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -681,6 +763,10 @@ jobs:
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "mathcomp-ssreflect"
     - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
+    - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "mathcomp-finmap"
@@ -688,6 +774,7 @@ jobs:
     needs:
     - coq
     - mathcomp-bigenough
+    - stdlib
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -714,7 +801,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -723,12 +810,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-real-closed)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-real-closed\" \\\n   --dry-run 2> err >
+        out || (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-real-closed
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-real-closed\" \\\n   --dry-run 2>&1
-        > /dev/null)\necho $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\"\
-        \ | sed \"s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -758,12 +851,17 @@ jobs:
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "mathcomp-bigenough"
     - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
+    - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "mathcomp-real-closed"
   mathcomp-zify:
     needs:
     - coq
+    - stdlib
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -790,7 +888,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -799,12 +897,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (mathcomp-zify)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"mathcomp-zify\" \\\n   --dry-run 2> err > out ||
+        (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target mathcomp-zify
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"mathcomp-zify\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -821,6 +925,10 @@ jobs:
       name: 'Building/fetching previous CI target: mathcomp-fingroup'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "mathcomp-fingroup"
+    - if: steps.stepCheck.outputs.status == 'built'
+      name: 'Building/fetching previous CI target: stdlib'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
+        --argstr job "stdlib"
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -856,7 +964,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -865,12 +973,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (multinomials)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"multinomials\" \\\n   --dry-run 2> err > out ||
+        (touch fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target multinomials
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"multinomials\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -899,7 +1013,7 @@ jobs:
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
         --argstr job "multinomials"
-  paramcoq:
+  stdlib:
     needs:
     - coq
     runs-on: ubuntu-latest
@@ -928,7 +1042,7 @@ jobs:
         fetch-depth: 0
         ref: ${{ env.tested_commit }}
     - name: Cachix install
-      uses: cachix/install-nix-action@v27
+      uses: cachix/install-nix-action@v30
       with:
         nix_path: nixpkgs=channel:nixpkgs-unstable
     - name: Cachix setup math-comp
@@ -937,12 +1051,18 @@ jobs:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         extraPullNames: coq, coq-community
         name: math-comp
+    - id: stepGetDerivation
+      name: Getting derivation for current job (stdlib)
+      run: "NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr bundle
+        \"master\" --argstr job \"stdlib\" \\\n   --dry-run 2> err > out || (touch
+        fail; true)\n"
+    - name: Error reporting
+      run: "echo \"out=\"; cat out\necho \"err=\"; cat err\n"
+    - name: Failure check
+      run: if [ -e fail ]; then exit 1; else exit 0; fi;
     - id: stepCheck
-      name: Checking presence of CI target paramcoq
-      run: "nb_dry_run=$(NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link \\\n   --argstr
-        bundle \"master\" --argstr job \"paramcoq\" \\\n   --dry-run 2>&1 > /dev/null)\n
-        echo $nb_dry_run\necho status=$(echo $nb_dry_run | grep \"built:\" | sed \"\
-        s/.*/built/\") >> $GITHUB_OUTPUT\n"
+      name: Checking presence of CI target for current job
+      run: (echo -n status=; cat out err | grep "built:" | sed "s/.*/built/") >> $GITHUB_OUTPUT
     - if: steps.stepCheck.outputs.status == 'built'
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
@@ -950,7 +1070,7 @@ jobs:
     - if: steps.stepCheck.outputs.status == 'built'
       name: Building/fetching current CI target
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle "master"
-        --argstr job "paramcoq"
+        --argstr job "stdlib"
 name: Nix CI for bundle master
 on:
   pull_request:

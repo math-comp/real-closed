@@ -1,6 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-From Coq Require Import Setoid.
+From Corelib Require Import Setoid.
 From mathcomp Require Import all_ssreflect all_algebra.
 From mathcomp Require Import polyorder polyrcf mxtens.
 

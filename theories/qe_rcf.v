@@ -1,6 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-From Coq Require Import Setoid.
+From Corelib Require Import Setoid.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq path.
 From mathcomp Require Import div choice fintype finfun bigop order ssralg zmodp.
 From mathcomp Require Import poly polydiv ssrnum ssrint interval matrix polyXY.
@@ -615,8 +615,7 @@ Lemma eval_SeqPInfty e ps k k' :
 Proof.
 elim: ps k k' => [|p ps ihps] k k' Pk /=; first by rewrite Pk.
 set X := lead_coef _; grab_eq k'' X; apply: (eval_LeadCoef k'') => lp {X}.
-rewrite (ihps _ (fun ps => k' (eval e lp :: ps))) => [//|lps].
-by rewrite Pk.  (* use //= above and remove line when using Coq >= 8.17 *)
+by rewrite (ihps _ (fun ps => k' (eval e lp :: ps))).
 Qed.
 
 Arguments eval_SeqPInfty [e ps k].
