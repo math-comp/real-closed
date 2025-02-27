@@ -361,7 +361,7 @@ HB.export ComplexField.
 (* indeed, this would prevent C fril having a normed module over C *)
 
 Definition conjc {R : ringType} (x : R[i]) := let: a +i* b := x in a -i* b.
-Notation "x ^*" := (conjc x) (at level 2, format "x ^*") : complex_scope.
+Notation "x ^*" := (conjc x) : complex_scope.
 Local Open Scope complex_scope.
 Delimit Scope complex_scope with C.
 
