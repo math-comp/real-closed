@@ -26,7 +26,7 @@ order theory of real closed field, through quantifier elimination.
 - License: [CeCILL-B](CECILL-B)
 - Compatible Coq versions: Coq 8.18 or later
 - Additional dependencies:
-  - [MathComp ssreflect 2.1 or later](https://math-comp.github.io)
+  - [MathComp ssreflect 2.3 or later](https://math-comp.github.io)
   - [MathComp algebra](https://math-comp.github.io)
   - [MathComp field](https://math-comp.github.io)
   - [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
