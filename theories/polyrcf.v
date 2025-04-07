@@ -426,7 +426,7 @@ gen have rolle_weak : a b p / a < b -> p.[a] = 0 -> p.[b] = 0 ->
   by exists c => //; rewrite !hornerM !mulf_eq0 rc0.
 move=> lab pab; wlog pb0 : p pab / p.[b] = 0 => [hwlog|].
   case: (hwlog (p - p.[b]%:P)); rewrite ?hornerE ?pab ?subrr //.
-  by move=> c acb; rewrite derivE derivC subr0=> hc; exists c.
+  by move=> c acb; rewrite !derivE subr0 => hc; exists c.
 move: pab; rewrite pb0=> pa0.
 have: (forall rs : seq R, {subset rs <= `]a, b[} ->
     (size p <= size rs)%N -> uniq rs -> all (root p) rs -> p = 0).
