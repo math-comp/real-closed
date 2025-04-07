@@ -50,11 +50,13 @@
     }; in {
   "8.18".coqPackages = common-bundles // {
     coq.override.version = "8.18";
+    mathcomp-finmap.override.version = "2.1.0";
     coqeal.job = false;
     mathcomp-apery.job = false;
   };
   "8.19".coqPackages = common-bundles // {
     coq.override.version = "8.19";
+    mathcomp-finmap.override.version = "2.1.0";
     coqeal.job = false;
     mathcomp-apery.job = false;
   };
