@@ -38,7 +38,7 @@
   ## When generating GitHub Action CI, one workflow file
   ## will be created per bundle
   bundles = let
-    common-bundles = {
+    master-overrides = {
       coqeal.override.version = "master";
       mathcomp-apery.override.version = "master";
       mathcomp-algebra-tactics.override.version = "master";
@@ -47,47 +47,54 @@
       mathcomp-zify.override.version = "master";
       multinomials.override.version = "master";
       mathcomp-abel.override.version = "master";
-    }; in {
-  "8.18".coqPackages = common-bundles // {
+    };
+    revdeps-overrides = {
+      coqeal.override.version = "master";
+      mathcomp-apery.override.version = "master";
+    };
+  in {
+  "8.18".coqPackages = revdeps-overrides // {
     coq.override.version = "8.18";
     mathcomp-finmap.override.version = "2.1.0";
     coqeal.job = false;
     mathcomp-apery.job = false;
   };
-  "8.19".coqPackages = common-bundles // {
+  "8.19".coqPackages = revdeps-overrides // {
     coq.override.version = "8.19";
     mathcomp-finmap.override.version = "2.1.0";
     coqeal.job = false;
     mathcomp-apery.job = false;
   };
-  "8.20".coqPackages = common-bundles // {
+  "8.20".coqPackages = revdeps-overrides // {
     coq.override.version = "8.20";
     coq-elpi.override.version = "2.5.0";
     coq-elpi.override.elpi-version = "2.0.7";
     hierarchy-builder.override.version = "1.8.1";
     mathcomp.override.version = "2.3.0";
   };
-  "9.0".coqPackages = common-bundles // {
+  "9.0".coqPackages = revdeps-overrides // {
     coq.override.version = "9.0";
     coq-elpi.job = true;
     hierarchy-builder.job = true;
     mathcomp.override.version = "2.3.0";
   };
-  "master" = { rocqPackages = {
-    rocq-core.override.version = "master";
-    stdlib.override.version = "master";
-    bignums.override.version = "master";
-    rocq-elpi.override.version = "master";
-    rocq-elpi.override.elpi-version = "2.0.7";
-  }; coqPackages = common-bundles // {
-    coq.override.version = "master";
-    stdlib.override.version = "master";
-    bignums.override.version = "master";
-    coq-elpi.override.version = "master";
-    coq-elpi.override.elpi-version = "2.0.7";
-    hierarchy-builder.override.version = "master";
-    mathcomp.override.version = "master";
-  }; };
+  "master" = {
+    rocqPackages = {
+      rocq-core.override.version = "master";
+      stdlib.override.version = "master";
+      bignums.override.version = "master";
+      rocq-elpi.override.version = "master";
+      rocq-elpi.override.elpi-version = "2.0.7";
+     };
+     coqPackages = master-overrides // {
+       coq.override.version = "master";
+       stdlib.override.version = "master";
+       bignums.override.version = "master";
+       coq-elpi.override.version = "master";
+       coq-elpi.override.elpi-version = "2.0.7";
+       hierarchy-builder.override.version = "master";
+       mathcomp.override.version = "master";
+     }; };
   };
 
   ## Cachix caches to use in CI
@@ -95,17 +102,17 @@
   cachix.coq = {};
   cachix.math-comp.authToken = "CACHIX_AUTH_TOKEN";
   cachix.coq-community = {};
-  
+
   ## If you have write access to one of these caches you can
   ## provide the auth token or signing key through a secret
   ## variable on GitHub. Then, you should give the variable
   ## name here. For instance, coq-community projects can use
   ## the following line instead of the one above:
   # cachix.coq-community.authToken = "CACHIX_AUTH_TOKEN";
-  
+
   ## Or if you have a signing key for a given Cachix cache:
   # cachix.my-cache.signingKey = "CACHIX_SIGNING_KEY"
-  
+
   ## Note that here, CACHIX_AUTH_TOKEN and CACHIX_SIGNING_KEY
   ## are the names of secret variables. They are set in
   ## GitHub's web interface.
