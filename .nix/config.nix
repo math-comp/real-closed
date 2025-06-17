@@ -53,18 +53,6 @@
       mathcomp-apery.override.version = "master";
     };
   in {
-  "8.18".coqPackages = revdeps-overrides // {
-    coq.override.version = "8.18";
-    mathcomp-finmap.override.version = "2.1.0";
-    coqeal.job = false;
-    mathcomp-apery.job = false;
-  };
-  "8.19".coqPackages = revdeps-overrides // {
-    coq.override.version = "8.19";
-    mathcomp-finmap.override.version = "2.1.0";
-    coqeal.job = false;
-    mathcomp-apery.job = false;
-  };
   "8.20".coqPackages = revdeps-overrides // {
     coq.override.version = "8.20";
     coq-elpi.override.version = "2.5.0";
