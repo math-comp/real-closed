@@ -9,6 +9,10 @@
   ## Will determine the default main-job of the bundles defined below
   attribute = "mathcomp-real-closed";
 
+  ## Set this when the package has no rocqPackages version yet
+  ## (either in nixpkgs or in .nix/rocq-overlays)
+  no-rocq-yet = true;
+
   ## If you want to select a different attribute (to build from the local sources as well)
   ## when calling `nix-shell` and `nix-build` without the `--argstr job` argument
   # shell-attribute = "{{nix_name}}";
@@ -73,6 +77,7 @@
       bignums.override.version = "master";
       rocq-elpi.override.version = "master";
       rocq-elpi.override.elpi-version = "2.0.7";
+      hierarchy-builder.override.version = "master";
      };
      coqPackages = master-overrides // {
        coq.override.version = "master";
