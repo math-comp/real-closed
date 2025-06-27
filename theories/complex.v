@@ -335,7 +335,7 @@ set u := _ *+ 2; set v := _ *+ 2.
 rewrite [a ^+ _ + _ + _]addrAC [b ^+ _ + _ + _]addrAC -[X in X - _]addrA.
 rewrite [u + _]addrC [X in _ - X]addrAC [b ^+ _ + _]addrC.
 rewrite [u]lock [v]lock !addrA; set x := (a ^+ 2 + _ + _ + _).
-rewrite -addrA [leLHS]addrC addKr -!lock addrC.
+rewrite -[_ + locked u]addrA [leLHS]addrC addKr -!lock addrC.
 have [huv|] := ger0P (u + v); last first.
   by move=> /ltW /le_trans -> //; rewrite pmulrn_lge0 // mulr_ge0 ?sqrtr_ge0.
 rewrite -(@ler_pXn2r _ 2) -?topredE //=; last first.
@@ -720,7 +720,7 @@ rewrite addrA; congr (_ + _).
   by rewrite -(mulr_natl (_^-1)) divff ?mulr1 ?pnatr_eq0.
 symmetry; rewrite -!alg_polyC scalerA; congr (_%:A).
 rewrite [a * _]mulrC divfK // /r2 mulrA mulrACA -invfM -natrM -subr_sqr.
-rewrite sqr_sqrtc sqrrN /d opprB addrC addrNK -2!mulrA.
+rewrite sqr_sqrtc sqrrN /d opprB addrC addrNK -(mulrA 4) -mulrA.
 by rewrite mulrACA -natf_div // mul1r mulrAC divff ?mul1r.
 Qed.
 
