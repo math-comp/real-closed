@@ -35,7 +35,7 @@
 
   ## select an entry to build in the following `bundles` set
   ## defaults to "default"
-  default-bundle = "8.20";
+  default-bundle = "9.0";
 
   ## write one `bundles.name` attribute set per
   ## alternative configuration
@@ -57,13 +57,6 @@
       mathcomp-apery.override.version = "master";
     };
   in {
-  "8.20".coqPackages = revdeps-overrides // {
-    coq.override.version = "8.20";
-    coq-elpi.override.version = "2.5.0";
-    coq-elpi.override.elpi-version = "2.0.7";
-    hierarchy-builder.override.version = "1.8.1";
-    mathcomp.override.version = "2.3.0";
-  };
   "9.0".coqPackages = revdeps-overrides // {
     coq.override.version = "9.0";
     coq-elpi.job = true;
