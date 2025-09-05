@@ -35,7 +35,7 @@
 
   ## select an entry to build in the following `bundles` set
   ## defaults to "default"
-  default-bundle = "8.20";
+  default-bundle = "9.0";
 
   ## write one `bundles.name` attribute set per
   ## alternative configuration
@@ -57,26 +57,30 @@
       mathcomp-apery.override.version = "master";
     };
   in {
-  "8.20".coqPackages = revdeps-overrides // {
-    coq.override.version = "8.20";
-    coq-elpi.override.version = "2.5.0";
-    coq-elpi.override.elpi-version = "2.0.7";
-    hierarchy-builder.override.version = "1.8.1";
-    mathcomp.override.version = "2.3.0";
-  };
-  "9.0".coqPackages = revdeps-overrides // {
+  "9.0" = { rocqPackages = {
+    rocq-core.override.version = "9.0";
+  }; coqPackages = revdeps-overrides // {
     coq.override.version = "9.0";
     coq-elpi.job = true;
     hierarchy-builder.job = true;
     mathcomp.override.version = "2.3.0";
-  };
+    mathcomp-apery.job = false;  # no longer compatible with MC 2.3
+  }; };
+  "9.1" = { rocqPackages = {
+    rocq-core.override.version = "9.1";
+  }; coqPackages = revdeps-overrides // {
+    coq.override.version = "9.1";
+    coq-elpi.job = true;
+    hierarchy-builder.job = true;
+    mathcomp.override.version = "2.4.0";
+  }; };
   "master" = {
     rocqPackages = {
       rocq-core.override.version = "master";
       stdlib.override.version = "master";
       bignums.override.version = "master";
       rocq-elpi.override.version = "master";
-      rocq-elpi.override.elpi-version = "2.0.7";
+      rocq-elpi.override.elpi-version = "3.3.0";
       hierarchy-builder.override.version = "master";
      };
      coqPackages = master-overrides // {
@@ -84,7 +88,7 @@
        stdlib.override.version = "master";
        bignums.override.version = "master";
        coq-elpi.override.version = "master";
-       coq-elpi.override.elpi-version = "2.0.7";
+       coq-elpi.override.elpi-version = "3.3.0";
        hierarchy-builder.override.version = "master";
        mathcomp.override.version = "master";
      }; };

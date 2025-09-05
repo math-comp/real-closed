@@ -168,9 +168,8 @@ Declare Scope oclause_scope.
 Delimit Scope oclause_scope with OCLAUSE.
 Open Scope oclause_scope.
 
-(* TODO: add `at level 1, left associativity` when dropping the support for Coq 8.19 *)
-Notation "p .1" := (@eq_of_oclause _ p) (format "p .1") : oclause_scope.
-Notation "p .2" := (@neq_of_oclause _ p) (format "p .2") : oclause_scope.
+Notation "p .1" := (@eq_of_oclause _ p) : oclause_scope.
+Notation "p .2" := (@neq_of_oclause _ p) : oclause_scope.
 
 Notation "p .3" := (@lt_of_oclause _ p)
   (at level 1, left associativity, format "p .3") : oclause_scope.
