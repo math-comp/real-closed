@@ -11,7 +11,9 @@ From mathcomp Require Import mxalgebra mxpoly closed_field polyrcf realalg.
 (* and provide it a structure of numeric field with a norm operator.  *)
 (* When R is a real closed field, it also provides a structure of     *)
 (* algebraically closed field for R[i], using a proof by Derksen      *)
-(* (cf comments below, thanks to Pierre Lairez for finding the paper) *)
+(* (cf comments below, thanks to Pierre Lairez for finding the paper).*)
+(* We provide an alias Rcomplex R of R[i] which holds structures of   *)
+(* left-module over R and numeric field with a norm operator.         *)
 (**********************************************************************)
 
 Import Order.TTheory GRing.Theory Num.Theory.
@@ -34,6 +36,7 @@ Local Notation sgr := Num.sg.
 Local Notation sqrtr := Num.sqrt.
 
 Record complex (R : Type) : Type := Complex { Re : R; Im : R }.
+Definition Rcomplex := complex.
 
 Declare Scope complex_scope.
 Delimit Scope complex_scope with C.
@@ -71,6 +74,9 @@ HB.instance Definition _ (R : choiceType) := Choice.copy R[i]
   (pcan_type (@ComplexEqChoice.complex_of_sqRK R)).
 HB.instance Definition _ (R : countType) := Countable.copy R[i]
   (pcan_type (@ComplexEqChoice.complex_of_sqRK R)).
+HB.instance Definition _ (R : eqType) := Equality.on (Rcomplex R).
+HB.instance Definition _ (R : choiceType) := Choice.on (Rcomplex R).
+HB.instance Definition _ (R : countType) := Countable.on (Rcomplex R).
 
 Lemma eq_complex : forall (R : eqType) (x y : complex R),
   (x == y) = (Re x == Re y) && (Im x == Im y).
@@ -100,17 +106,17 @@ Next Obligation. by move=> [a b] [c d] /=; congr (_ +i* _); rewrite addrC. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !add0r. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !addNr. Qed.
 HB.instance Definition _ := complex_zmodMixin.
+HB.instance Definition _ := GRing.Zmodule.on (Rcomplex R).
 
 Definition scalec (a : R) (x : R[i]) :=
   let: b +i* c := x in (a * b) +i* (a * c).
 
-Program Definition complex_lmodMixin := @GRing.Zmodule_isLmodule.Build R R[i]
+Program Definition complex_lmodMixin := @GRing.Zmodule_isLmodule.Build R (Rcomplex R)
   scalec _ _ _ _.
 Next Obligation. by move=> a b [c d] /=; rewrite !mulrA. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !mul1r. Qed.
 Next Obligation. by move=> a [b c] [d e] /=; rewrite !mulrDr. Qed.
 Next Obligation. by move=> [a b] c d /=; rewrite !mulrDl. Qed.
-#[local]
 HB.instance Definition _ := complex_lmodMixin.
 
 End ComplexField_ringType.
@@ -160,17 +166,15 @@ Lemma nonzero1c : C1 != C0. Proof. by rewrite eq_complex /= oner_eq0. Qed.
 
 HB.instance Definition _ := GRing.Zmodule_isComRing.Build R[i]
   (@mulcA R) (@mulcC R) mul1c mulc_addl nonzero1c.
-
-#[local]
-HB.instance Definition _ := complex_lmodMixin R.
+HB.instance Definition _ := GRing.ComRing.on (Rcomplex R).
+HB.instance Definition _ := GRing.Lalgebra.copy C C^o.
 
 Program Definition complex_lalgMixin :=
-  @GRing.Lmodule_isLalgebra.Build R R[i] _.
+  @GRing.Lmodule_isLalgebra.Build R (Rcomplex R) _.
 Next Obligation.
 by move=> a [ru iu] [rv iv]; apply/eqP; do 2?[apply/andP; split];
   rewrite // mulrDr ?mulrN !mulrA.
 Qed.
-#[local]
 HB.instance Definition _ := complex_lalgMixin.
 
 End ComplexField_fieldType.
@@ -197,6 +201,7 @@ Qed.
 Lemma invc0 : invc C0 = C0. Proof. by rewrite /= !mul0r oppr0. Qed.
 
 HB.instance Definition _ := GRing.ComRing_isField.Build C mulVc invc0.
+HB.instance Definition _ := GRing.Field.on (Rcomplex R).
 
 Lemma real_complex_is_additive : additive (real_complex R).
 Proof. by move=> a b /=; simpc; rewrite subrr. Qed.
@@ -262,21 +267,18 @@ Local Notation C := R[i].
 Local Notation C0 := ((0 : R)%:C).
 Local Notation C1 := ((1 : R)%:C).
 
-#[local]
-HB.instance Definition _ := complex_lmodMixin R.
-
-Lemma Re_is_scalar : scalar (@Re R).
+Lemma Re_is_scalar : scalar (@Re R : Rcomplex R -> R).
 Proof. by move=> a [b c] [d e]. Qed.
 
 HB.instance Definition _ :=
-  GRing.isLinear.Build R [the lmodType R of R[i]] R _ (@Re R)
+  GRing.isLinear.Build R (Rcomplex R) R _ (@Re R : Rcomplex R -> R)
     Re_is_scalar.
 
-Lemma Im_is_scalar : scalar (@Im R).
+Lemma Im_is_scalar : scalar (@Im R : Rcomplex R -> R).
 Proof. by move=> a [b c] [d e]. Qed.
 
 HB.instance Definition _ :=
-  GRing.isLinear.Build R [the lmodType R of R[i]] R _ (@Im R)
+  GRing.isLinear.Build R (Rcomplex R) R _ (@Im R : Rcomplex R -> R)
     Im_is_scalar.
 
 Definition lec x y :=
@@ -528,23 +530,56 @@ Proof. by move=> /complex_realP [y ->]. Qed.
 
 End ComplexTheory.
 
-Definition Rcomplex := complex.
-HB.instance Definition _ (R : eqType) := Equality.on (Rcomplex R).
-HB.instance Definition _ (R : countType) := Countable.on (Rcomplex R).
-HB.instance Definition _ (R : choiceType) := Choice.on (Rcomplex R).
-HB.instance Definition _ (R : rcfType) := GRing.Field.on (Rcomplex R).
-HB.instance Definition _ (R : rcfType) := complex_lmodMixin R.
-HB.instance Definition _ (R : rcfType) := complex_lalgMixin R.
-HB.instance Definition _ (R : rcfType) := GRing.Lalgebra.on (Rcomplex R).
+Section Rcomplex_normedZmodType.
+Variable R : rcfType.
+Implicit Types x y : Rcomplex R.
+
+Import Normc.
+
+Lemma le_normcD x y : (normc (x + y)) <= (normc x + normc y).
+Proof. by rewrite -lecR rmorphD/=; exact: (@ler_normD _ R[i]). Qed.
+
+Lemma normcMn x n : normc (x *+ n) = normc x *+ n.
+Proof.
+rewrite -[LHS]/(Re (_%:C)) -[RHS]/(Re (_%:C)) rmorphMn; congr Re. 
+exact: (@normrMn _ R[i]).
+Qed.
+
+Lemma normcN x : normc (- x) = normc x.
+Proof.
+rewrite -[LHS]/(Re (_%:C)) -[RHS]/(Re (_%:C)); congr Re.
+exact: (@normrN R[i] R[i]).
+Qed.
+
+HB.instance Definition _ := Num.Zmodule_isNormed.Build R (Rcomplex R)
+  le_normcD (@eq0_normc R) normcMn normcN.
+  
+End Rcomplex_normedZmodType.
+
+Tactic Notation "simpc" := do ?
+  [ rewrite -[- (_ +i* _)%C]/(_ +i* _)%C
+  | rewrite -[(_ +i* _)%C - (_ +i* _)%C]/(_ +i* _)%C
+  | rewrite -[(_ +i* _)%C + (_ +i* _)%C]/(_ +i* _)%C
+  | rewrite -[(_ +i* _)%C * (_ +i* _)%C]/(_ +i* _)%C
+  | rewrite -[(_ +i* _)%C ^*]/(_ +i* _)%C
+  | rewrite -[_ *: (_ +i* _)%C]/(_ +i* _)%C
+  | rewrite -[@GRing.scale _ (Rcomplex _) _ (_ +i* _)%C]/(_ +i* _)%C
+  | rewrite -[(_ +i* _)%C <= (_ +i* _)%C]/((_ == _) && (_ <= _))
+  | rewrite -[(_ +i* _)%C < (_ +i* _)%C]/((_ == _) && (_ < _))
+  | rewrite -[`|(_ +i* _)%C|]/(sqrtr (_ + _))%:C%C
+  | rewrite (mulrNN, mulrN, mulNr, opprB, opprD, mulr0, mul0r,
+    subr0, sub0r, addr0, add0r, mulr1, mul1r, subrr, opprK, oppr0,
+    eqxx) ].
 
 Section RComplexLMod.
 Variable R : rcfType.
 Implicit Types (k : R) (x y z : Rcomplex R).
 
-Lemma conjc_is_scalable : scalable (conjc : Rcomplex R -> Rcomplex R).
+Lemma conjc_is_scalable : scalable (@conjc R : Rcomplex R -> Rcomplex R).
 Proof. by move=> a [b c]; simpc. Qed.
+
 HB.instance Definition _ :=
-  GRing.isScalable.Build R R[i] R[i] *:%R conjc conjc_is_scalable.
+  GRing.isScalable.Build R (Rcomplex R) (Rcomplex R) *:%R (@conjc R : Rcomplex R -> Rcomplex R) conjc_is_scalable.
 
 End RComplexLMod.
 
@@ -1205,6 +1240,7 @@ HB.instance Definition _ := Field_isAlgClosed.Build R[i] complex_acf_axiom.
 
 HB.instance Definition _ := Num.NumField_isImaginary.Build R[i]
   (sqr_i R) sqr_normc.
+HB.instance Definition _ := GRing.ClosedField.on (Rcomplex R).
 
 End Paper_HarmDerksen.
 
