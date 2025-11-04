@@ -24,13 +24,13 @@ order theory of real closed field, through quantifier elimination.
   - Cyril Cohen (initial)
   - Assia Mahboubi (initial)
 - License: [CeCILL-B](CECILL-B)
-- Compatible Coq versions: Coq 9.0 or later
+- Compatible Rocq/Coq versions: Rocq 9.0 or later
 - Additional dependencies:
-  - [MathComp ssreflect 2.3 or later](https://math-comp.github.io)
+  - [MathComp ssreflect 2.4 or later](https://math-comp.github.io)
   - [MathComp algebra](https://math-comp.github.io)
   - [MathComp field](https://math-comp.github.io)
   - [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
-- Coq namespace: `mathcomp.real_closed`
+- Rocq/Coq namespace: `mathcomp.real_closed`
 - Related publication(s):
   - [Formal proofs in real algebraic geometry: from ordered fields to quantifier elimination](https://hal.inria.fr/inria-00593738v4) doi:[10.2168/LMCS-8(1:2)2012](https://doi.org/10.2168/LMCS-8(1:2)2012)
   - [Construction of real algebraic numbers in Coq](https://hal.inria.fr/hal-00671809v2) doi:[10.1007/978-3-642-32347-8_6](https://doi.org/10.1007/978-3-642-32347-8_6)
@@ -66,7 +66,7 @@ The repository contains
 Except for the end-results listed above, one should not rely on anything.
 
 The formalization is based on the [Mathematical Components](https://github.com/math-comp/math-comp)
-library for the [Coq](https://coq.inria.fr) proof assistant.
+library for the [Rocq](https://rocq-prover.org/) prover.
 
 
 ## Development instructions
@@ -104,14 +104,14 @@ library for the [Coq](https://coq.inria.fr) proof assistant.
 3. You are now in the correct work environment. You can do
    > make
 
-   and do whatever you are accustomed to do with Coq.
+   and do whatever you are accustomed to do with Rocq.
 
 4. In particular, you can edit files using `emacs` or `coqide`.
 
    - If you were already using emacs with proof general, make sure you
      empty your `coq-prog-name` variables and any other proof general
      options that used to be tied to a previous local installation of
-     Coq.
+     Rocq.
    - If you do not have emacs installed, but want to use it, you can
      go back to step 2. and call `nix-shell` with the following option
      > nix-shell --arg withEmacs true
