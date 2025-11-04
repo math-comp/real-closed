@@ -39,29 +39,27 @@ license:
   file: CECILL-B
 
 supported_coq_versions:
-  text: Coq 9.0 or later
+  text: Rocq 9.0 or later
   opam: '{>= "9.0"}'
 
 tested_coq_opam_versions:
 - version: '2.4.0-rocq-prover-9.0'
   repo: 'mathcomp/mathcomp'
-- version: '2.4.0-coq-dev'
-  repo: 'mathcomp/mathcomp'
-- version: 'coq-dev'
+- version: 'rocq-prover-dev'
   repo: 'mathcomp/mathcomp-dev'
 
 dependencies:
 - opam:
-    name: coq-mathcomp-ssreflect
-    version: '{>= "2.3"}'
+    name: rocq-mathcomp-ssreflect
+    version: '{>= "2.4"}'
   description: |-
-    [MathComp ssreflect 2.3 or later](https://math-comp.github.io)
+    [MathComp ssreflect 2.4 or later](https://math-comp.github.io)
 - opam:
-    name: coq-mathcomp-algebra
+    name: rocq-mathcomp-algebra
   description: |-
     [MathComp algebra](https://math-comp.github.io)
 - opam:
-    name: coq-mathcomp-field
+    name: rocq-mathcomp-field
   description: |-
     [MathComp field](https://math-comp.github.io)
 - opam:
@@ -87,7 +85,7 @@ documentation: |-
   Except for the end-results listed above, one should not rely on anything.
 
   The formalization is based on the [Mathematical Components](https://github.com/math-comp/math-comp)
-  library for the [Coq](https://coq.inria.fr) proof assistant.
+  library for the [Rocq](https://rocq-prover.org/) prover.
 
 
   ## Development instructions
@@ -125,14 +123,14 @@ documentation: |-
   3. You are now in the correct work environment. You can do
      > make
 
-     and do whatever you are accustomed to do with Coq.
+     and do whatever you are accustomed to do with Rocq.
 
   4. In particular, you can edit files using `emacs` or `coqide`.
 
      - If you were already using emacs with proof general, make sure you
        empty your `coq-prog-name` variables and any other proof general
        options that used to be tied to a previous local installation of
-       Coq.
+       Rocq.
      - If you do not have emacs installed, but want to use it, you can
        go back to step 2. and call `nix-shell` with the following option
        > nix-shell --arg withEmacs true

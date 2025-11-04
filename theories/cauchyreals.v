@@ -856,9 +856,8 @@ Notation "- x" := (opp_creal x) : creal_scope.
 
 Lemma add_crealP (x y : creal) :  creal_axiom (fun i => x i + y i).
 Proof.
-exists_big_modulus m F.
-  move=> e i j he hi hj; rewrite opprD addrAC addrA -addrA [- _ + _]addrC.
-  by rewrite split_norm_add ?cauchymodP ?divrn_gt0.
+exists_big_modulus m F => [e i j he hi hj|].
+  by rewrite opprD addrACA split_norm_add ?cauchymodP ?divrn_gt0.
 by close.
 Qed.
 Definition add_creal (x y : creal) := CReal (add_crealP x y).
