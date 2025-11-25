@@ -628,7 +628,7 @@ Lemma cst_crealP (x : F) : creal_axiom (fun _ => x).
 Proof. by exists (fun _ => 0%N)=> *; rewrite subrr normr0. Qed.
 Definition cst_creal (x : F) := CReal (cst_crealP x).
 Notation "x %:CR" := (cst_creal x)
-  (at level 2, left associativity, format "x %:CR") : creal_scope.
+  (at level 1, left associativity, format "x %:CR") : creal_scope.
 Notation "0" := (0 %:CR) : creal_scope.
 
 Lemma lbound0P (x : creal) (x_neq0 : x != 0) i :
@@ -1638,7 +1638,7 @@ Notation "!=%CR" := neq_creal : creal_scope.
 Notation "x != y" := (neq_creal x  y) : creal_scope.
 
 Notation "x %:CR" := (cst_creal x)
-  (at level 2, left associativity, format "x %:CR") : creal_scope.
+  (at level 1, left associativity, format "x %:CR") : creal_scope.
 Notation "0" := (0 %:CR)%CR : creal_scope.
 
 Notation "<%CR" := lt_creal : creal_scope.

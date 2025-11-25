@@ -571,7 +571,7 @@ Definition to_alg_def (phF : phant F) : F -> alg :=
   lift_embed alg cst_algcreal.
 Notation to_alg := (@to_alg_def (Phant F)).
 Notation "x %:RA" := (to_alg x)
-  (at level 2, left associativity, format "x %:RA").
+  (at level 1, left associativity, format "x %:RA").
 Local Notation "p ^ f" := (map_poly f p) : ring_scope.
 
 Canonical to_alg_pi_morph := PiEmbed to_alg.
@@ -1176,7 +1176,7 @@ End RealAlg.
 
 Notation to_alg F := (@to_alg_def _ (Phant F)).
 Notation "x %:RA" := (to_alg _ x)
-  (at level 2, left associativity, format "x %:RA").
+  (at level 1, left associativity, format "x %:RA").
 
 Lemma upper_nthrootVP (F : archiFieldType) (x : F) (i : nat) :
    0 < x -> (Num.bound (x ^-1) <= i)%N -> 2%:R ^- i < x.
@@ -1381,7 +1381,7 @@ Notation "{ 'realclosure'  F }" := (RealAlg.alg F).
 Notation annul_realalg := RealAlg.annul_alg.
 Notation realalg_of F := (@RealAlg.to_alg_def _ (Phant F)).
 Notation "x %:RA" := (realalg_of x)
-  (at level 2, left associativity, format "x %:RA").
+  (at level 1, left associativity, format "x %:RA").
 
 HB.instance Definition _ (F : archiFieldType) := GRing.RMorphism.on (to_alg F).
 
