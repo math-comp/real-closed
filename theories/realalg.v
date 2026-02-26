@@ -3,6 +3,7 @@
 From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra all_field bigenough.
 From mathcomp Require Import polyorder cauchyreals.
+Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
 
 (*************************************************************************)
 (* This files constructs the real closure of an archimedian field in the *)

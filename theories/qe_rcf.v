@@ -5,6 +5,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq path.
 From mathcomp Require Import div choice fintype finfun bigop order ssralg zmodp.
 From mathcomp Require Import poly polydiv ssrnum ssrint interval matrix polyXY.
 From mathcomp Require Import polyorder polyrcf mxtens qe_rcf_th ordered_qelim.
+Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
 
 Set Implicit Arguments.
 Unset Strict Implicit.

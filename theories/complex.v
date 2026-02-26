@@ -5,6 +5,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
 From mathcomp Require Import choice fintype tuple bigop binomial order ssralg.
 From mathcomp Require Import zmodp poly ssrnum ssrint archimedean rat matrix.
 From mathcomp Require Import mxalgebra mxpoly closed_field polyrcf realalg.
+Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
 
 (**********************************************************************)
 (*   This files defines the extension R[i] of a real field R,         *)

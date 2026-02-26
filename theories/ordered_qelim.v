@@ -5,6 +5,7 @@ From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
 From mathcomp Require Import choice fintype bigop finset order fingroup.
 From mathcomp Require Import ssralg zmodp poly ssrnum.
+Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
 
 Set Implicit Arguments.
 Unset Strict Implicit.

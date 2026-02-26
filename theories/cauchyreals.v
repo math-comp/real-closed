@@ -5,6 +5,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
 From mathcomp Require Import fintype bigop binomial order perm ssralg poly.
 From mathcomp Require Import polydiv ssrnum ssrint rat matrix mxpoly polyXY.
 From mathcomp Require Import bigenough polyorder.
+Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
 
 (***************************************************************************)
 (* This is a standalone construction of Cauchy reals over an arbitrary     *)
