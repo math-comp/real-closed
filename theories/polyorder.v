@@ -2,7 +2,7 @@
 (* Distributed under the terms of CeCILL-B.                                  *)
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
 From mathcomp Require Import fintype ssralg zmodp poly polydiv ssrnum interval.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 Import GRing.Theory Num.Theory Pdiv.Idomain.
 
@@ -85,7 +85,7 @@ Lemma root_muN p x : p != 0 ->
   (('X - x%:P)^+(\mu_x p).+1 %| p) = false.
 Proof.
 move=> pn0; case: (mu_spec x pn0)=> q qn0 hp /=.
-rewrite {2}hp exprS dvdp_mul2r; last first.
+rewrite {2}hp exprS dvdp_mul2r.
   by rewrite expf_neq0 // polyXsubC_eq0.
 apply: negbTE; rewrite -eqp_div_XsubC; apply: contra qn0.
 by move/eqP->; rewrite rootM root_XsubC eqxx orbT.
@@ -124,7 +124,7 @@ Qed.
 Lemma cofactor_XsubC_mu  x p n :
   ~~ root p x -> \mu_x (p * ('X - x%:P) ^+ n) = n.
 Proof.
-move=> p0; apply/eqP; rewrite eq_sym -muP//; last first.
+move=> p0; apply/eqP; rewrite eq_sym -muP//.
   apply: contra p0; rewrite mulf_eq0 expf_eq0 polyXsubC_eq0 andbF orbF.
   by move/eqP->; rewrite root0.
 rewrite dvdp_mulIr /= exprS dvdp_mul2r -?root_factor_theorem //.
@@ -147,7 +147,7 @@ Qed.
 
 Lemma mu_XsubC x : \mu_x ('X - x%:P) = 1%N.
 Proof.
-apply/eqP; rewrite eq_sym -muP; last by rewrite polyXsubC_eq0.
+apply/eqP; rewrite eq_sym -muP; first by rewrite polyXsubC_eq0.
 by rewrite expr1 dvdpp/= -{2}[_ - _]expr1 dvdp_Pexp2l // size_XsubC.
 Qed.
 
@@ -181,11 +181,11 @@ have qn0: q != 0 by move: mupq; apply: contraL; move/eqP->; rewrite mu0 ltn0.
 case: (mu_spec x pn0)=> [qqp qqp0] hp.
 case: (mu_spec x qn0)=> [qqq qqq0] hq.
 rewrite hp hq -(subnK (ltnW mupq)).
-rewrite mu_mul ?mulf_eq0; last first.
+rewrite mu_mul ?mulf_eq0.
   rewrite expf_eq0 polyXsubC_eq0 andbF orbF.
   by apply: contra qqp0; move/eqP->; rewrite root0.
 rewrite mu_exp mu_XsubC mul1n [\mu_x qqp]muNroot // add0n.
-rewrite exprD mulrA -mulrDl mu_mul; last first.
+rewrite exprD mulrA -mulrDl mu_mul.
   by rewrite mulrDl -mulrA -exprD subnK 1?ltnW // -hp -hq.
 rewrite muNroot ?add0n ?mu_exp ?mu_XsubC ?mul1n //.
 rewrite rootE !hornerE ?horner_exp ?hornerXsubC subrr.
@@ -204,8 +204,8 @@ move=> hn.
 case p0: (p == 0); first by rewrite (eqP p0) div0p mu0 sub0n.
 case: (@mu_spec p x); rewrite ?p0 // => q hq hp.
 rewrite {1}hp -{1}(subnK hn) exprD mulrA.
-rewrite Pdiv.IdomainMonic.mulpK; last by apply: monic_exp; apply: monicXsubC.
-rewrite mu_mul ?mulf_eq0 ?expf_eq0 ?polyXsubC_eq0 ?andbF ?orbF; last first.
+rewrite Pdiv.IdomainMonic.mulpK; first by apply: monic_exp; apply: monicXsubC.
+rewrite mu_mul ?mulf_eq0 ?expf_eq0 ?polyXsubC_eq0 ?andbF ?orbF.
   by apply: contra hq; move/eqP->; rewrite root0.
 by rewrite mu_exp muNroot // add0n mu_XsubC mul1n.
 Qed.
@@ -237,7 +237,7 @@ Lemma derivn_poly0 : forall (p : {poly R}) n, (size p <= n)%N = (p^`(n) == 0).
 Proof.
 move=> p n; apply/idP/idP.
    move=> Hpn; apply/eqP; apply/polyP=>i; rewrite coef_derivn.
-   rewrite nth_default; first by rewrite mul0rn coef0.
+   rewrite nth_default; last by rewrite mul0rn coef0.
    by apply: leq_trans Hpn _; apply leq_addr.
 elim: n {-2}n p (leqnn n) => [m | n ihn [| m]] p.
 - by rewrite leqn0; move/eqP->; rewrite derivn0 leqn0 -size_poly_eq0.
@@ -265,6 +265,3 @@ by move=> x p p0 rpx; rewrite mu_deriv // subn1 addn1 prednK // mu_gt0.
 Qed.
 
 End PolyrealIdomain.
-
-
-

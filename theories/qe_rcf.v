@@ -5,7 +5,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq path.
 From mathcomp Require Import div choice fintype finfun bigop order ssralg zmodp.
 From mathcomp Require Import poly polydiv ssrnum ssrint interval matrix polyXY.
 From mathcomp Require Import polyorder polyrcf mxtens qe_rcf_th ordered_qelim.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -237,12 +237,12 @@ move=> P; rewrite ((big_morph qev) false orb) //= big_orE /=.
 apply/existsP/idP=> [[p] | true_at_P].
   rewrite ((big_morph qev) true andb) //= big_andE /=.
   case/andP=> /forallP eq_p_P.
-  rewrite (@eq_pick _ _ P) => [|i]; first by case: pick.
+  rewrite (@eq_pick _ _ P) => [i|]; last by case: pick.
   by move/(_ i): eq_p_P => /=; case: (p i) => //=; move/negbTE.
 exists [ffun i => P i] => /=; apply/andP; split.
   rewrite ((big_morph qev) true andb) //= big_andE /=.
   by apply/forallP=> i; rewrite /= ffunE; case Pi: (P i) => //=; apply: negbT.
-rewrite (@eq_pick _ _ P) => [|i]; first by case: pick true_at_P.
+rewrite (@eq_pick _ _ P) => [i|]; last by case: pick true_at_P.
 by rewrite ffunE.
 Qed.
 
@@ -524,7 +524,7 @@ Lemma eval_LeadCoef e p k k' :
 Proof.
 move=> Pk; elim: p k k' Pk=> [|a p ihp] k k' Pk //=.
   by rewrite lead_coef0 Pk.
-rewrite (ihp _ (fun l => if l == 0 then qf_eval e (k a) else (k' l))); last first.
+rewrite (ihp _ (fun l => if l == 0 then qf_eval e (k a) else (k' l))).
   by move=> x; rewrite eval_If /= !Pk.
 rewrite lead_coef_eq0; have [->|p_neq0] := altP (_ =P 0).
   by rewrite mul0r add0r lead_coefC.
@@ -687,7 +687,7 @@ move=> Pk; rewrite eval_Isnull /d unlock.
 have [_|p_neq0] /= := boolP (_ == _); first by rewrite Pk /= mul0r add0r.
 rewrite !eval_Size; set p' := eval_poly e p; set q' := eval_poly e q.
 rewrite (eval_LeadCoef (fun lq =>
-  k' (redivp_rec_loop q' (size q') lq 0 0 p' (size p')))) /=; last first.
+  k' (redivp_rec_loop q' (size q') lq 0 0 p' (size p')))) /=.
   by move=> x; rewrite (eval_Rediv_rec_loop k') //= mul0r add0r.
 by rewrite redivp_rec_loopP.
 Qed.
@@ -720,12 +720,13 @@ Lemma eval_Rgcd_loop e n p q k k' :
 Proof.
 elim: n p q k k'=> [|n ihn] p q k k' Pk /=.
   rewrite (eval_Rediv (fun r =>
-    if r.2%PAIR == 0 then k' (eval_poly e q) else k' r.2%PAIR)) /=.
-    by case: eqP.
-  by move=> _ _ r; rewrite eval_Isnull; case: eqP.
+      if r.2%PAIR == 0 then k' (eval_poly e q) else k' r.2%PAIR)) /=.
+    by move=> _ _ r; rewrite eval_Isnull; case: eqP.
+  by case: eqP.
 pose q' := eval_poly e q.
 rewrite (eval_Rediv (fun r =>
-  if r.2%PAIR == 0 then k' q' else k' (rgcdp_loop n q' r.2%PAIR))) /=.
+    if r.2%PAIR == 0 then k' q'
+    else k' (rgcdp_loop n q' r.2%PAIR))) /=; last first.
   by case: eqP.
 move=> _ _ r; rewrite eval_Isnull; case: eqP; first by rewrite Pk.
 by rewrite (ihn _ _ _ k').
@@ -791,8 +792,8 @@ Lemma eval_TaqR e p q k :
   qf_eval e (k (taqR (eval_poly e p) (eval_poly e q))).
 Proof.
 rewrite (eval_Mods (fun r => qf_eval e (k (changes_poly r)))).
-  by rewrite !eval_OpPoly.
-by move=> sp; rewrite !eval_ChangesPoly.
+  by move=> sp; rewrite !eval_ChangesPoly.
+by rewrite !eval_OpPoly.
 Qed.
 
 Lemma eval_PolyComb e sq sc :
@@ -849,8 +850,8 @@ case: n => [|[|n]] //=; rewrite /coefs /=.
     by rewrite nth_default // size_map size_enum_ord expn0.
   rewrite (nth_map 0) ?size_enum_ord //.
   set O := _`_0; rewrite (_ : O = ord0).
-    by rewrite ?castmxE ?cast_ord_id map_mx1 invmx1 mxE.
-  by apply: val_inj => /=; rewrite nth_enum_ord.
+    by apply: val_inj => /=; rewrite nth_enum_ord.
+  by rewrite ?castmxE ?cast_ord_id map_mx1 invmx1 mxE.
 have [lt_i3|le_3i] := ltnP i 3; last first.
   by rewrite !nth_default // size_map size_enum_ord.
 rewrite /ctmat /= ?ntensmx1 invmx_ctmat1 /=.
@@ -871,9 +872,9 @@ rewrite size_map -[0]/(eval e 0%qfT); move: 0%qfT=> x.
 elim: (_ ^ _)%N k k' Pk x=> /= [|n ihn] k k' Pk x.
   by rewrite Pk.
 rewrite (eval_TaqsR
-  (fun y => k' (aux (y * (coefs F (size sq) n) + eval e x) n))).
-  by rewrite size_map.
-by move=> y; rewrite (ihn _ k') // -(eval_Coefs e).
+    (fun y => k' (aux (y * (coefs F (size sq) n) + eval e x) n))).
+  by move=> y; rewrite (ihn _ k') // -(eval_Coefs e).
+by rewrite size_map.
 Qed.
 
 Arguments eval_CcountWeak [e p sq k].
@@ -887,7 +888,7 @@ Lemma eval_ProdPoly e T s f k f' k' :
 Proof.
 move=> Pf; elim: s k k'=> [|a s ihs] k k' Pk /=.
   by rewrite big_nil Pk /= !(mul0r, add0r).
-rewrite (Pf _ _ (fun fa => k' (fa * \prod_(x <- s) f' x))).
+rewrite (Pf _ _ (fun fa => k' (fa * \prod_(x <- s) f' x))); last first.
   by rewrite big_cons.
 move=> fa; rewrite (ihs _ (fun fs => k' (eval_poly e fa * fs))) //.
 by move=> fs; rewrite Pk eval_OpPoly.
@@ -912,14 +913,14 @@ rewrite (@eval_BigRgcd _ _ _ (fun p => if p != 0
   else let bq := bounding_poly sq' in
     [|| \big[andb/true]_(q <- sq') (0 < lead_coef q),
      \big[andb/true]_(q <- sq') (0 < (-1) ^+ (size q).-1 * lead_coef q)
-    | 0 < ccount_weak bq sq'])).
+    | 0 < ccount_weak bq sq'])); last first.
   by rewrite !big_map.
 move=> p; rewrite eval_Isnull; case: eqP=> _ /=; last first.
   by rewrite (eval_CcountWeak (> 0)).
 rewrite (eval_CcountWeak (fun n =>
    [|| \big[andb/true]_(q <- sq') (0 < lead_coef q),
     \big[andb/true]_(q <- sq') (0 < (-1) ^+ (size q).-1 * lead_coef q)
-   | 0 < n ])).
+   | 0 < n ])); last first.
   by rewrite eval_BoundingPoly.
 move=> n /=; rewrite -!bigop.unlock !big_map; congr [|| _, _| _].
   apply: (big_ind2 (fun u v => qf_eval e u = v))=> //=.
@@ -965,11 +966,11 @@ set P1 := (fun x => _); set P2 := (fun x => _).
 suff: forall x, P1 x <-> P2 x.
   by move=> hP; split=> [] [x Px]; exists x; rewrite (hP, =^~ hP).
 move=> x; rewrite /P1 /P2 {P1 P2} !big_map !(big_seq_cond xpredT) /=.
-rewrite (eq_bigr (fun t => GRing.eval (set_nth 0 e i x) t == 0)); last first.
+rewrite (eq_bigr (fun t => GRing.eval (set_nth 0 e i x) t == 0)).
   by move=> t /andP[t_in_sp _]; rewrite abstrXP evalE to_rtermE ?(allP rsp).
 rewrite [X in _ && X](eq_bigr (fun t => 0 < GRing.eval (set_nth 0 e i x) t));
-  last by move=> t /andP[tsq _]; rewrite abstrXP evalE to_rtermE ?(allP rsq).
-rewrite -!big_seq_cond !(rwP (qf_evalP _ _)); first last.
+  first by move=> t /andP[tsq _]; rewrite abstrXP evalE to_rtermE ?(allP rsq).
+rewrite -!big_seq_cond !(rwP (qf_evalP _ _)).
 + elim: sp rsp => //= p sp ihsp /andP[rp rsp]; first by rewrite ihsp.
 + elim: sq rsq => //= q sq ihsq /andP[rq rsq]; first by rewrite ihsq.
 rewrite !(rwP andP) (rwP orP) orbF !andbT /=.

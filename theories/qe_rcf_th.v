@@ -3,7 +3,7 @@
 From Corelib Require Import Setoid.
 From mathcomp Require Import all_ssreflect all_algebra.
 From mathcomp Require Import polyorder polyrcf mxtens.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -326,7 +326,7 @@ have sst: (size st).+1 = (3 ^ size sq)%N.
   by rewrite size_sg_tab.
 rewrite /constraints big_filter big_mkcond !sumMz; apply: congr_big=> // x _.
 rewrite nth_cat nth_cat nth_cat !size_map ![size (_ :: _)]/= sst.
-rewrite (@nth_map _ [::] _ _ [eta cons 0] _ (l::st)) /=; last first.
+rewrite (@nth_map _ [::] _ _ [eta cons 0] _ (l::st)) /=.
   by rewrite !addKn sst ltn_ord.
 rewrite ltnNge leq_addr /= !addKn ltnNge leq_addr /= ltn_ord.
 rewrite big_ord_recl /= sgr_cp0 sgz_cp0.
@@ -440,9 +440,9 @@ Lemma cvec_tvec z sq :
 Proof.
 apply/eqP; set A := zmxR (ctmat _).
 rewrite -(@can2_eq _ _ (fun (x : 'rV_(_)) => x *m A) (fun x => x *m (invmx A))).
-* by rewrite /A -map_mxM ?tvec_cvec//; apply: zinjR_morph.
-* by apply: mulmxK; rewrite /A ctmat_unit.
-* by apply: mulmxKV; rewrite /A ctmat_unit.
+- by apply: mulmxK; rewrite /A ctmat_unit.
+- by apply: mulmxKV; rewrite /A ctmat_unit.
+- by rewrite /A -map_mxM ?tvec_cvec//; apply: zinjR_morph.
 Qed.
 
 Lemma constraints1_tvec : forall z sq,
@@ -767,7 +767,7 @@ elim: roots => {a} [|x s /= ihs] a hab /eqP.
 rewrite roots_cons; case/and5P => _ xab /eqP hax hx /eqP hs.
 rewrite !big_cons variation0r add0r (ihs _ _ hs) ?(itvP xab) // => {ihs}.
 pose y := (head b s); pose ax := midf a x; pose xy := midf x y.
-rewrite (@sjump_neigh a b _ _ _ ax xy) ?in_itv ?midf_lte//=; last 2 first.
+rewrite (@sjump_neigh a b _ _ _ ax xy) ?in_itv ?midf_lte//=.
 + by rewrite /prev_root pq_eq0 hax min_l ?(itvP xab, midf_lte).
 + have hy: y \in `]x, b].
     rewrite /y; case: s hs {y xy} => /= [|u s] hu.
@@ -807,7 +807,7 @@ wlog cpq: p q hpqa hpqb / coprimep p q => [hwlog|].
 have p0: p != 0 by apply: contraNneq hpqa => ->; rewrite mul0r rootC.
 have q0: q != 0 by apply: contraNneq hpqa => ->; rewrite mulr0 rootC.
 have pq0 : p * q != 0 by rewrite mulf_neq0.
-rewrite cindex_seq_mids // sum_varP /cross.
+rewrite cindex_seq_mids // sum_varP /cross; last first.
   apply: congr_variation; apply: (mulrIz (oner_neq0 R)); rewrite -!sgrEz.
     case hr: roots => [|c s] /=; apply: (@sgr_neighprN _ _ a b) => //;
     rewrite /neighpr /next_root ?(negPf pq0) max_l // hr mid_in_itv //=.
@@ -821,7 +821,7 @@ elim: roots {-2 6}a (erefl (roots (p * q) a b))
   rewrite in_cons orbF eq_sym. (* ; set x := (X in _.[X]). *)
   by rewrite -rootE (@roots_nil _ _ a b) // mid_in_itv.
 move/eqP: Hs; rewrite roots_cons => /and5P [_ cab /eqP rac rc /eqP rcb].
-rewrite in_cons eq_sym -rootE negb_or (roots_nil _ rac) //=; last first.
+rewrite in_cons eq_sym -rootE negb_or (roots_nil _ rac) //=.
   by rewrite mid_in_itv //= (itvP cab).
 by rewrite IHs // (itvP cab).
 Qed.
@@ -1064,7 +1064,7 @@ transitivity (\sum_(0 <= i < 3 ^ size sq) taqsR p sq i * coefs R (size sq) i).
 rewrite big_mkord; apply: congr_big=> // i _.
 rewrite /taqsR /coefs /tvecR /=.
 have o : 'I_(3 ^ size sq) by rewrite exp3n; apply: ord0.
-rewrite (@nth_map _ o); last by rewrite size_enum_ord.
+rewrite (@nth_map _ o); first by rewrite size_enum_ord.
 by rewrite !castmxE !cast_ord_id !mxE /= nth_ord_enum taq_taqR.
 Qed.
 
@@ -1213,7 +1213,7 @@ case: (altP (q =P 0)) => [ | qn0].
 case: (altP ((\prod_(q0 <- sq) q0) =P 0)) => [ | pn0].
   move/eqP; rewrite -size_poly_eq0 (eqP (ih _)) // => t ht; apply: hs.
   by rewrite in_cons ht orbT.
-rewrite big_cons size_mul // (eqP (ih _)) //; last first.
+rewrite big_cons size_mul // (eqP (ih _)) //.
   by move=> t ht; apply: hs; rewrite in_cons ht orbT.
 by rewrite addnS addn0; apply/eqP; apply: hs; apply: mem_head.
 Qed.
