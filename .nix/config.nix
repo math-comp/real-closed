@@ -35,7 +35,7 @@
 
   ## select an entry to build in the following `bundles` set
   ## defaults to "default"
-  default-bundle = "9.0";
+  default-bundle = "9.1";
 
   ## write one `bundles.name` attribute set per
   ## alternative configuration
@@ -65,6 +65,7 @@
     hierarchy-builder.job = true;
     mathcomp.override.version = "2.3.0";
     mathcomp-apery.job = false;  # no longer compatible with MC 2.3
+    validsdp.job = false;  # no longer compatible with MC 2.3
   }; };
   "9.1" = { rocqPackages = {
     rocq-core.override.version = "9.1";
@@ -80,7 +81,6 @@
       stdlib.override.version = "master";
       bignums.override.version = "master";
       rocq-elpi.override.version = "master";
-      rocq-elpi.override.elpi-version = "3.3.0";
       hierarchy-builder.override.version = "master";
      };
      coqPackages = master-overrides // {
@@ -88,7 +88,6 @@
        stdlib.override.version = "master";
        bignums.override.version = "master";
        coq-elpi.override.version = "master";
-       coq-elpi.override.elpi-version = "3.3.0";
        hierarchy-builder.override.version = "master";
        mathcomp.override.version = "master";
      }; };
