@@ -5,7 +5,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
 From mathcomp Require Import fintype bigop binomial order perm ssralg poly.
 From mathcomp Require Import polydiv ssrnum ssrint rat matrix mxpoly polyXY.
 From mathcomp Require Import bigenough polyorder.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 (***************************************************************************)
 (* This is a standalone construction of Cauchy reals over an arbitrary     *)
@@ -92,8 +92,8 @@ rewrite ler_wpM2l //.
   by rewrite ?mulr_ge0 ?exprn_ge0 ?ler_maxr ?addr_ge0 ?normr_ge0 // ltrW.
 rewrite (ger0_norm r_ge0) ler_norml opprD.
 rewrite (le_trans _ lx) ?(le_trans ux) // lerD2r.
-  by rewrite ler_normr lexx.
-by rewrite lerNl ler_normr lexx orbT.
+  by rewrite lerNl ler_normr lexx orbT.
+by rewrite ler_normr lexx.
 Qed.
 
 Lemma poly_bound_gt0 p a r : 0 < poly_bound p a r.
@@ -120,7 +120,7 @@ rewrite le0r=> /orP[/eqP->|r_gt0 hx hy].
 rewrite mulrA mulrDr mulr1 ler_wpDl ?mulr_ge0 ?normr_ge0 //=.
   by rewrite exprn_ge0 ?le_max ?mulr_ge0 ?ger0E ?ltW.
 rewrite -{1}(addNKr x y) [- _ + _]addrC /= -mulrA.
-rewrite nderiv_taylor; last exact: mulrC.
+rewrite nderiv_taylor; first exact: mulrC.
 have [->|p_neq0] := eqVneq p 0.
   rewrite size_poly0 big_ord0 horner0 subr0 normr0 mulr_ge0 ?normr_ge0 //.
   by rewrite big_ord0 mulr0 lexx.
@@ -148,9 +148,9 @@ Qed.
 Lemma poly_accr_bound_gt0 p a r : 0 < poly_accr_bound p a r.
 Proof.
 rewrite /poly_accr_bound pmulr_rgt0 //.
-  rewrite ltr_wpDr ?ltr01 //.
-  by rewrite sumr_ge0 // => i; rewrite poly_bound_ge0.
-by rewrite exprn_gt0 // lt_max ltr01 pmulr_rgt0 ?ltr0n.
+  by rewrite exprn_gt0 // lt_max ltr01 pmulr_rgt0 ?ltr0n.
+rewrite ltr_wpDr ?ltr01 //.
+by rewrite sumr_ge0 // => i; rewrite poly_bound_ge0.
 Qed.
 
 Lemma poly_accr_bound_ge0 p a r : 0 <= poly_accr_bound p a r.
@@ -191,8 +191,8 @@ Proof.
 rewrite /norm_poly2; have [->|p0] := eqVneq p 0.
   by rewrite /map_poly poly_def !(size_poly0, big_ord0).
 rewrite /map_poly size_poly_eq // -size_poly_eq0 size_poly_eq //.
-  by rewrite -lead_coefE size_poly_eq0 lead_coef_eq0.
-by rewrite -!lead_coefE normr_eq0 !lead_coef_eq0.
+  by rewrite -!lead_coefE normr_eq0 !lead_coef_eq0.
+by rewrite -lead_coefE size_poly_eq0 lead_coef_eq0.
 Qed.
 
 End polyXY_order_extra.
@@ -210,9 +210,9 @@ Definition poly_accr_bound2 (p : {poly F}) (a r : F) : F
 Lemma poly_accr_bound2_gt0 p a r : 0 < poly_accr_bound2 p a r.
 Proof.
 rewrite /poly_accr_bound pmulr_rgt0 //.
-  rewrite ltr_wpDr ?ltr01 //.
-  by rewrite sumr_ge0 // => i; rewrite poly_bound_ge0.
-by rewrite exprn_gt0 // lt_max ltr01 pmulr_rgt0 ?ltr0n.
+  by rewrite exprn_gt0 // lt_max ltr01 pmulr_rgt0 ?ltr0n.
+rewrite ltr_wpDr ?ltr01 //.
+by rewrite sumr_ge0 // => i; rewrite poly_bound_ge0.
 Qed.
 
 Lemma poly_accr_bound2_ge0 p a r : 0 <= poly_accr_bound2 p a r.
@@ -232,7 +232,7 @@ move=> neq_xy hx hy.
 rewrite mulrA mulrDr mulr1 ler_wpDl ?mulr_ge0 ?normr_ge0 //=.
   by rewrite exprn_ge0 ?le_max ?mulr_ge0 ?ger0E ?ltW.
 rewrite -{1}(addNKr x y) [- _ + _]addrC /= -mulrA.
-rewrite nderiv_taylor; last exact: mulrC.
+rewrite nderiv_taylor; first exact: mulrC.
 have [->|p_neq0] := eqVneq p 0.
   by rewrite derivC !horner0 size_poly0 !(big_ord0, subrr, mul0r) normr0 !mulr0.
 rewrite -[size _]prednK ?lt0n ?size_poly_eq0 //.
@@ -240,9 +240,9 @@ rewrite big_ord_recl expr0 mulr1 nderivn0 /= -size_deriv.
 have [->|p'_neq0] := eqVneq p^`() 0.
   by rewrite horner0 size_poly0 !big_ord0 addr0 !(subrr, mul0r) normr0 !mulr0.
 rewrite -[size _]prednK ?lt0n ?size_poly_eq0 // big_ord_recl expr1.
-rewrite addrAC subrr add0r mulrDl mulfK; last by rewrite subr_eq0 eq_sym.
+rewrite addrAC subrr add0r mulrDl mulfK; first by rewrite subr_eq0 eq_sym.
 rewrite nderivn1 addrAC subrr add0r mulr_sumr normrM normfV.
-rewrite ler_pdivrMr ?normr_gt0; last by rewrite subr_eq0 eq_sym.
+rewrite ler_pdivrMr ?normr_gt0; first by rewrite subr_eq0 eq_sym.
 rewrite mulrAC -expr2 mulrC mulr_suml.
 have := le_trans (ler_norm_sum _ _ _); apply.
 rewrite ler_sum // => i _ /=; rewrite /bump /= !add1n.
@@ -921,7 +921,7 @@ exists_big_modulus m F.
   move=> e i j e_gt0 hi hj.
   have /andP[xi_neq0 xj_neq0] : (x i != 0) && (x j != 0).
     by rewrite -!normr_gt0 !(lt_le_trans _ (lbound0_of x_neq0)) ?lbound_gt0.
-  rewrite -(@ltr_pM2r _ `|x i * x j|); last by rewrite normr_gt0 mulf_neq0.
+  rewrite -(@ltr_pM2r _ `|x i * x j|); first by rewrite normr_gt0 mulf_neq0.
   rewrite -normrM !mulrBl mulrA mulVf // mulrCA mulVf // mul1r mulr1.
   apply: lt_le_trans (_ : e * d ^+ 2 <= _).
     by apply: cauchymodP; rewrite // !pmulr_rgt0 ?lbound_gt0.
@@ -1367,7 +1367,7 @@ pose_big_enough i.
   exists i => //; left; split; last first.
     move=> y hy; have := (@poly_accr_bound1P _ p^`() 0 (1 + ubound x) (x i) y).
     rewrite ?subr0 ler_wpDl ?ler01 ?uboundP //.
-    rewrite (le_trans (_ : _ <= r + `|x i|)) ?subr0; last 2 first.
+    rewrite (le_trans (_ : _ <= r + `|x i|)) ?subr0.
     + rewrite (monoRL (addrNK _) (lerD2r _)).
       by rewrite (le_trans (lerB_dist _ _)).
     + by rewrite lerD ?ge_min ?lexx ?uboundP.
@@ -1386,11 +1386,11 @@ pose_big_enough i.
   have := (@poly_accr_bound1P _ p^`() 0 (1 + ubound x) (x i) z).
   have := @poly_accr_bound2P _ p 0 (1 + ubound x) z y; rewrite eq_sym !subr0.
   rewrite neq_yz ?ler01 ?ubound_ge0=> // /(_ isT).
-  rewrite (le_trans (_ : _ <= r + `|x i|)); last 2 first.
+  rewrite (le_trans (_ : _ <= r + `|x i|)).
   + rewrite (monoRL (addrNK _) (lerD2r _)).
     by rewrite (le_trans (lerB_dist _ _)).
   + by rewrite lerD ?ge_min ?lexx ?uboundP.
-  rewrite (le_trans (_ : _ <= r + `|x i|)); last 2 first.
+  rewrite (le_trans (_ : _ <= r + `|x i|)).
   + rewrite (monoRL (addrNK _) (lerD2r _)).
     by rewrite (le_trans (lerB_dist _ _)).
   + by rewrite lerD ?ge_min ?lexx ?uboundP.
@@ -1472,7 +1472,7 @@ Proof.
 rewrite /poly_bound.
 pose f (q : {poly F}) (k : nat) :=  `|q^`N(j.+1)`_k| * (`|a| + `|r|) ^+ k.
 rewrite lerD //=.
-rewrite (big_ord_widen (sizeY q) (f q.[(z i)%:P])); last first.
+rewrite (big_ord_widen (sizeY q) (f q.[(z i)%:P])).
   rewrite size_nderivn leq_subLR (leq_trans (max_size_evalC _ _)) //.
   by rewrite leq_addl.
 rewrite big_mkcond /= ler_sum // /f => k _.
@@ -1483,7 +1483,7 @@ rewrite !(@big_morph _ _ (fun p => p^`N(j.+1)) 0 +%R);
   do ?[by rewrite raddf0|by move=> x y /=; rewrite raddfD].
 rewrite !coef_sum.
 rewrite (le_trans (ler_norm_sum _ _ _)) //.
-rewrite ger0_norm; last first.
+rewrite ger0_norm.
   rewrite sumr_ge0=> //= l _.
   rewrite coef_nderivn mulrn_wge0 ?natr_ge0 //.
   rewrite -polyC_exp coefMC coef_norm_poly2 mulr_ge0 ?normr_ge0 //.
@@ -1518,7 +1518,7 @@ apply: le_trans (_ : u * vi <= _).
   by rewrite max_size_evalC.
 rewrite ler_wpM2l ?exprn_ge0 ?le_max ?ler01 // lerD //.
 pose f j :=  poly_bound q.[(z i)%:P]^`N(j.+1) a r.
-rewrite (big_ord_widen (sizeY q).-1 f); last first.
+rewrite (big_ord_widen (sizeY q).-1 f).
   rewrite -subn1 leq_subLR add1n (leq_trans _ (leqSpred _)) //.
   by rewrite max_size_evalC.
 rewrite big_mkcond /= ler_sum // /f => k _.
@@ -1596,7 +1596,7 @@ have [||[u v] /= [hu hv] hpq] := @div_annihilant_in_ideal _ p q.
 + by rewrite (@has_root_creal_size_gt1 y).
 apply: eq_crealP; exists_big_modulus m F.
   move=> e i e_gt0 hi /=; rewrite subr0.
-  rewrite (hpq (y i)) mulrCA divff ?mulr1; last first.
+  rewrite (hpq (y i)) mulrCA divff ?mulr1.
     by rewrite -normr_gt0 (lt_le_trans _ (lbound0_of y_neq0)) ?lbound_gt0.
   rewrite split_norm_add // normrM.
     apply: le_lt_trans (_ : (ubound u.[y, x / y_neq0]) * `|p.[x i]| < _).

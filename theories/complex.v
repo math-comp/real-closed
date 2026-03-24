@@ -5,7 +5,7 @@ From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
 From mathcomp Require Import choice fintype tuple bigop binomial order ssralg.
 From mathcomp Require Import zmodp poly ssrnum ssrint archimedean rat matrix.
 From mathcomp Require Import mxalgebra mxpoly closed_field polyrcf realalg.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 (**********************************************************************)
 (*   This files defines the extension R[i] of a real field R,         *)
@@ -341,7 +341,7 @@ rewrite [u]lock [v]lock !addrA; set x := (a ^+ 2 + _ + _ + _).
 rewrite -[_ + locked u]addrA [leLHS]addrC addKr -!lock addrC.
 have [huv|] := ger0P (u + v); last first.
   by move=> /ltW /le_trans -> //; rewrite pmulrn_lge0 // mulr_ge0 ?sqrtr_ge0.
-rewrite -(@ler_pXn2r _ 2) -?topredE //=; last first.
+rewrite -(@ler_pXn2r _ 2) -?topredE //=.
   by rewrite ?(pmulrn_lge0, mulr_ge0, sqrtr_ge0) //.
 rewrite -mulr_natl !exprMn !sqr_sqrtr ?(ler_wpDr, sqr_ge0) //.
 rewrite -mulrnDl -[in leLHS]mulr_natl !exprMn ler_pM2l ?exprn_gt0 ?ltr0n //.
@@ -670,7 +670,7 @@ congr (_ +i* _); set u := if _ then _ else _.
   by rewrite opprK -mulr2n -[a *+ 2]mulr_natl [_*a]mulrC mulfK.
 rewrite mulrCA -mulrA -mulrDr [sqrtr _ * _]mulrC.
 rewrite -mulr2n -sqrtrM // mulrAC !mulrA ?[_ * (_ - _)]mulrC -subr_sqr.
-rewrite sqr_sqrtr; last first.
+rewrite sqr_sqrtr.
   by rewrite ler_wpDr // exprn_even_ge0.
 rewrite [_^+2 + _]addrC addrK -mulrA -expr2 sqrtrM ?exprn_even_ge0 //.
 rewrite !sqrtr_sqr -(mulr_natr (_ * _)).
@@ -826,7 +826,7 @@ rewrite /skew_vec /= !mxvec_delta !mxE !eqxx /=.
 have /(_ _ _ (_, _) (_, _)) /= eq_mviE :=
   inj_eq (bij_inj (onT_bij (curry_mxvec_bij _ _))).
 rewrite eq_mviE xpair_eqE -!val_eqE /= eq_sym andbb.
-rewrite ltn_eqF // subr0 mulr1 summxE big1.
+rewrite ltn_eqF // subr0 mulr1 summxE big1; last first.
   rewrite [w as X in X *m _]mx11_scalar => ->.
   by rewrite mul_scalar_mx scale0r submx0.
 move=> [i' j'] /= /andP[lt_j'i'].
@@ -841,7 +841,7 @@ Hint Resolve skew_direct_sum : core.
 Lemma rank_skew : \rank skew = (n * n.-1)./2.
 Proof.
 rewrite /skew (mxdirectP _) //= -bin2 -triangular_sum big_mkord.
-rewrite (eq_bigr (fun _ => 1%N)); last first.
+rewrite (eq_bigr (fun _ => 1%N)).
   move=> [i j] /= lt_ij; rewrite genmxE.
   apply/eqP; rewrite eqn_leq rank_leq_row /= lt0n mxrank_eq0.
   rewrite /skew_vec /= !mxvec_delta /= subr_eq0.
@@ -857,8 +857,8 @@ apply: eq_bigr => [] [[|i] Hi] _ /=; first by rewrite big1.
 rewrite (eq_bigl _ _ (fun _ => ltnS _ _)).
 have [n_eq0|n_gt0] := posnP n; first by move: Hi (Hi); rewrite {1}n_eq0.
 rewrite -[n]prednK // big_ord_narrow_leq /=.
-  by rewrite -ltnS prednK // (leq_trans _ Hi).
-by rewrite sum_nat_const card_ord muln1.
+  by rewrite sum_nat_const card_ord muln1.
+by rewrite -ltnS prednK // (leq_trans _ Hi).
 Qed.
 
 Lemma skewP (M : 'rV_(n * n)) :
@@ -891,9 +891,9 @@ rewrite (bigID (fun ij => (ij.2 : 'I__) < (ij.1 : 'I__))%N) /=; congr (_ + _).
   apply: eq_bigr => [] [i j] /= lt_ij.
   by rewrite !linearZ linearB /= ?mxvecK trmx_delta scalerN scalerBr.
 rewrite (bigID (fun ij => (ij.1 : 'I__) == (ij.2 : 'I__))%N) /=.
-rewrite big1 ?add0r; last first.
+rewrite big1 ?add0r.
   by move=> [i j] /= /andP[_ /eqP ->]; rewrite linearZ /= trmx_delta subrr.
-rewrite (@reindex_inj _ _ _ _ (fun ij => (ij.2, ij.1))) /=; last first.
+rewrite (@reindex_inj _ _ _ _ (fun ij => (ij.2, ij.1))) /=.
   by move=> [? ?] [? ?] [] -> ->.
 apply: eq_big => [] [i j] /=; first by rewrite -leqNgt ltn_neqAle andbC.
 by rewrite !linearZ linearB /= ?mxvecK trmx_delta scalerN scalerBr.
@@ -1055,7 +1055,7 @@ have [] // := IHn _ (if d %| \rank Z then W else Z) _ _ [:: f' & sf'].
 move=> v v_neq0 Hv; exists (v *m row_base V).
   by rewrite mul_mx_rowfree_eq0 ?row_base_free.
 move=> g Hg; have [|b] := Hv (restrict V g); first by rewrite -map_cons map_f.
-rewrite eigenspace_restrict //; first by exists b.
+rewrite eigenspace_restrict //; last by exists b.
 by move: Hg; rewrite in_cons => /orP [/eqP -> //|/sf_stabV].
 Qed.
 

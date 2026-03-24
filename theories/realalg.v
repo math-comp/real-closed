@@ -3,7 +3,7 @@
 From HB Require Import structures.
 From mathcomp Require Import all_ssreflect all_algebra all_field bigenough.
 From mathcomp Require Import polyorder cauchyreals.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 (*************************************************************************)
 (* This files constructs the real closure of an archimedian field in the *)
@@ -430,7 +430,7 @@ pose_big_modulus m F.
   wlog leij : i j {hj} hi / (i <= j)%N.
     move=> hwlog; case/orP: (leq_total i j)=> /hwlog; first exact.
     by rewrite distrC; apply.
-  rewrite ger0_norm ?subr_ge0; last first.
+  rewrite ger0_norm ?subr_ge0.
     by rewrite ?lef_pV2 -?topredE /= ?gtr0E // ler_eXn2l ?ltr1n.
   rewrite -(@ltr_pM2l _ (2%:R ^+ i )) ?gtr0E //.
   rewrite mulrBr mulfV ?gt_eqF ?gtr0E //.
@@ -1007,7 +1007,7 @@ move=> /andP[pa_le0 pb_ge0]; apply/sig2W.
 have hpab: p.[a] * p.[b] <= 0 by rewrite mulr_le0_ge0.
 move=> {pa_le0 pb_ge0}; wlog monic_p : p hpab p_neq0 / p \is monic.
   set q := (lead_coef p) ^-1 *: p => /(_ q).
-  rewrite !hornerZ mulrCA !mulrA -mulrA mulr_ge0_le0 //; last first.
+  rewrite !hornerZ mulrCA !mulrA -mulrA mulr_ge0_le0 //.
     by rewrite (@exprn_even_ge0 _ 2).
   have mq: q \is monic by rewrite monicE lead_coefZ mulVf ?lead_coef_eq0.
   rewrite monic_neq0 ?mq=> // [] [] // x hx hqx; exists x=> //.

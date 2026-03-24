@@ -1,7 +1,7 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From mathcomp Require Import all_ssreflect all_algebra polyorder.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 (****************************************************************************)
 (* This files contains basic (and unformatted) theory for polynomials       *)
@@ -122,7 +122,7 @@ Proof.
 elim/poly_ind: p => [| q c IHq]; first by rewrite lead_coef0 ltxx.
 have [->|q_neq0] := eqVneq q 0.
   by rewrite mul0r add0r lead_coefC => c_gt0; exists 0 => x _; rewrite hornerC.
-rewrite lead_coefDl ?size_mulX ?size_polyC // ?lead_coefMX; last first.
+rewrite lead_coefDl ?size_mulX ?size_polyC // ?lead_coefMX.
   by apply: (leq_trans (leq_b1 _)); rewrite size_poly_gt0.
 move=> lq_gt0; have [y Hy] := IHq lq_gt0.
 pose z := (1 + (lead_coef q) ^-1 * `|c|); exists (maxr y z) => x.
@@ -143,7 +143,7 @@ Proof.
 elim/poly_ind: p m => [| q c _] m; first by rewrite lead_coef0 ltxx.
 have [-> _|q_neq0] := eqVneq q 0.
   by rewrite mul0r add0r size_polyC ltnNge leq_b1.
-rewrite lead_coefDl ?size_mulX ?size_polyC // ?lead_coefMX; last first.
+rewrite lead_coefDl ?size_mulX ?size_polyC // ?lead_coefMX.
   by apply: (leq_trans (leq_b1 _)); rewrite size_poly_gt0.
 move=> lq_gt0; have [y Hy _] := poly_pinfty_gt_lc lq_gt0.
 pose z := (1 + (lead_coef q) ^-1 * (`|m| + `|c|)); exists (maxr y z) => x.
@@ -398,7 +398,7 @@ gen have rolle_weak : a b p / a < b -> p.[a] = 0 -> p.[b] = 0 ->
   case: n hp pa0 p_neq0 pb0 p'a0 => [ | n -> _ p0 pb0 p'a0].
     by rewrite {1}expr0 mulr1 rootE=> ->; move/eqP->.
   have [m [q qb0 hp']] := multiplicity_XsubC p' b.
-  rewrite (contraNneq _ p'a0) /= in qb0 => [|->]; last exact: root0.
+  rewrite (contraNneq _ p'a0) /= in qb0 => [->|]; first exact: root0.
   case: m hp' pb0 p0 p'a0 qb0=> [|m].
     rewrite {1}expr0 mulr1=> ->; move/eqP.
     rewrite !(hornerE, horner_exp, mulf_eq0).
@@ -467,7 +467,7 @@ move=> x y xi yi; wlog lt_xy : x y xi yi / x < y => [hw|].
   set d := `|y - _|; have [/hw->//|xy|xy//] := ltrgtP x y; last first.
     by rewrite /d xy !subrr normr0 mulr0.
   by rewrite /d (distrC y) (distrC p.[y]) hw.
-have [c ci ->] := poly_mvt p lt_xy; rewrite normrM ler_pM2r ?p_le //; last first.
+have [c ci ->] := poly_mvt p lt_xy; rewrite normrM ler_pM2r ?p_le //.
   by rewrite ?normr_gt0 ?subr_eq0 gt_eqF.
 rewrite ler_wpDl // (le_trans _ (ler_norm _)) // p_le //.
 by have: c \in `[a, b] by apply: subitvP ci; rewrite sub_oo_itv.
@@ -938,12 +938,12 @@ move=> hx /= npx0 s; elim: s a hx => [|y s ihs] a hx s' //= ss ss'.
   by case: (boolP (y \in `]a, x[)) => [/hax/negPf ->|]; rewrite ?andbF.
 move/min_roots_on; rewrite (order_path_min lt_trans) //.
 case=> // hy hay py0 hs hs' z.
-rewrite in_cons (@itv_splitUeq _ _ y); last first.
+rewrite in_cons (@itv_splitUeq _ _ y).
   by rewrite (subitvPr _ hy) /<=%O //= (itvP hx).
 have [->|ezy] := eqVneq; rewrite ?orbT //= -(ihs y) //.
-- by case: (z \in `]y, b[); rewrite ?orbF ?orbT //= (hay z).
 - by rewrite in_itv /= (itvP hx) (itvP hy).
 - exact: path_sorted ss.
+- by case: (z \in `]y, b[); rewrite ?orbF ?orbT //= (hay z).
 Qed.
 
 Variant roots_spec (p : {poly R}) (i : pred R) (s : seq R) :
@@ -1179,7 +1179,7 @@ case/and3P=> hx hax; rewrite (eqP hax) in rax sax.
 case: rootsP p0=> // p0 rxb sxb _.
 case/andP=> px0 hxb; rewrite (eqP hxb) in rxb sxb.
 rewrite [rcons _ _](@roots_uniq p a b) //; last first.
-  rewrite -[rcons _ _]revK rev_sorted rev_rcons /= path_min_sorted.
+  rewrite -[rcons _ _]revK rev_sorted rev_rcons /= path_min_sorted; last first.
     by rewrite -rev_sorted revK.
   apply/allP=> y; rewrite mem_rev; rewrite -(eqP hxb).
   by move/roots_in/itvP->.
@@ -1341,7 +1341,7 @@ Lemma sgr_neighplN p a x :
 Proof.
 rewrite /neighpl=> nrpx /= y hy.
 apply: (@polyrN0_itv `[y, x]); do ?by rewrite bound_in_itv /<=%O /= (itvP hy).
-move=> z; rewrite (@itv_splitU _ _ (BLeft x)) ?itv_xx /=; last first.
+move=> z; rewrite (@itv_splitU _ _ (BLeft x)) ?itv_xx /=.
 (* Todo : Lemma itv_splitP *)
   by rewrite bound_lexx /<=%O /= (itvP hy).
 rewrite orbC => /predU1P[-> // | hz].
@@ -1363,7 +1363,7 @@ Lemma sgr_neighprN p x b :
 Proof.
 rewrite /neighpr=> nrpx /= y hy; symmetry.
 apply: (@polyrN0_itv `[x, y]); do ?by rewrite bound_in_itv /<=%O /= (itvP hy).
-move=> z; rewrite (@itv_splitU _ _ (BRight x)) ?itv_xx /=; last first.
+move=> z; rewrite (@itv_splitU _ _ (BRight x)) ?itv_xx /=.
 (* Todo : Lemma itv_splitP *)
   by rewrite bound_lexx /<=%O /= (itvP hy).
 case/predU1P => [-> //|hz]; rewrite (@next_noroot _ x b) //.
@@ -1401,11 +1401,11 @@ elim: k q q0 hk => [|k ihk] /= q q0 hk.
   by move: hk q0; rewrite leqn0 size_poly_eq0; move->.
 case: ifP=> cpq; first by rewrite (negPf q0).
 apply: ihk.
-  rewrite divpN0; last by rewrite gcdp_eq0 negb_and q0.
+  rewrite divpN0; first by rewrite gcdp_eq0 negb_and q0.
   by rewrite dvdp_leq // dvdp_gcdl.
 rewrite -ltnS; apply: leq_trans hk; move: (dvdp_gcdl q p); rewrite dvdp_eq.
 move/eqP=> eqq; move/(f_equal (fun x : {poly R} => size x)): (eqq).
-rewrite size_scale; last exact: lc_expn_scalp_neq0.
+rewrite size_scale; first exact: lc_expn_scalp_neq0.
 have gcdn0 : gcdp q p != 0 by rewrite gcdp_eq0 negb_and q0.
 have qqn0 : q %/ gcdp q p != 0.
   apply: contraNneq q0 => e.
@@ -1565,12 +1565,12 @@ case: (@neighpr_wit (p * p^`()) x b)=> [||m hm].
   by move/eqP: sp; case/size_poly1P=> c nc0 ->; rewrite rootC.
 * move: hm; rewrite neighpr_mul /neighpr inE /=; case/andP=> hmp hmp'.
   have lt_xm : x < m by rewrite (itvP hmp).
-  rewrite (polyrN0_itv _ hmp) //; last exact: next_noroot.
+  rewrite (polyrN0_itv _ hmp) //; first exact: next_noroot.
   have midxmxb : mid x m \in neighpr p^`() x b.
     rewrite (subitvP _ (@mid_in_itv _ false true _ _ _)) //=.
     by rewrite ?lerr le_itv !bnd_simp (itvP hmp').
   rewrite (@root_dersr p x m) ?(eqP px0) ?mid_in_itv ?bound_in_itv //;
-    rewrite ?bnd_simp /= ?(itvP hmp) //; last first.
+    rewrite ?bnd_simp /= ?(itvP hmp) //.
     move=> u hu /=; rewrite (@next_noroot _ x b) //.
     by apply: subitvPr hu; rewrite /= ?bnd_simp (itvP hmp').
   rewrite neqr0_sign// ?(@next_noroot _ x b)//.
@@ -1589,7 +1589,7 @@ move/eqP=> sp; rewrite /sgp_right sp /=.
 have pN0 : p != 0 by apply: contra_eq_neq sp => ->; rewrite size_poly0.
 case px0: root=> /=; last first.
   move=> y; rewrite /neighpl => hy /=; symmetry.
-  move: (negbT px0); rewrite -mu_gt0; last first.
+  move: (negbT px0); rewrite -mu_gt0.
     by apply: contraFN px0; move/eqP->; rewrite rootC.
   rewrite -leqNgt leqn0; move/eqP=> -> /=; rewrite expr0 mul1r.
   symmetry; apply: (@polyrN0_itv `[y, x]);
@@ -1614,9 +1614,9 @@ case: (@neighpl_wit (p * p^`()) a x)=> [||m hm].
   have midxmxb : mid m x \in neighpl p^`() a x.
     rewrite (subitvP _ (@mid_in_itv _ false true _ _ _)) //=
        ?le_itv ?bnd_simp (itvP hmp')//.
-  rewrite (polyrN0_itv _ hmp) //; last exact: prev_noroot.
+  rewrite (polyrN0_itv _ hmp) //; first exact: prev_noroot.
   rewrite (@root_dersl p m x) ?(eqP px0) ?mid_in_itv ?bound_in_itv //;
-    rewrite /= ?bnd_simp ?(itvP hmp) //; last first.
+    rewrite /= ?bnd_simp ?(itvP hmp) //.
     move=> u hu /=; rewrite (@prev_noroot _ a x) //.
     by apply: subitvPl hu; rewrite /= ?bnd_simp (itvP hmp').
   rewrite neqr0_sign ?(@prev_noroot _ a x)// ihn// ?size_deriv ?sp//.

@@ -5,7 +5,7 @@ From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq div.
 From mathcomp Require Import choice fintype bigop finset order fingroup.
 From mathcomp Require Import ssralg zmodp poly ssrnum.
-Set SsrOldRewriteGoalsOrder.  (* change Set to Unset when porting the file, then remove the line when requiring MathComp >= 2.6 *)
+Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -546,7 +546,7 @@ elim: t r0 m => /=; try do [
   by elim: r1 m => //= u r1 IHr1 m; rewrite IHr1].
 move=> t1 IH r m letm /IH {IH} /(_ letm) {letm}.
 case: to_rterm => t1' r1 /= [def_r ub_t1' ub_r1 <-].
-rewrite size_rcons addnS leqnn -{1}cats1 takel_cat ?def_r; last first.
+rewrite size_rcons addnS leqnn -{1}cats1 takel_cat ?def_r.
   by rewrite -def_r size_take geq_minr.
 elim: r1 m ub_r1 ub_t1' {def_r} => /= [|u r1 IHr1] m => [_|[->]].
   by rewrite addn0 eqxx.
@@ -760,13 +760,13 @@ elim: leq1 eq1 lt1 oc2 => [|t1 leq1 ih] eq1 lt1 [eq2 neq2 lt2 leq2] /=.
 rewrite map_cat /= mem_cat -!map_comp; set f := fun _ => _.
 rewrite -/f in ih; case/orP.
   case/mapP=> [[y1 y2]] yin ye.
-  move: (ih eq1 lt1 (f (y1, y2))); rewrite mem_map //; last first.
+  move: (ih eq1 lt1 (f (y1, y2))); rewrite mem_map //.
     by move=> [u1 u2] [v1 v2]; rewrite /f /=; case=> -> ->.
   move/(_ yin); move: ye; rewrite /f /=; case=> -> -> -> -> /= h.
   move=> u; rewrite in_cons (h u) !mem_cat in_cons.
   by rewrite orbC !orbA; set x := _ || (u \in lt1); rewrite orbAC.
 case/mapP=> [[y1 y2]] yin ye.
-move: (ih eq1 lt1 (f (y1, y2))); rewrite mem_map //; last first.
+move: (ih eq1 lt1 (f (y1, y2))); rewrite mem_map //.
   by move=> [u1 u2] [v1 v2]; rewrite /f /=; case=> -> ->.
 move/(_ yin); move: ye; rewrite /f /=; case=> -> -> -> -> /= h u.
 rewrite !mem_cat !in_cons orbA orbCA -!orbA; move: (h u); rewrite !mem_cat=> ->.
@@ -849,7 +849,7 @@ elim: neq1 lt1 oc2 => [|t1 neq1 ih] lt1 [eq2 neq2 lt2 leq2] /=.
 rewrite map_cat /= mem_cat -!map_comp; set f := fun _ => _.
 rewrite -/f in ih; case/orP.
   case/mapP=> y yin ye.
-  move: (ih lt1 (f y)); rewrite mem_map //; last first.
+  move: (ih lt1 (f y)); rewrite mem_map //.
     by move=> u v; rewrite /f /=; case.
   move/(_ yin); move: ye; rewrite /f /=; case=> -> -> -> -> /= h.
   move=> u. rewrite !mem_cat !in_cons orbAC orbC mem_cat -!orbA.
@@ -857,7 +857,7 @@ rewrite -/f in ih; case/orP.
   rewrite !orbA [_ || (_ \in eq1)]orbC; move: (h u); rewrite !mem_cat=> hu.
   by move/hu; do 2!(case/orP; last by move->; rewrite !orbT); move->.
 case/mapP=> y yin ye.
-move: (ih lt1 (f y)); rewrite mem_map //; last first.
+move: (ih lt1 (f y)); rewrite mem_map //.
   by move=> u v; rewrite /f /=; case.
 move/(_ yin); move: ye; rewrite /f /=; case=> -> -> -> -> /= h.
 move=> u; rewrite !mem_cat !in_cons orbAC orbC mem_cat -!orbA.
