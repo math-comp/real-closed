@@ -31,7 +31,7 @@ Reserved Notation "x +i* y"
 Reserved Notation "x -i* y"
   (at level 40, left associativity, format "x  -i*  y").
 Reserved Notation "R [i]"
-  (at level 2, left associativity, format "R [i]").
+  (at level 1, left associativity, format "R [i]").
 
 Local Notation sgr := Num.sg.
 Local Notation sqrtr := Num.sqrt.
