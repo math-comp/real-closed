@@ -79,21 +79,21 @@ Declare Scope oterm_scope.
 Bind Scope oterm_scope with term.
 Bind Scope oterm_scope with formula.
 Delimit Scope oterm_scope with oT.
-Arguments Add _ _%oT _%oT.
-Arguments Opp _ _%oT.
-Arguments NatMul _ _%oT _%N.
-Arguments Mul _ _%oT _%oT.
-Arguments Mul _ _%oT _%oT.
-Arguments Inv _ _%oT.
-Arguments Exp _ _%oT _%N.
-Arguments Equal _ _%oT _%oT.
-Arguments Unit _ _%oT.
-Arguments And _ _%oT _%oT.
-Arguments Or _ _%oT _%oT.
-Arguments Implies _ _%oT _%oT.
-Arguments Not _ _%oT.
-Arguments Exists _ _%N _%oT.
-Arguments Forall _ _%N _%oT.
+Arguments Add _ _%_oT _%_oT.
+Arguments Opp _ _%_oT.
+Arguments NatMul _ _%_oT _%_N.
+Arguments Mul _ _%_oT _%_oT.
+Arguments Mul _ _%_oT _%_oT.
+Arguments Inv _ _%_oT.
+Arguments Exp _ _%_oT _%_N.
+Arguments Equal _ _%_oT _%_oT.
+Arguments Unit _ _%_oT.
+Arguments And _ _%_oT _%_oT.
+Arguments Or _ _%_oT _%_oT.
+Arguments Implies _ _%_oT _%_oT.
+Arguments Not _ _%_oT.
+Arguments Exists _ _%_N _%_oT.
+Arguments Forall _ _%_N _%_oT.
 
 Arguments Bool [T].
 Prenex Implicits Const Add Opp NatMul Mul Exp Bool Unit And Or Implies Not.

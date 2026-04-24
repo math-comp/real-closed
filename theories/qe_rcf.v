@@ -98,17 +98,17 @@ Declare Scope qf_scope.
 Bind Scope qf_scope with term.
 Bind Scope qf_scope with formula.
 Delimit Scope qf_scope with qfT.
-Arguments Add _ _%qfT _%qfT.
-Arguments Opp _ _%qfT.
-Arguments NatMul _ _%qfT _%N.
-Arguments Mul _ _%qfT _%qfT.
-Arguments Mul _ _%qfT _%qfT.
-Arguments Exp _ _%qfT _%N.
-Arguments Equal _ _%qfT _%qfT.
-Arguments And _ _%qfT _%qfT.
-Arguments Or _ _%qfT _%qfT.
-Arguments Implies _ _%qfT _%qfT.
-Arguments Not _ _%qfT.
+Arguments Add _ _%_qfT _%_qfT.
+Arguments Opp _ _%_qfT.
+Arguments NatMul _ _%_qfT _%_N.
+Arguments Mul _ _%_qfT _%_qfT.
+Arguments Mul _ _%_qfT _%_qfT.
+Arguments Exp _ _%_qfT _%_N.
+Arguments Equal _ _%_qfT _%_qfT.
+Arguments And _ _%_qfT _%_qfT.
+Arguments Or _ _%_qfT _%_qfT.
+Arguments Implies _ _%_qfT _%_qfT.
+Arguments Not _ _%_qfT.
 
 Arguments Bool [R].
 Prenex Implicits Const Add Opp NatMul Mul Exp Bool Unit And Or Implies Not Lt.
