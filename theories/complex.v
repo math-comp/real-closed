@@ -43,7 +43,7 @@ Declare Scope complex_scope.
 Delimit Scope complex_scope with C.
 Local Open Scope complex_scope.
 
-Definition real_complex_def (F : ringType) (phF : phant F) (x : F) :=
+Definition real_complex_def (F : pzRingType) (phF : phant F) (x : F) :=
   Complex x 0.
 Notation real_complex F := (@real_complex_def _ (Phant F)).
 Notation "x %:C" := (real_complex _ x) (format "x %:C")  : complex_scope.
@@ -87,12 +87,12 @@ apply/eqP/andP; first by move=> [-> ->]; split.
 by case; move/eqP->; move/eqP->.
 Qed.
 
-Lemma complexr0 (R : ringType) (x : R) : x +i* 0 = x%:C. Proof. by []. Qed.
+Lemma complexr0 (R : pzRingType) (x : R) : x +i* 0 = x%:C. Proof. by []. Qed.
 
 Module ComplexField.
 Section ComplexField_ringType.
 
-Variable R : ringType.
+Variable R : pzRingType.
 Local Notation C := R[i].
 Local Notation C0 := ((0 : R)%:C).
 
@@ -112,8 +112,8 @@ HB.instance Definition _ := GRing.Zmodule.on (Rcomplex R).
 Definition scalec (a : R) (x : R[i]) :=
   let: b +i* c := x in (a * b) +i* (a * c).
 
-Program Definition complex_lmodMixin := @GRing.Zmodule_isLmodule.Build R (Rcomplex R)
-  scalec _ _ _ _.
+Program Definition complex_lmodMixin :=
+  @GRing.Zmodule_isLmodule.Build R (Rcomplex R) scalec _ _ _ _.
 Next Obligation. by move=> a b [c d] /=; rewrite !mulrA. Qed.
 Next Obligation. by move=> [a b] /=; rewrite !mul1r. Qed.
 Next Obligation. by move=> a [b c] [d e] /=; rewrite !mulrDr. Qed.
@@ -123,7 +123,7 @@ HB.instance Definition _ := complex_lmodMixin.
 End ComplexField_ringType.
 
 Section ComplexField_comRingType.
-Variable R : comRingType.
+Variable R : comPzRingType.
 Local Notation C := R[i].
 
 Definition mulc (x y : C) := let: a +i* b := x in let: c +i* d := y in
@@ -165,9 +165,9 @@ Qed.
 
 Lemma nonzero1c : C1 != C0. Proof. by rewrite eq_complex /= oner_eq0. Qed.
 
-HB.instance Definition _ := GRing.Zmodule_isComRing.Build R[i]
+HB.instance Definition _ := GRing.Zmodule_isComNzRing.Build R[i]
   (@mulcA R) (@mulcC R) mul1c mulc_addl nonzero1c.
-HB.instance Definition _ := GRing.ComRing.on (Rcomplex R).
+HB.instance Definition _ := GRing.ComNzRing.on (Rcomplex R).
 HB.instance Definition _ := GRing.Lalgebra.copy C C^o.
 
 Program Definition complex_lalgMixin :=
@@ -201,7 +201,7 @@ Qed.
 
 Lemma invc0 : invc C0 = C0. Proof. by rewrite /= !mul0r oppr0. Qed.
 
-HB.instance Definition _ := GRing.ComRing_isField.Build C mulVc invc0.
+HB.instance Definition _ := GRing.ComNzRing_isField.Build C mulVc invc0.
 HB.instance Definition _ := GRing.Field.on (Rcomplex R).
 
 Lemma real_complex_is_additive : additive (real_complex R).
@@ -361,7 +361,7 @@ HB.export ComplexField.
 (* i.e. no: Canonical ComplexField.complex_lmodType.               *)
 (* indeed, this would prevent C fril having a normed module over C *)
 
-Definition conjc {R : ringType} (x : R[i]) := let: a +i* b := x in a -i* b.
+Definition conjc {R : pzRingType} (x : R[i]) := let: a +i* b := x in a -i* b.
 Notation "x ^*" := (conjc x) : complex_scope.
 Local Open Scope complex_scope.
 Delimit Scope complex_scope with C.
@@ -483,7 +483,7 @@ Lemma complex_root_conj (p : {poly R[i]}) (x : R[i]) :
   root (map_poly conjc p) x = root p x^*.
 Proof. by rewrite /root -{1}[x]conjcK horner_map /= conjc_eq0. Qed.
 
-Lemma complex_algebraic_trans (T : comRingType) (toR : {rmorphism T -> R}) :
+Lemma complex_algebraic_trans (T : comNzRingType) (toR : {rmorphism T -> R}) :
   integralRange toR -> integralRange (real_complex R \o toR).
 Proof.
 set f := _ \o _ => R_integral [a b].
@@ -492,8 +492,7 @@ rewrite [_ +i* _]complexE.
 apply: integral_add => //; apply: integral_mul => //=.
 exists ('X^2 + 1).
   by rewrite monicE lead_coefDl ?size_polyXn ?size_poly1 ?lead_coefXn.
-by rewrite rmorphD rmorph1 /= ?map_polyXn rootE !hornerE -?expr2 sqr_i addNr.
-(* FIXME: remove the -?expr2 when requiring MC >= 1.16.0 *)
+by rewrite rmorphD rmorph1 /= ?map_polyXn rootE !hornerE sqr_i addNr.
 Qed.
 
 Lemma normc_def (z : R[i]) : `|z| = (sqrtr ((Re z)^+2 + (Im z)^+2))%:C.
@@ -677,7 +676,7 @@ rewrite !sqrtr_sqr -(mulr_natr (_ * _)).
 rewrite [`|_^-1|]ger0_norm // -mulrA [_ * _%:R]mulrC divff //.
 rewrite mulr1 /u; case: (_ =P _)=>[->|].
   by rewrite normr0 mulr0.
-by rewrite mulr_sg_norm.
+by rewrite -numEsg.
 Qed.
 
 Lemma sqrtc_sqrtr :
@@ -840,7 +839,7 @@ Hint Resolve skew_direct_sum : core.
 
 Lemma rank_skew : \rank skew = (n * n.-1)./2.
 Proof.
-rewrite /skew (mxdirectP _) //= -bin2 -triangular_sum big_mkord.
+rewrite /skew (mxdirectP _) //= -bin2 -bin2_sum big_mkord.
 rewrite (eq_bigr (fun _ => 1%N)).
   move=> [i j] /= lt_ij; rewrite genmxE.
   apply/eqP; rewrite eqn_leq rank_leq_row /= lt0n mxrank_eq0.
@@ -1229,9 +1228,9 @@ suff [x rpx] : exists x, root p x.
   by move=> /eqP ->; rewrite horner_poly.
 have p_monic : p \is monic.
   rewrite qualifE/= lead_coefDl ?lead_coefXn //.
-  by rewrite size_opp size_polyXn ltnS size_poly.
+  by rewrite size_polyN size_polyXn ltnS size_poly.
 have sp_gt1 : (size p > 1)%N.
-  by rewrite size_addl size_polyXn // size_opp ltnS size_poly.
+  by rewrite size_polyDl size_polyXn // size_polyN ltnS size_poly.
 case: n n_gt0 p => //= n _ p in p_monic sp_gt1 *.
 have [] := Theorem7' (companionmx p); first by rewrite -(subnK sp_gt1) addn2.
 by move=> x; rewrite eigenvalue_root_char companionmxK //; exists x.

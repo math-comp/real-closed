@@ -562,8 +562,7 @@ Bind Scope creal_scope with creal.
 Lemma crealP (x : creal) : {asympt e : i j / `|x i - x j| < e}.
 Proof. by case: x. Qed.
 
-Definition cauchymod :=
-  nosimpl (fun (x : creal) => let: CReal _ m := x in projT1 m).
+Definition cauchymod (x : creal) := let: CReal _ m := x in projT1 m.
 
 Lemma cauchymodP (x : creal) eps i j : 0 < eps ->
   (cauchymod x eps <= i)%N -> (cauchymod x eps <= j)%N -> `|x i - x j| < eps.
@@ -884,8 +883,7 @@ pose_big_enough i; first set b := 1 + `|x i|.
 by close.
 Qed.
 
-Definition ubound (x : creal) := 
-  nosimpl (let: exist2 b _ _ := ubound_subproof x in b).
+Definition ubound (x : creal) := let: exist2 b _ _ := ubound_subproof x in b.
 
 Lemma uboundP (x : creal) i : `|x i| <= ubound x.
 Proof. by rewrite /ubound; case: ubound_subproof. Qed.
@@ -1633,6 +1631,9 @@ by elim: i=> [|i ihi]; rewrite ?expr0 ?mulr1 //= exprS ihi.
 Qed.
 
 End CauchyReals.
+
+Arguments cauchymod : simpl never.
+Arguments ubound : simpl never.
 
 Notation "x == y" := (eq_creal x y) : creal_scope.
 Notation "!=%CR" := neq_creal : creal_scope.

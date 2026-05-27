@@ -47,7 +47,7 @@ Local Notation sgr := Num.sg.
 Section more.
 Section SeqR.
 
-Lemma last1_neq0 (R : ringType) (s : seq R) (c : R) :
+Lemma last1_neq0 (R : nzRingType) (s : seq R) (c : R) :
   c != 0 -> (last c s != 0) = (last 1 s != 0).
 Proof. by elim: s c => [|t s ihs] c cn0 //; rewrite oner_eq0 cn0. Qed.
 
@@ -111,7 +111,7 @@ Section SgpInfty.
 
 Lemma sgp_pinfty_sym p : sgp_pinfty (p \Po -'X) = sgp_minfty p.
 Proof.
-rewrite /sgp_pinfty /sgp_minfty lead_coef_comp ?size_opp ?size_polyX //.
+rewrite /sgp_pinfty /sgp_minfty lead_coef_comp ?size_polyN ?size_polyX //.
 by rewrite lead_coefN lead_coefX mulrC.
 Qed.
 
@@ -1837,12 +1837,9 @@ End PolyRCFPdiv.
 
 End PolyRCF.
 
-#[deprecated(since="mathcomp-real-closed 2.1.0",
-  note="Use `poly_rolle` instead")]
+#[deprecated(since="mathcomp-real-closed 2.1.0", use=poly_rolle)]
 Notation rolle := poly_rolle.
-#[deprecated(since="mathcomp-real-closed 2.1.0",
-  note="Use `poly_mvt` instead")]
+#[deprecated(since="mathcomp-real-closed 2.1.0", use=poly_mvt)]
 Notation mvt := poly_mvt.
-#[deprecated(since="mathcomp-real-closed 1.1.0",
-             note="Use `poly_ivtoo` instead.")]
+#[deprecated(since="mathcomp-real-closed 1.1.0", use=poly_ivtoo)]
 Notation ivt_sign := ivt_sign_deprecated.

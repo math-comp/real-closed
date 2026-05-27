@@ -289,7 +289,7 @@ Fixpoint MulPoly (p q : polyF) := if p is a :: p'
     then (a *: q ++ (0 :: (MulPoly p' q)))%qfT else [::].
 Local Infix "**" := MulPoly (at level 40) : qf_scope.
 
-Lemma map_poly0 (R R' : ringType) (f : R -> R') : map_poly f 0 = 0.
+Lemma map_poly0 (R R' : nzRingType) (f : R -> R') : map_poly f 0 = 0.
 Proof. by rewrite map_polyE polyseq0. Qed.
 
 Definition ExpPoly p n := iterop n MulPoly p [::1%qfT].

@@ -26,7 +26,7 @@ Proof. by elim: n => // n IHn; rewrite expnS IHn. Qed.
 Definition exp3S n : (3 ^ n.+1 = 3 ^ n + (3 ^ n + 3 ^ n))%N
   := etrans (expnS 3 n) (mul3n (3 ^ n)).
 
-Lemma tens_I3_mx (cR : comRingType) m n (M : 'M[cR]_(m,n)) :
+Lemma tens_I3_mx (cR : comPzRingType) m n (M : 'M[cR]_(m,n)) :
   1%:M *t M =  castmx (esym (mul3n _ ), esym (mul3n _ ))
                (block_mx M            0
                          0 (block_mx M 0
@@ -43,7 +43,7 @@ rewrite (castmx_block (mul1n _) (mul1n _) (mul1n _) (mul1n _)).
 by rewrite !castmx_comp /= !castmx_id !castmx_const /=.
 Qed.
 
-Lemma mul_1tensmx (cR : comRingType) (m n p: nat)
+Lemma mul_1tensmx (cR : comPzRingType) (m n p: nat)
   (e3n : (n + (n + n) = 3 * n)%N)
   (A B C : 'M[cR]_(m, n))  (M : 'M[cR]_(n, p)) :
   castmx (erefl _, e3n)

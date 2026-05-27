@@ -52,7 +52,7 @@ Local Notation eval := horner_eval.
 
 Section RealAlg.
 
-Variable F : archiFieldType.
+Variable F : archiRealFieldType.
 Local Notation m0 := (fun _ => 0%N).
 
 (*********************************************************************)
@@ -694,9 +694,8 @@ Prenex Implicits neq_creal_cst.
 Lemma nonzero1_alg : one_alg != zero_alg.
 Proof. by rewrite piE -(rwP neq_algcrealP) (rwP neq_creal_cst) oner_eq0. Qed.
 
-HB.instance Definition _ := GRing.Zmodule_isComRing.Build alg
+HB.instance Definition _ := GRing.Zmodule_isComNzRing.Build alg
   mul_algA mul_algC mul_1alg mul_alg_addl nonzero1_alg.
-HB.instance Definition _ := GRing.ComRing.on alg.
 
 Lemma mul_pi x y : \pi_alg x * \pi_alg y
   = \pi_alg (mul_algcreal x y).
@@ -775,7 +774,7 @@ Proof. by unlock annul_alg; rewrite monic_annul_creal. Qed.
 Lemma annul_alg_neq0 (x : alg) : annul_alg x != 0.
 Proof. by rewrite monic_neq0 ?monic_annul_alg. Qed.
 
-HB.instance Definition _ := GRing.ComRing_isField.Build alg mul_Valg inv_alg0.
+HB.instance Definition _ := GRing.ComNzRing_isField.Build alg mul_Valg inv_alg0.
 
 Lemma inv_pi x : (\pi_alg x)^-1  = \pi_alg (inv_algcreal x).
 Proof. by rewrite [_^-1]piE. Qed.
@@ -1039,8 +1038,8 @@ Lemma pet_alg_proof (s : seq alg) :
 Proof.
 apply: sig2_eqW; elim: s; first by exists (0,[::])=> //; apply/forallP=> [] [].
 move=> x s [[a sp] /forallP /= hs hsize].
-have:= char0_PET _ (root_annul_alg a) _ (root_annul_alg x).
-rewrite !annul_alg_neq0 => /(_ isT isT (char_num _)) /= [n [[p hp] [q hq]]].
+have:= pchar0_PET _ (root_annul_alg a) _ (root_annul_alg x).
+rewrite !annul_alg_neq0 => /(_ isT isT (pchar_num _)) /= [n [[p hp] [q hq]]].
 exists (x *+ n - a, q :: [seq r \Po p | r <- sp]); last first.
   by rewrite /= size_map hsize.
 apply/forallP=> /=; rewrite -add1n=> i; apply/eqP.
@@ -1179,7 +1178,7 @@ Notation to_alg F := (@to_alg_def _ (Phant F)).
 Notation "x %:RA" := (to_alg _ x)
   (at level 1, left associativity, format "x %:RA").
 
-Lemma upper_nthrootVP (F : archiFieldType) (x : F) (i : nat) :
+Lemma upper_nthrootVP (F : archiRealFieldType) (x : F) (i : nat) :
    0 < x -> (Num.bound (x ^-1) <= i)%N -> 2%:R ^- i < x.
 Proof.
 move=> x_gt0 hx; rewrite -ltf_pV2 -?topredE //= ?gtr0E //.
@@ -1190,7 +1189,7 @@ Notation "{ 'alg'  F }" := (alg F).
 
 Section AlgAlg.
 
-Variable F : archiFieldType.
+Variable F : archiRealFieldType.
 
 Local Open Scope ring_scope.
 
@@ -1304,7 +1303,7 @@ End AlgAlg.
 
 Section AlgAlgAlg.
 
-Variable F : archiFieldType.
+Variable F : archiRealFieldType.
 
 Local Open Scope ring_scope.
 
@@ -1384,11 +1383,12 @@ Notation realalg_of F := (@RealAlg.to_alg_def _ (Phant F)).
 Notation "x %:RA" := (realalg_of x)
   (at level 1, left associativity, format "x %:RA").
 
-HB.instance Definition _ (F : archiFieldType) := GRing.RMorphism.on (to_alg F).
+HB.instance Definition _ (F : archiRealFieldType) :=
+  GRing.RMorphism.on (to_alg F).
 
 Section RealClosureTheory.
 
-Variable F : archiFieldType.
+Variable F : archiRealFieldType.
 Notation R := {realclosure F}.
 
 Local Notation "p ^ f" := (map_poly f p) : ring_scope.
