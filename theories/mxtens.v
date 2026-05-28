@@ -13,7 +13,7 @@ Local Open Scope ring_scope.
 
 Section ExtraBigOp.
 
-Lemma sumr_add : forall (R : ringType) m n (F : 'I_(m + n) -> R),
+Lemma sumr_add : forall (R : pzRingType) m n (F : 'I_(m + n) -> R),
   \sum_(i < m + n) F i = \sum_(i < m) F (lshift _ i)
   + \sum_(i < n) F (rshift _ i).
 Proof.
@@ -66,7 +66,7 @@ Variant is_mxtens_index (m n : nat) : 'I_(m * n) -> Type :=
 Lemma mxtens_indexP (m n : nat) (k : 'I_(m * n)) : is_mxtens_index k.
 Proof. by rewrite -[k]mxtens_unindexK; constructor. Qed.
 
-Lemma mulr_sum (R : ringType) m n (Fm : 'I_m -> R) (Fn : 'I_n -> R) :
+Lemma mulr_sum (R : pzRingType) m n (Fm : 'I_m -> R) (Fn : 'I_n -> R) :
   (\sum_(i < m) Fm i) * (\sum_(i < n) Fn i)
   = \sum_(i < m * n) ((Fm (mxtens_unindex i).1) * (Fn (mxtens_unindex i).2)).
 Proof.
@@ -80,13 +80,13 @@ End ExtraBigOp.
 
 Section ExtraMx.
 
-Lemma castmx_mul (R : ringType)
+Lemma castmx_mul (R : pzRingType)
   (m m' n p p': nat) (em : m = m') (ep : p = p')
   (M : 'M[R]_(m, n)) (N : 'M[R]_(n, p)) :
   castmx (em, ep) (M *m N) = castmx (em, erefl _) M *m castmx (erefl _, ep) N.
 Proof. by case: m' / em; case: p' / ep. Qed.
 
-Lemma mulmx_cast (R : ringType)
+Lemma mulmx_cast (R : pzRingType)
   (m n n' p p' : nat) (en : n' = n) (ep : p' = p)
   (M : 'M[R]_(m, n)) (N : 'M[R]_(n', p')) :
   M *m (castmx (en, ep) N) =
@@ -131,12 +131,12 @@ End ExtraMx.
 
 Section MxTens.
 
-Variable R : ringType.
+Variable R : pzRingType.
 
 Definition tensmx {m n p q : nat}
-  (A : 'M_(m, n)) (B : 'M_(p, q)) : 'M[R]_(_,_) := nosimpl
-  (\matrix_(i, j) (A (mxtens_unindex i).1 (mxtens_unindex j).1
-                 * B (mxtens_unindex i).2 (mxtens_unindex j).2)).
+  (A : 'M_(m, n)) (B : 'M_(p, q)) : 'M[R]_(_,_) :=
+  \matrix_(i, j) (A (mxtens_unindex i).1 (mxtens_unindex j).1
+                 * B (mxtens_unindex i).2 (mxtens_unindex j).2).
 
 Notation "A *t B" := (tensmx A B)
   (at level 40, left associativity, format "A  *t  B").
@@ -218,8 +218,8 @@ Qed.
 Fixpoint ntensmx_rec {m n} (A : 'M_(m,n)) k : 'M_(m ^ k.+1,n ^ k.+1) :=
   if k is k'.+1 then (A *t (ntensmx_rec A k')) else A.
 
-Definition ntensmx {m n} (A : 'M_(m, n)) k := nosimpl
-  (if k is k'.+1 return 'M[R]_(m ^ k,n ^ k) then ntensmx_rec A k' else 1).
+Definition ntensmx {m n} (A : 'M_(m, n)) k :=
+  if k is k'.+1 return 'M[R]_(m ^ k,n ^ k) then ntensmx_rec A k' else 1.
 
 Notation "A ^t k" := (ntensmx A k)
   (at level 39, left associativity, format "A  ^t  k").
@@ -240,6 +240,9 @@ Definition ntensmxS := (@ntensmx1, @ntensmx2, @ntensmxSS).
 
 End MxTens.
 
+Arguments tensmx : simpl never.
+Arguments ntensmx : simpl never.
+
 Notation "A *t B" := (tensmx A B)
   (at level 40, left associativity, format "A  *t  B").
 
@@ -247,7 +250,7 @@ Notation "A ^t k" := (ntensmx A k)
   (at level 39, left associativity, format "A  ^t  k").
 
 Section MapMx.
-Variables (aR rR : ringType).
+Variables (aR rR : pzRingType).
 Hypothesis f : {rmorphism aR -> rR}.
 Local Notation "A ^f" := (map_mx f A) : ring_scope.
 
@@ -262,7 +265,7 @@ End MapMx.
 
 Section Misc.
 
-Lemma tensmx_mul (R : comRingType) m n p q r s
+Lemma tensmx_mul (R : comPzRingType) m n p q r s
   (A : 'M[R]_(m,n)) (B : 'M[R]_(p,q)) (C : 'M[R]_(n, r)) (D : 'M[R]_(q, s)) :
   (A *t B) *m (C *t D) = (A *m C) *t (B *m D).
 Proof.
@@ -292,7 +295,7 @@ by rewrite eq_addl_mul ?ltn_mod // xpair_eqE mulnb.
 Qed.
 
 
-Lemma tens_mx_scalar : forall (R : comRingType)
+Lemma tens_mx_scalar : forall (R : comPzRingType)
   (m n : nat) (c : R) (M : 'M[R]_(m,n)),
   M *t c%:M = castmx (esym (muln1 _), esym (muln1 _)) (c *: M).
 Proof.
@@ -302,11 +305,11 @@ rewrite tensmxE [i1]ord1 [j1]ord1 !castmxE !mxE /= mulr1n mulrC.
 by congr (_ * M _ _); apply: val_inj=> /=; rewrite muln1 addn0.
 Qed.
 
-Lemma tensmx_decr : forall (R : comRingType) m n (M :'M[R]_m) (N : 'M[R]_n),
+Lemma tensmx_decr : forall (R : comPzRingType) m n (M :'M[R]_m) (N : 'M[R]_n),
   M *t N = (M *t 1%:M) *m (1%:M *t N).
 Proof. by move=> R0 m n M N; rewrite tensmx_mul mul1mx mulmx1. Qed.
 
-Lemma tensmx_decl : forall (R : comRingType) m n (M :'M[R]_m) (N : 'M[R]_n),
+Lemma tensmx_decl : forall (R : comPzRingType) m n (M :'M[R]_m) (N : 'M[R]_n),
   M *t N = (1%:M *t N) *m (M *t 1%:M).
 Proof. by move=> R0 m n M N; rewrite tensmx_mul mul1mx mulmx1. Qed.
 
