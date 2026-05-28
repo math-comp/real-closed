@@ -325,7 +325,7 @@ jobs:
         "master" --argstr job "hierarchy-builder"
   mathcomp:
     needs:
-    - coq
+    - rocq-core
     - hierarchy-builder
     runs-on: ubuntu-latest
     steps:
@@ -376,9 +376,9 @@ jobs:
         \n    sleep 30\n  fi\nelse\n  echo \"CI target already built\"\n  echo \"\
         status=fetched\" >> $GITHUB_OUTPUT\nfi\n"
     - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: coq'
+      name: 'Building/fetching previous CI target: rocq-core'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "coq"
+        "master" --argstr job "rocq-core"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-character'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
@@ -626,7 +626,7 @@ jobs:
         "master" --argstr job "mathcomp-apery"
   mathcomp-bigenough:
     needs:
-    - coq
+    - rocq-core
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -676,9 +676,9 @@ jobs:
         \n    sleep 30\n  fi\nelse\n  echo \"CI target already built\"\n  echo \"\
         status=fetched\" >> $GITHUB_OUTPUT\nfi\n"
     - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: coq'
+      name: 'Building/fetching previous CI target: rocq-core'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "coq"
+        "master" --argstr job "rocq-core"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-boot'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
@@ -689,7 +689,7 @@ jobs:
         "master" --argstr job "mathcomp-bigenough"
   mathcomp-finmap:
     needs:
-    - coq
+    - rocq-core
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to initially checkout
@@ -739,9 +739,9 @@ jobs:
         \n    sleep 30\n  fi\nelse\n  echo \"CI target already built\"\n  echo \"\
         status=fetched\" >> $GITHUB_OUTPUT\nfi\n"
     - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: coq'
+      name: 'Building/fetching previous CI target: rocq-core'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "coq"
+        "master" --argstr job "rocq-core"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-boot'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 

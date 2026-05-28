@@ -43,11 +43,17 @@
   ## will be created per bundle
   bundles = let
     master-overrides = {
+      hierarchy-builder.override.version = "master";
+      mathcomp.override.version = "master";
+      mathcomp-bigenough.override.version = "master";
+      mathcomp-finmap.override.version = "master";
+      stdlib.override.version = "master";
+      bignums.override.version = "master";
+    };
+    coq-master-overrides = master-overrides // {
       coqeal.override.version = "master";
       mathcomp-apery.override.version = "master";
       mathcomp-algebra-tactics.override.version = "master";
-      mathcomp-bigenough.override.version = "master";
-      mathcomp-finmap.override.version = "master";
       mathcomp-zify.override.version = "master";
       multinomials.override.version = "master";
       mathcomp-abel.override.version = "master";
@@ -76,21 +82,16 @@
     mathcomp.override.version = "2.4.0";
   }; };
   "master" = {
-    rocqPackages = {
+    rocqPackages = master-overrides // {
       rocq-core.override.version = "master";
-      stdlib.override.version = "master";
-      bignums.override.version = "master";
       rocq-elpi.override.version = "master";
-      hierarchy-builder.override.version = "master";
-     };
-     coqPackages = master-overrides // {
-       coq.override.version = "master";
-       stdlib.override.version = "master";
-       bignums.override.version = "master";
-       coq-elpi.override.version = "master";
-       hierarchy-builder.override.version = "master";
-       mathcomp.override.version = "master";
-     }; };
+      micromega-plugin.override.version = "master";
+      micromega-plugin.job = false;
+    };
+    coqPackages = coq-master-overrides // {
+      coq.override.version = "master";
+      coq-elpi.override.version = "master";
+    }; };
   };
 
   ## Cachix caches to use in CI
