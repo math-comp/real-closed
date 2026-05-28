@@ -69,9 +69,7 @@
     coq.override.version = "9.0";
     coq-elpi.job = true;
     hierarchy-builder.job = true;
-    mathcomp.override.version = "2.3.0";
-    mathcomp-apery.job = false;  # no longer compatible with MC 2.3
-    validsdp.job = false;  # no longer compatible with MC 2.3
+    mathcomp.override.version = "2.4.0";
   }; };
   "9.1" = { rocqPackages = {
     rocq-core.override.version = "9.1";
@@ -79,7 +77,7 @@
     coq.override.version = "9.1";
     coq-elpi.job = true;
     hierarchy-builder.job = true;
-    mathcomp.override.version = "2.4.0";
+    mathcomp.override.version = "2.5.0";
   }; };
   "master" = {
     rocqPackages = master-overrides // {
