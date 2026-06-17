@@ -240,6 +240,10 @@ jobs:
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "master" --argstr job "coq"
     - if: steps.stepCheck.outputs.status != 'fetched'
+      name: 'Building/fetching previous CI target: mathcomp-ssreflect'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
+        "master" --argstr job "mathcomp-ssreflect"
+    - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-algebra'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "master" --argstr job "mathcomp-algebra"
@@ -447,6 +451,10 @@ jobs:
       name: 'Building/fetching previous CI target: coq'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "master" --argstr job "coq"
+    - if: steps.stepCheck.outputs.status != 'fetched'
+      name: 'Building/fetching previous CI target: mathcomp-ssreflect'
+      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
+        "master" --argstr job "mathcomp-ssreflect"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-field'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
@@ -752,7 +760,7 @@ jobs:
         "master" --argstr job "mathcomp-finmap"
   mathcomp-real-closed:
     needs:
-    - coq
+    - rocq-core
     - mathcomp-bigenough
     runs-on: ubuntu-latest
     steps:
@@ -803,29 +811,13 @@ jobs:
         \n    sleep 30\n  fi\nelse\n  echo \"CI target already built\"\n  echo \"\
         status=fetched\" >> $GITHUB_OUTPUT\nfi\n"
     - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: coq'
+      name: 'Building/fetching previous CI target: rocq-core'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "coq"
-    - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: mathcomp-ssreflect'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "mathcomp-ssreflect"
-    - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: mathcomp-algebra'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "mathcomp-algebra"
+        "master" --argstr job "rocq-core"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-field'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
         "master" --argstr job "mathcomp-field"
-    - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: mathcomp-fingroup'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "mathcomp-fingroup"
-    - if: steps.stepCheck.outputs.status != 'fetched'
-      name: 'Building/fetching previous CI target: mathcomp-solvable'
-      run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 
-        "master" --argstr job "mathcomp-solvable"
     - if: steps.stepCheck.outputs.status != 'fetched'
       name: 'Building/fetching previous CI target: mathcomp-bigenough'
       run: NIXPKGS_ALLOW_UNFREE=1 nix-build --no-out-link --argstr bundle 

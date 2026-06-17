@@ -1,7 +1,7 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
-From mathcomp Require Import all_ssreflect all_algebra all_field bigenough.
+From mathcomp Require Import all_boot order all_algebra all_field bigenough.
 From mathcomp Require Import polyorder cauchyreals.
 Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
