@@ -1,6 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
-From mathcomp Require Import all_ssreflect all_algebra polyorder.
+From mathcomp Require Import all_boot order all_algebra polyorder.
 Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 (****************************************************************************)
