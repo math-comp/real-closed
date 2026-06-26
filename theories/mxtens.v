@@ -139,7 +139,8 @@ Definition tensmx {m n p q : nat}
                  * B (mxtens_unindex i).2 (mxtens_unindex j).2).
 
 Notation "A *t B" := (tensmx A B)
-  (at level 40, left associativity, format "A  *t  B").
+  (at level 40, left associativity, format "A  *t  B")
+  : ring_scope.
 
 Lemma tensmxE {m n p q} (A : 'M_(m, n)) (B : 'M_(p, q)) i j k l :
   (A *t B) (mxtens_index (i, j)) (mxtens_index (k, l)) = A i k * B j l.
@@ -244,7 +245,8 @@ Arguments tensmx : simpl never.
 Arguments ntensmx : simpl never.
 
 Notation "A *t B" := (tensmx A B)
-  (at level 40, left associativity, format "A  *t  B").
+  (at level 40, left associativity, format "A  *t  B")
+  : ring_scope.
 
 Notation "A ^t k" := (ntensmx A k)
   (at level 39, left associativity, format "A  ^t  k").
