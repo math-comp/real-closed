@@ -7,6 +7,6 @@ dev-repo: "git+https://github.com/math-comp/real-closed.git"
 bug-reports: "https://github.com/math-comp/real-closed/issues"
 license: "CECILL-B"
 
-depends: [ "coq-mathcomp-real-closed" { = version } ]
+depends: [ "rocq-mathcomp-real-closed" { = version } ]
 
 synopsis: "Compatibility package for rocq-mathcomp-real-closed"
