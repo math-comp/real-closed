@@ -1,3 +1,5 @@
+theories/sets.v
+theories/near.v
 theories/all_real_closed.v
 theories/cauchyreals.v
 theories/complex.v

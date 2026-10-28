@@ -62,11 +62,6 @@ dependencies:
     name: rocq-mathcomp-field
   description: |-
     [MathComp field](https://math-comp.github.io)
-- opam:
-    name: coq-mathcomp-bigenough
-    version: '{>= "1.0.0"}'
-  description: |-
-    [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
 
 namespace: mathcomp.real_closed
 
