@@ -22,7 +22,6 @@ depends: [
   "rocq-mathcomp-ssreflect" {>= "2.4"}
   "rocq-mathcomp-algebra" 
   "rocq-mathcomp-field" 
-  "rocq-mathcomp-bigenough" {>= "1.0.0"}
 ]
 
 tags: [
