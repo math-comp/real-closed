@@ -1,7 +1,7 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
-From mathcomp Require Import all_boot order all_algebra all_field bigenough.
+From mathcomp Require Import all_boot order near all_algebra all_field.
 From mathcomp Require Import polyorder cauchyreals.
 Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
@@ -17,7 +17,7 @@ Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.
 (* field R (for which rat is a prefect candidate)                        *)
 (*************************************************************************)
 
-Import Order.TTheory GRing.Theory Num.Theory BigEnough.
+Import Order.TTheory GRing.Theory Num.Theory.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -172,17 +172,20 @@ rewrite eq_sp_Sn ltnS => /andP[le_r_n monic_r] rx_eq0.
 exact: (ihn (AlgCReal monic_r rx_eq0)).
 Qed.
 
+Local Open Scope near_scope.
+
 Lemma eq_algcreal_dec (x y : algcreal) : {(x == y)%CR} + {(x != y)%CR}.
 Proof.
 have /= [d_eq0|d_neq0] := algcreal_eq0_dec (sub_algcreal x y); [left|right].
-  apply: eq_crealP; exists_big_modulus m F.
-    by move=> e i e_gt0 hi; rewrite (@eq0_modP _ _ d_eq0).
-  by close.
-pose_big_enough i.
-  apply: (@neq_crealP _ (lbound d_neq0) i i); do ?by rewrite ?lbound_gt0.
-  by rewrite (@lbound0P _ _ d_neq0).
-by close.
-Qed.
+- apply: eq_crealP.
+  exists (fun e => eq_mod d_eq0 e).
+  move=> e i e_gt0 hi.
+  by rewrite (@eq0_modP _ _ d_eq0).
+near \oo => i.
+apply: (@neq_crealP _ (lbound d_neq0) i i); [|by near: i..|].
+  exact: lbound_gt0.
+by rewrite (@lbound0P _ _ d_neq0)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Definition eq_algcreal : rel algcreal := eq_algcreal_dec.
 
@@ -237,10 +240,10 @@ Definition inv_algcreal (x : algcreal) :=
 Lemma div_creal_creal (y : creal F) (y_neq0 : (y != 0)%CR) :
   (y / y_neq0 == 1%:CR)%CR.
 Proof.
-apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi; rewrite /= divff ?subrr ?normr0 //.
-  by rewrite (@creal_neq_always _ _ 0%CR).
-by close.
+apply: eq_crealP.
+exists (fun e => maxn (cauchymod y (lbound y_neq0)) (cauchymod 0%CR (lbound y_neq0))).
+move=> e i e_gt0 hi; rewrite /= divff ?subrr ?normr0//.
+by rewrite (@creal_neq_always _ _ 0%CR)// (leq_trans _ hi)// ?leq_maxr ?leq_maxl.
 Qed.
 
 Lemma root_mul_algcreal (x y : algcreal) :
@@ -311,17 +314,24 @@ Definition norm_algcreal (x : algcreal) :=
 Lemma norm_algcrealE (x : algcreal) : (norm_algcreal x == `| x |)%CR.
 Proof.
 rewrite /norm_algcreal /le_algcreal; case: ltVge_algcreal_dec => /=.
-  move=> x_lt0; apply: eq_crealP; exists_big_modulus m F.
-    move=> e i e_gt0 hi /=; rewrite [`|x i|]ler0_norm ?subrr ?normr0 //.
-    by rewrite ltW // [_ < 0%CR i]creal_lt_always.
-  by close.
-move=> /(@le_creal_neqVlt zero_algcreal) /= [].
-  by move<-; apply: eq_crealP; exists m0=> * /=; rewrite !(normr0, subrr).
-move=> x_gt0; apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi /=; rewrite [`|x i|]ger0_norm ?subrr ?normr0 //.
-  by rewrite ltW // creal_gt0_always.
-by close.
-Qed.
+- move=> x_lt0 neq.
+  near \oo => i.
+  suff : lbound neq < lbound neq by rewrite ltxx.
+  apply: (@le_lt_trans _ _ `|- x i - `|x i| |).
+    by apply: lboundP; near: i.
+  rewrite [`|x i|]ler0_norm ?subrr ?normr0 ?lbound_gt0//.
+  by rewrite ltW // [_ < 0%CR i]creal_lt_always//; near: i.
+- move=> /(@le_creal_neqVlt zero_algcreal) /= [].
+  + move<-; apply: eq_crealP.
+    by exists m0 => * /=; rewrite !(normr0, subrr).
+  + move=> x_gt0 neq.
+    near \oo => i.
+    suff : lbound neq < lbound neq by rewrite ltxx.
+    apply: (@le_lt_trans _ _ `|x i - `|x i| |).
+      by apply: lboundP; near: i.
+    rewrite [`|x i|]ger0_norm ?subrr ?normr0 ?lbound_gt0//.
+    by rewrite ltW // creal_gt0_always//; near: i.
+Unshelve. all: by end_near. Qed.
 
 (**********************************************************************)
 (* Theory of the "domain" of algebraic numbers: polynomial + interval *)
@@ -410,44 +420,43 @@ Qed.
 Lemma alg_to_crealP (x : algdom) :
   creal_axiom (to_algcreal_of (annul_algdom x) (center_alg x) (radius_alg x)).
 Proof.
-pose_big_modulus m F.
-  exists m=> e i j e_gt0 hi hj.
-  wlog leij : i j {hi} hj / (j <= i)%N.
-    move=> hwlog; case/orP: (leq_total i j)=> /hwlog; last exact.
-    by rewrite distrC; apply.
-  rewrite (le_lt_trans (to_algcreal_ofP _ _ _ _)) ?radius_alg_ge0 //.
-  rewrite ltr_pdivrMr ?gtr0E // -ltr_pdivrMl //.
-  by rewrite upper_nthrootP.
-by close.
+exists (fun e => Num.bound (e^-1 * radius_alg x)).
+move=> e i j e_gt0 hi hj.
+wlog leij : i j {hi} hj / (j <= i)%N.
+  move=> hwlog; case/orP: (leq_total i j) => /hwlog; last exact.
+  by rewrite distrC; apply.
+rewrite (le_lt_trans (to_algcreal_ofP _ _ _ _)) ?radius_alg_ge0 //.
+rewrite ltr_pdivrMr ?gtr0E // -ltr_pdivrMl //.
+exact: upper_nthrootP.
 Qed.
 
 Definition alg_to_creal x := CReal (alg_to_crealP x).
 
 Lemma exp2k_crealP : @creal_axiom F (fun i => 2%:R ^- i).
 Proof.
-pose_big_modulus m F.
-  exists m=> e i j e_gt0 hi hj.
-  wlog leij : i j {hj} hi / (i <= j)%N.
-    move=> hwlog; case/orP: (leq_total i j)=> /hwlog; first exact.
-    by rewrite distrC; apply.
-  rewrite ger0_norm ?subr_ge0.
-    by rewrite ?lef_pV2 -?topredE /= ?gtr0E // ler_eXn2l ?ltr1n.
-  rewrite -(@ltr_pM2l _ (2%:R ^+ i )) ?gtr0E //.
-  rewrite mulrBr mulfV ?gt_eqF ?gtr0E //.
-  rewrite (le_lt_trans (_ : _ <= 1)) // ?gerDl ?oppr_le0 ?mulr_ge0 ?ger0E //.
-  by rewrite -ltr_pdivrMr // mul1r upper_nthrootP.
-by close.
+exists (fun e => Num.bound e^-1) => e i j e_gt0 hi hj.
+wlog leij : i j {hj} hi / (i <= j)%N.
+  move=> hwlog; case/orP: (leq_total i j) => /hwlog; first exact.
+  by rewrite distrC; apply.
+rewrite ger0_norm ?subr_ge0.
+  by rewrite ?lef_pV2 -?topredE /= ?gtr0E // ler_eXn2l ?ltr1n.
+rewrite -(@ltr_pM2l _ (2%:R ^+ i)) ?gtr0E //.
+rewrite mulrBr mulfV ?gt_eqF ?gtr0E //.
+rewrite (le_lt_trans (_ : _ <= 1)) // ?gerDl ?oppr_le0 ?mulr_ge0 ?ger0E //.
+by rewrite -ltr_pdivrMr // mul1r upper_nthrootP.
 Qed.
 Definition exp2k_creal := CReal exp2k_crealP.
 
 Lemma exp2k_creal_eq0 : (exp2k_creal == 0)%CR.
 Proof.
-apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi /=.
-  rewrite subr0 gtr0_norm ?gtr0E // -ltf_pV2 -?topredE /= ?gtr0E //.
-  by rewrite invrK upper_nthrootP.
-by close.
-Qed.
+move=> neq0.
+near \oo => i.
+have neq0i : lbound neq0 <= `|exp2k_creal i| by apply: lbound0P; near: i.
+have : `|exp2k_creal i| < lbound neq0.
+  rewrite /= gtr0_norm ?gtr0E // -ltf_pV2 -?topredE /= ?gtr0E ?lbound_gt0//.
+  by rewrite invrK upper_nthrootP//; near: i.
+by rewrite ltNge neq0i.
+Unshelve. all: by end_near. Qed.
 
 Notation lbound0_of p := (@lbound0P _ _ p _ _ _).
 
@@ -470,15 +479,14 @@ have: ((p).[u - cr * exp2k_creal] *  (p).[u + cr * exp2k_creal] <= 0)%CR.
   by rewrite mulr_ge0_le0 // -expr2 exprn_even_ge0.
 rewrite exp2k_creal_eq0 mul_creal0 opp_creal0 add_creal0.
 move=> hu pu0; apply: hu; pose e := (lbound pu0).
-pose_big_enough i.
-  apply: (@lt_crealP _ (e * e) i i) => //.
-    by rewrite !pmulr_rgt0 ?invr_gt0 ?ltr0n ?lbound_gt0.
-  rewrite add0r [u]lock /= -!expr2.
-  rewrite -[_.[_] ^+ _]ger0_norm ?exprn_even_ge0 // normrX.
-  rewrite ler_pXn2r -?topredE /= ?lbound_ge0 ?normr_ge0 //.
-  by rewrite -lock (le_trans _ (lbound0_of pu0)).
-by close.
-Qed.
+near \oo => i.
+apply: (@lt_crealP _ (e * e) i i) => //; [|by near: i..|].
+  by rewrite !pmulr_rgt0 ?invr_gt0 ?ltr0n ?lbound_gt0.
+rewrite add0r [u]lock /= -!expr2.
+rewrite -[_.[_] ^+ _]ger0_norm ?exprn_even_ge0 // normrX.
+rewrite ler_pXn2r -?topredE /= ?lbound_ge0 ?normr_ge0 //.
+by rewrite -lock (le_trans _ (lbound0_of pu0))//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Definition to_algcreal_rec (x : algdom) :=
   AlgCReal (monic_annul_algdom x) (@to_algcrealP x).
@@ -526,17 +534,20 @@ have [|ncop] := boolP (coprimep p p^`()).
     rewrite /to_algcreal -lock.
     by have := @to_algcrealP y; rewrite /= -/p=> ->; apply: eq_creal_sym.
   exists y.
-  move: sm=> /strong_mono_bound [k k_gt0 hk].
-  rewrite -/p; apply: eq_crealP.
-  exists_big_modulus m F.
-    move=> e j e_gt0 hj; rewrite (le_lt_trans (hk _ _ _ _)) //.
-    + rewrite /to_algcreal -lock.
-      rewrite (le_trans (to_algcreal_ofP _ _ _ (leq0n _))) ?(ltW r_gt0) //.
-      by rewrite expr0 divr1.
-    + by rewrite ltW // cauchymodP.
-    rewrite -ltr_pdivlMl //.
-    by rewrite (@eq_modP _ _ _ eq_py_px) // ?pmulr_rgt0 ?invr_gt0.
-  by close.
+  move: sm => /strong_mono_bound [k k_gt0 hk].
+  move=> yx.
+  pose e := lbound yx.
+  have e_gt0 : 0 < e by exact: lbound_gt0.
+  near \oo => j.
+  suff : e < e by rewrite ltxx.
+  apply: (@le_lt_trans _ _ `|to_algcreal y j - x j|).
+    by apply: lboundP; near: j.
+  rewrite (le_lt_trans (hk _ _ _ _))//.
+  + rewrite /to_algcreal -lock.
+    rewrite (le_trans (to_algcreal_ofP _ _ _ (leq0n _))) ?(ltW r_gt0)//.
+    by rewrite expr0 divr1.
+  + by rewrite ltW // cauchymodP //; near: j.
+  by rewrite -ltr_pdivlMl// (@eq_modP _ _ _ eq_py_px)// ?pmulr_rgt0 ?invr_gt0 //; near: j.
 case: (@smaller_factor _ p p^`() x); rewrite ?monic_annul_creal //.
   rewrite gtNdvdp // -?size_poly_eq0 size_deriv eq_sp_Sn //=.
   apply: contra ncop=> /eqP n_eq0; move: eq_sp_Sn; rewrite n_eq0.
@@ -544,7 +555,7 @@ case: (@smaller_factor _ p p^`() x); rewrite ?monic_annul_creal //.
 move=> r /andP [hsr monic_r rx_eq0].
 apply: (ihn (AlgCReal monic_r rx_eq0))=> /=.
 by rewrite -ltnS -eq_sp_Sn.
-Qed.
+Unshelve. all: by end_near. Qed.
 
 Definition to_algdom x := projT1 (to_algdom_exists x).
 
@@ -706,13 +717,17 @@ Proof. by rewrite [1]piE. Qed.
 
 Lemma mul_Valg (x : alg) : x != zero_alg -> mul_alg (inv_alg x) x = one_alg.
 Proof.
-elim/quotW: x=> x; rewrite piE -(rwP neq_algcrealP) /= => x_neq0.
+elim/quotW: x => x; rewrite piE -(rwP neq_algcrealP) /= => x_neq0.
 apply/eqP; rewrite piE; apply/eq_algcrealP; rewrite /= /inv_algcreal.
-case: eq_algcreal_dec=> [/(_ x_neq0) //|/= x_neq0'].
-apply: eq_crealP; exists_big_modulus m F.
-  by move=> * /=; rewrite mulVf ?subrr ?normr0 ?creal_neq0_always.
-by close.
-Qed.
+case: eq_algcreal_dec => [/(_ x_neq0) //|/= x_neq0'].
+move=> hneq; near \oo => i.
+suff : lbound hneq < lbound hneq by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|(x i)^-1 * x i - 1|).
+  by apply: lboundP; near: i.
+have xi_neq0 : x i != 0.
+  by rewrite (@creal_neq0_always _ _ i x_neq0')//; near: i.
+by rewrite mulVf ?subrr ?normr0 ?lbound_gt0.
+Unshelve. all: by end_near. Qed.
 
 Lemma inv_alg0 : inv_alg zero_alg = zero_alg.
 Proof.
@@ -720,14 +735,14 @@ rewrite !piE -equiv_alg /= /inv_algcreal.
 by case: eq_algcreal_dec=> //= zero_neq0; move: (eq_creal_refl zero_neq0).
 Qed.
 
-Lemma to_alg_additive : additive to_alg.
+Lemma to_alg_additive : zmod_morphism to_alg.
 Proof.
 move=> x y /=; rewrite !piE/= -equiv_alg /=.
 by apply: eq_crealP; exists m0=> * /=; rewrite subrr normr0.
 Qed.
 
 HB.instance Definition _ :=
-  GRing.isAdditive.Build F alg to_alg to_alg_additive.
+  Algebra.isZmodMorphism.Build F alg to_alg to_alg_additive.
 
 Lemma to_alg_multiplicative : multiplicative to_alg.
 Proof.
@@ -816,47 +831,46 @@ Lemma add_alg_gt0 x y : lt_alg zero_alg x -> lt_alg zero_alg y ->
   lt_alg zero_alg (x + y).
 Proof.
 rewrite -[x]reprK -[y]reprK !piE -!(rwP lt_algcrealP).
-move=> x_gt0 y_gt0; pose_big_enough i.
-  apply: (@lt_crealP _ (diff x_gt0 + diff y_gt0) i i) => //.
-    by rewrite addr_gt0 ?diff_gt0.
-  by rewrite /= add0r lerD // ?diff0P.
-by close.
-Qed.
+move=> x_gt0 y_gt0.
+near \oo => i.
+apply: (@lt_crealP _ (diff x_gt0 + diff y_gt0) i i); [|by near: i..|].
+  by rewrite addr_gt0 ?diff_gt0.
+by rewrite /= add0r lerD//; apply: diff0P; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma mul_alg_gt0 x y : lt_alg zero_alg x -> lt_alg zero_alg y ->
   lt_alg zero_alg (x * y).
 Proof.
 rewrite -[x]reprK -[y]reprK !piE -!(rwP lt_algcrealP).
-move=> x_gt0 y_gt0; pose_big_enough i.
-  apply: (@lt_crealP _ (diff x_gt0 * diff y_gt0) i i) => //.
-    by rewrite pmulr_rgt0 ?diff_gt0.
-  rewrite /= add0r (le_trans (_ : _ <= diff x_gt0 * (repr y) i)) //.
-    by rewrite ler_wpM2l ?(ltW (diff_gt0 _)) // diff0P.
-  by rewrite ler_wpM2r ?diff0P ?ltW ?creal_gt0_always.
-by close.
-Qed.
+move=> x_gt0 y_gt0.
+near \oo => i.
+apply: (@lt_crealP _ (diff x_gt0 * diff y_gt0) i i); [|by near: i..|].
+  by rewrite pmulr_rgt0 ?diff_gt0.
+rewrite /= add0r (le_trans (_ : _ <= diff x_gt0 * (repr y) i))//.
+  by rewrite ler_wpM2l ?(ltW (diff_gt0 _))// diff0P//; near: i.
+rewrite ler_wpM2r//.
+  by rewrite ltW // creal_gt0_always //; near: i.
+by apply: diff0P; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma gt0_alg_nlt0 x : lt_alg zero_alg x -> ~~ lt_alg x zero_alg.
 Proof.
 rewrite -[x]reprK !piE -!(rwP lt_algcrealP, rwP le_algcrealP).
-move=> hx; pose_big_enough i.
-  apply: (@le_crealP _ i)=> j /= hj.
-  by rewrite ltW // creal_gt0_always.
-by close.
-Qed.
+move=> hx; near \oo => i.
+apply: (@le_crealP _ i) => j /= hj.
+by rewrite ltW // creal_gt0_always// (leq_trans _ hj)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma sub_alg_gt0 x y : lt_alg zero_alg (y - x) = lt_alg x y.
 Proof.
-rewrite -[x]reprK -[y]reprK !piE; apply/lt_algcrealP/lt_algcrealP=> /= hxy.
-  pose_big_enough i.
-    apply: (@lt_crealP _ (diff hxy) i i); rewrite ?diff_gt0 //.
-    by rewrite (monoLR (addNKr _) (lerD2l _)) addrC diff0P.
-  by close.
-pose_big_enough i.
-  apply: (@lt_crealP _ (diff hxy) i i); rewrite ?diff_gt0 //.
-  by rewrite (monoRL (addrK _) (lerD2r _)) add0r addrC diffP.
-by close.
-Qed.
+rewrite -[x]reprK -[y]reprK !piE; apply/lt_algcrealP/lt_algcrealP => /= hxy.
+- near \oo => i.
+  apply: (@lt_crealP _ (diff hxy) i i); rewrite ?diff_gt0//; [by near: i..|].
+  by rewrite (monoLR (addNKr _) (lerD2l _)) addrC diff0P//; near: i.
+- near \oo => i.
+  apply: (@lt_crealP _ (diff hxy) i i); rewrite ?diff_gt0 //; [by near: i..|].
+  by rewrite (monoRL (addrK _) (lerD2r _)) add0r addrC diffP //; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma lt0_alg_total (x : alg) : x != zero_alg ->
   lt_alg zero_alg x || lt_alg x zero_alg.
@@ -864,17 +878,15 @@ Proof.
 rewrite -[x]reprK !piE => /neq_algcrealP /= x_neq0.
 apply/orP; rewrite -!(rwP lt_algcrealP).
 case/neq_creal_ltVgt: x_neq0=> /= [lt_x0|lt_0x]; [right|by left].
-pose_big_enough i.
-  by apply: (@lt_crealP _ (diff lt_x0) i i); rewrite ?diff_gt0 ?diffP.
-by close.
-Qed.
+near \oo => i.
+by apply: (@lt_crealP _ (diff lt_x0) i i); rewrite ?diff_gt0 ?diffP//; near: i.
+Unshelve. all: by end_near. Qed.
 
-Lemma norm_algN x :  norm_alg (- x) = norm_alg x.
+Lemma norm_algN x : norm_alg (- x) = norm_alg x.
 Proof.
 rewrite -[x]reprK !piE /= -equiv_alg !norm_algcrealE; apply: eq_crealP.
-exists_big_modulus m F=> [e i e_gt0 hi /=|].
-  by rewrite normrN subrr normr0.
-by close.
+exists (fun _ => 0%N) => e i e_gt0 hi /=.
+by rewrite normrN subrr normr0.
 Qed.
 
 Lemma ge0_norm_alg x : le_alg 0 x -> norm_alg x = x.
@@ -936,14 +948,14 @@ Qed.
 Lemma inf_alg_proof x : {d | 0 < d & 0 < x -> (d%:RA < x)}.
 Proof.
 have [|] := lerP; first by exists 1.
-elim/quotW: x=> x; rewrite zeroE=> /lt_algP /= x_gt0.
+elim/quotW: x => x; rewrite zeroE => /lt_algP /= x_gt0.
 exists (diff x_gt0 / 2%:R); first by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
-rewrite piE -(rwP lt_algP) /= => _; pose_big_enough i.
-  apply: (@lt_crealP _ (diff x_gt0 / 2%:R) i i) => //.
-    by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
-  by rewrite -[_ + _](splitf 2) diff0P.
-by close.
-Qed.
+rewrite piE -(rwP lt_algP) /= => _.
+near \oo => i.
+apply: (@lt_crealP _ (diff x_gt0 / 2%:R) i i); [|by near: i..|].
+  by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
+by rewrite -[_ + _](splitf 2) diff0P //; near: i.
+Unshelve. all: by end_near. Qed.
 
 Definition inf_alg (x : alg) : F :=
   let: exist2 d _ _ := inf_alg_proof x in d.
@@ -956,17 +968,17 @@ Proof. by rewrite /inf_alg=> x_gt0; case: inf_alg_proof=> d _ /(_ x_gt0). Qed.
 
 Lemma approx_proof x e : {y | 0 < e -> `|x - y%:RA| < e}.
 Proof.
-elim/quotW:x => x; pose_big_enough i.
-  exists (x i)=> e_gt0; rewrite (lt_trans _ (inf_lt_alg _)) //.
-  rewrite !piE norm_pi -(rwP lt_algP) /= norm_algcrealE /=.
-  pose_big_enough j.
-    apply: (@lt_crealP  _ (inf_alg e / 2%:R) j j) => //.
-      by rewrite pmulr_rgt0 ?gtr0E ?inf_alg_gt0.
-    rewrite /= {2}[inf_alg e](splitf 2) /= lerD2r.
-    by rewrite ltW // cauchymodP ?pmulr_rgt0 ?gtr0E ?inf_alg_gt0.
-  by close.
-by close.
-Qed.
+elim/quotW: x => x.
+pose i := cauchymod x (inf_alg e / 2).
+exists (x i) => e_gt0.
+rewrite (lt_trans _ (inf_lt_alg _))//.
+rewrite !piE norm_pi -(rwP lt_algP)/= norm_algcrealE/=.
+near \oo => j.
+apply: (@lt_crealP _ (inf_alg e / 2%:R) j j); [|by near: j..|].
+  by rewrite pmulr_rgt0 ?gtr0E ?inf_alg_gt0.
+rewrite /= {2}[inf_alg e](splitf 2) /= lerD2r.
+by rewrite ltW // cauchymodP ?pmulr_rgt0 ?gtr0E ?inf_alg_gt0//; near: j.
+Unshelve. all: by end_near. Qed.
 
 Definition approx := locked
   (fun (x : alg) (e : alg) => projT1 (approx_proof x e) : F).
@@ -1202,35 +1214,38 @@ Definition approx2 (x : {alg {alg F}}) i :=
 
 Lemma asympt_approx2 x : { asympt e : i / `|(approx2 x i)%:RA%:RA - x| < e }.
 Proof.
-exists_big_modulus m {alg {alg F}}.
-  move=> e i e_gt0 hi; rewrite distrC /approx2.
-  rewrite (@split_dist_add _ (approx x (2%:R ^- i))%:RA) //.
-    rewrite approxP ?gtr0E // ltW //.
-    by rewrite upper_nthrootVP ?divrn_gt0 ?ltr_to_alg.
-  rewrite (lt_trans _ (inf_lt_alg _)) ?divrn_gt0 //.
-  rewrite -rmorphB -normr_to_alg ltr_to_alg approxP ?gtr0E // ltW //.
+exists (fun e => maxn (Num.bound (e / 2)^-1) (Num.bound (inf_alg (e / 2))^-1)).
+move=> e i e_gt0.
+rewrite geq_max => /andP[hi1 hi2].
+rewrite distrC /approx2.
+rewrite (@split_dist_add _ (approx x (2%:R ^- i))%:RA) //.
+- rewrite approxP ?gtr0E // ltW //.
+  by rewrite upper_nthrootVP ?divrn_gt0 ?ltr_to_alg.
+- rewrite (lt_trans _ (inf_lt_alg _)) ?divrn_gt0//.
+  rewrite -rmorphB -normr_to_alg ltr_to_alg approxP ?gtr0E// ltW//.
   by rewrite upper_nthrootVP ?divrn_gt0 ?inf_alg_gt0 ?ltr_to_alg.
-by close.
 Qed.
 
 Lemma from_alg_crealP (x : {alg {alg F}}) : creal_axiom (approx2 x).
 Proof.
-exists_big_modulus m F.
-  move=> e i j e_gt0 hi hj; rewrite -2!ltr_to_alg !normr_to_alg !rmorphB /=.
-  rewrite (@split_dist_add _ x) // ?[`|_ - _%:RA|]distrC;
-  by rewrite (@asympt1modP _ _ (asympt_approx2 x)) ?divrn_gt0 ?ltr_to_alg.
-by close.
+exists (fun e => sval (asympt_approx2 x) (e%:RA%:RA / 2)).
+move=> e i j e_gt0 hi hj.
+rewrite -2!ltr_to_alg !normr_to_alg !rmorphB /=.
+rewrite (@split_dist_add _ x) // ?[`|_ - _%:RA|]distrC.
+- apply: (@asympt1modP _ _ (asympt_approx2 x)) => //.
+  by rewrite divrn_gt0// !ltr_to_alg.
+- apply: (@asympt1modP _ _ (asympt_approx2 x)) => //.
+  by rewrite divrn_gt0// !ltr_to_alg.
 Qed.
 
 Definition from_alg_creal := locked (fun x => CReal (from_alg_crealP x)).
 
-Lemma to_alg_crealP (x : creal F) :  creal_axiom (fun i => to_alg F (x i)).
+Lemma to_alg_crealP (x : creal F) : creal_axiom (fun i => to_alg F (x i)).
 Proof.
-exists_big_modulus m (alg F).
-  move=> e i j e_gt0 hi hj.
-  rewrite -rmorphB -normr_to_alg (lt_trans _ (inf_lt_alg _)) //.
-  by rewrite ltr_to_alg cauchymodP ?inf_alg_gt0.
-by close.
+exists (fun e => cauchymod x (inf_alg e)).
+move=> e i j e_gt0 hi hj.
+rewrite -rmorphB -normr_to_alg (lt_trans _ (inf_lt_alg _))//.
+by rewrite ltr_to_alg cauchymodP ?inf_alg_gt0.
 Qed.
 Definition to_alg_creal x := CReal (to_alg_crealP x).
 
@@ -1240,22 +1255,24 @@ Proof.
 by apply: eq_crealP; exists m0=> * /=; rewrite horner_map subrr normr0.
 Qed.
 
+Local Open Scope near_scope.
+
 Lemma neq_to_alg_creal x y :
   (to_alg_creal x != to_alg_creal y)%CR <-> (x != y)%CR.
 Proof.
 split=> neq_xy.
-  pose_big_enough i.
-    apply: (@neq_crealP _ (inf_alg (lbound neq_xy)) i i) => //.
-      by rewrite inf_alg_gt0.
-    rewrite -ler_to_alg normr_to_alg rmorphB /= ltW //.
-    by rewrite (lt_le_trans (inf_lt_alg _)) ?lbound_gt0 ?lboundP.
-  by close.
-pose_big_enough i.
-  apply: (@neq_crealP _ (lbound neq_xy)%:RA i i) => //.
+- near \oo => i.
+  apply: (@neq_crealP _ (inf_alg (lbound neq_xy)) i i); [|by near: i..|].
+    by rewrite inf_alg_gt0.
+  rewrite -ler_to_alg normr_to_alg rmorphB /= ltW //.
+  rewrite (lt_le_trans (inf_lt_alg _)) ?lbound_gt0 //.
+  by apply: lboundP; near: i.
+- near \oo => i.
+  apply: (@neq_crealP _ (lbound neq_xy)%:RA i i); [|by near: i..|].
     by rewrite ltr_to_alg lbound_gt0.
-  by rewrite -rmorphB -normr_to_alg ler_to_alg lboundP.
-by close.
-Qed.
+  rewrite -rmorphB -normr_to_alg ler_to_alg.
+  by apply: lboundP; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma eq_to_alg_creal x y :
   (to_alg_creal x == to_alg_creal y)%CR -> (x == y)%CR.
@@ -1264,40 +1281,44 @@ Proof. by move=> hxy /neq_to_alg_creal. Qed.
 Lemma to_alg_creal0 : (to_alg_creal 0 == 0)%CR.
 Proof. by apply: eq_crealP; exists m0=> * /=; rewrite subrr normr0. Qed.
 
-Import Setoid.
+Require Setoid.
+
+Local Notation "R ==> R'" := (Morphisms.respectful R R')
+  (right associativity, at level 55) : signature_scope.
 
 Add Morphism to_alg_creal
  with signature (@eq_creal _) ==> (@eq_creal _) as to_alg_creal_morph.
 Proof. by move=> x y hxy /neq_to_alg_creal. Qed.
 Global Existing Instance to_alg_creal_morph_Proper.
 
-Lemma to_alg_creal_repr (x : {alg F}) : (to_alg_creal (repr x) == x%:CR)%CR.
+Lemma to_alg_creal_repr (x : {alg F}) :
+  (to_alg_creal (repr x) == x%:CR)%CR.
 Proof.
-apply: eq_crealP; exists_big_modulus m {alg F}.
-  move=> e i e_gt0 hi /=; rewrite (le_lt_trans _ (inf_lt_alg _)) //.
-  rewrite -{2}[x]reprK !piE norm_pi.
-  rewrite -(rwP (le_algP _ _)) norm_algcrealE /=; pose_big_enough j.
-    apply: (@le_crealP _ j)=> k hk /=.
-    by rewrite ltW // cauchymodP ?inf_alg_gt0.
-  by close.
-by close.
+apply: eq_crealP.
+exists (fun e => cauchymod (repr x) (inf_alg e)).
+move=> e i e_gt0 hi /=.
+rewrite (le_lt_trans _ (inf_lt_alg _)) //.
+rewrite -{2}[x]reprK !piE norm_pi.
+rewrite -(rwP (le_algP _ _)) norm_algcrealE /=.
+apply: (@le_crealP _ (cauchymod (repr x) (inf_alg e))) => k hk /=.
+by rewrite ltW // cauchymodP ?inf_alg_gt0.
 Qed.
 
 Local Open Scope quotient_scope.
 
 Lemma cst_pi (x : algcreal F) : ((\pi_{alg F} x)%:CR == to_alg_creal x)%CR.
 Proof.
-apply: eq_crealP; exists_big_modulus m {alg F}.
-  move=> e i e_gt0 hi /=; rewrite (lt_trans _ (inf_lt_alg _)) //.
-  rewrite !piE norm_pi /= -(rwP (lt_algP _ _)) norm_algcrealE /=.
-  pose_big_enough j.
-    apply: (@lt_crealP _ (inf_alg e / 2%:R) j j) => //.
-      by rewrite ?divrn_gt0 ?inf_alg_gt0.
-    rewrite /= {2}[inf_alg _](splitf 2) lerD2r ltW // distrC.
-    by rewrite cauchymodP ?divrn_gt0 ?inf_alg_gt0.
-  by close.
-by close.
-Qed.
+apply: eq_crealP.
+exists (fun e => cauchymod x (inf_alg e / 2)).
+move=> e i e_gt0 hi /=.
+rewrite (lt_trans _ (inf_lt_alg _)) //.
+rewrite !piE norm_pi /= -(rwP (lt_algP _ _)) norm_algcrealE /=.
+near \oo => j.
+apply: (@lt_crealP _ (inf_alg e / 2%:R) j j); [|by near: j..|].
+  by rewrite ?divrn_gt0 ?inf_alg_gt0.
+rewrite /= {2}[inf_alg _](splitf 2) lerD2r ltW // distrC.
+by rewrite cauchymodP ?divrn_gt0 ?inf_alg_gt0//; near: j.
+Unshelve. all: by end_near. Qed.
 
 End AlgAlg.
 
@@ -1313,10 +1334,9 @@ Local Notation "'Y" := 'X%:P.
 Lemma from_alg_crealK (x : {alg {alg F}}) :
   (to_alg_creal (to_alg_creal (from_alg_creal x)) == x%:CR)%CR.
 Proof.
-apply: eq_crealP; exists_big_modulus m {alg {alg F}}.
-  move=> e i e_gt0 hi; unlock from_alg_creal=> /=.
-  by rewrite (@asympt1modP _ _ (asympt_approx2 x)).
-by close.
+apply: eq_crealP.
+unlock from_alg_creal => /=.
+exact: asympt_approx2.
 Qed.
 
 Lemma root_annul_from_alg_creal (x : {alg {alg F}}) :

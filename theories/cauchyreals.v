@@ -2,9 +2,9 @@
 (* Distributed under the terms of CeCILL-B.                                  *)
 From Corelib Require Setoid.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
-From mathcomp Require Import fintype bigop binomial order perm ssralg poly.
-From mathcomp Require Import polydiv ssrnum ssrint rat matrix mxpoly polyXY.
-From mathcomp Require Import bigenough polyorder.
+From mathcomp Require Import fintype bigop binomial near order perm ssralg.
+From mathcomp Require Import poly polydiv ssrnum ssrint rat matrix mxpoly.
+From mathcomp Require Import polyXY polyorder.
 Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.6 *)
 
 (***************************************************************************)
@@ -14,7 +14,7 @@ Unset SsrOldRewriteGoalsOrder.  (* remove the line when requiring MathComp >= 2.
 (*               cannot be equipped with any ssreflect algebraic structure *)
 (***************************************************************************)
 
-Import Order.TTheory GRing.Theory Num.Theory BigEnough.
+Import Order.TTheory GRing.Theory Num.Theory.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -22,6 +22,15 @@ Unset Printing Implicit Defensive.
 
 Declare Scope creal_scope.
 Delimit Scope creal_scope with CR.
+
+(* TODO: move to near.v *)
+Local Open Scope near_scope.
+
+Lemma nbhs_infty_ge N : \forall n \near \oo, (N <= n)%N.
+Proof. by exists N. Qed.
+
+Hint Resolve nbhs_infty_ge : core.
+(* /TODO: move to near.v *)
 
 Section poly_extra.
 
@@ -639,12 +648,12 @@ Proof. by move=> cx c0; rewrite -[X in `|X|]subr0 -[0]/(0%CR i) lboundP. Qed.
 Notation lbound0_of p := (@lbound0P _ p _ _ _).
 
 Lemma neq_crealP e i j (e_gt0 : 0 < e) (x y : creal) :
-  (cauchymod x (e / 5%:R) <= i)%N -> (cauchymod y (e / 5%:R) <= j)%N ->
+  (cauchymod x (e / 5) <= i)%N -> (cauchymod y (e / 5) <= j)%N ->
   e <= `|x i - y j| ->  x != y.
 Proof.
-move=> hi hj he; exists (e / 5%:R); rewrite pmulr_rgt0 ?gtr0E //=.
-rewrite distrC ltW // (@ltr_distr_creal (e / 5%:R) j) ?pmulr_rgt0 ?gtr0E //.
-rewrite distrC ltW // (@ltr_distr_creal (e / 5%:R) i) ?pmulr_rgt0 ?gtr0E //.
+move=> hi hj he; exists (e / 5); rewrite pmulr_rgt0 ?gtr0E //=.
+rewrite distrC ltW // (@ltr_distr_creal (e / 5) j) ?pmulr_rgt0 ?gtr0E //.
+rewrite distrC ltW // (@ltr_distr_creal (e / 5) i) ?pmulr_rgt0 ?gtr0E //.
 by rewrite mulr_natr -!mulrSr -mulrnAr -mulr_natr mulVf ?pnatr_eq0 ?mulr1.
 Qed.
 
@@ -652,11 +661,13 @@ Lemma eq_crealP (x y : creal) : {asympt e : i / `|x i - y i| < e} ->
   (x == y)%CR.
 Proof.
 case=> m hm neq_xy; pose d := lbound neq_xy.
-pose_big_enough i.
-  have := (hm d i); rewrite lbound_gt0; big_enough => /(_ isT isT).
-  by apply/negP; rewrite -leNgt lboundP.
-by close.
-Qed.
+near \oo => i.
+have := hm d i.
+rewrite lbound_gt0 => /(_ isT).
+have : (m d <= i)%N by near: i.
+move=> /[swap] /[apply].
+by apply/negP; rewrite -leNgt lboundP//; by near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma eq0_crealP (x : creal) : {asympt e : i / `|x i| < e} -> x == 0.
 Proof.
@@ -666,10 +677,10 @@ Qed.
 Lemma asympt_eq (x y : creal) (eq_xy : x == y) :
   {asympt e : i / `|x i - y i| < e}.
 Proof.
-exists_big_modulus m F.
-   move=> e i e0 hi; rewrite ltNge; apply/negP=> he; apply: eq_xy.
-   by apply: (@neq_crealP e i i).
-by close.
+exists (fun e => maxn (cauchymod x (e / 5)) (cauchymod y (e / 5))).
+move=> e i e0; rewrite geq_max => /andP[hx hy].
+rewrite ltNge; apply/negP => he; apply: eq_xy.
+exact: (neq_crealP e0 hx hy he).
 Qed.
 
 Lemma asympt_eq0 (x : creal) : x == 0 -> {asympt e : i / `|x i| < e}.
@@ -696,21 +707,27 @@ Hint Resolve eq_creal_refl : core.
 
 Lemma neq_creal_sym x y : x != y -> y != x.
 Proof.
-move=> neq_xy; pose_big_enough i.
-  apply: (@neq_crealP (lbound neq_xy) i i);
-  by rewrite ?lbound_gt0 1?distrC ?(lbound_of neq_xy).
-by close.
-Qed.
+move=> neq_xy.
+near \oo => i.
+apply: (@neq_crealP (lbound neq_xy) i i).
+- by rewrite lbound_gt0.
+- by near: i.
+- by near: i.
+- by rewrite distrC (lbound_of neq_xy)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma eq_creal_sym x y : x == y -> y == x.
 Proof. by move=> eq_xy /neq_creal_sym. Qed.
 
 Lemma eq_creal_trans x y z : x == y -> y == z -> x == z.
 Proof.
-move=> eq_xy eq_yz; apply: eq_crealP; exists_big_modulus m F.
-  by move=> e i *; rewrite (@split_dist_add (y i)) ?eq_modP ?divrn_gt0.
-by close.
-Qed.
+move=> eq_xy eq_yz neq_xz.
+near \oo => i.
+suff : lbound neq_xz < lbound neq_xz by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|x i - z i|).
+  by apply: (lbound_of neq_xz); near: i.
+by rewrite (@split_dist_add (y i))// eq_modP ?divrn_gt0 ?lbound_gt0//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma creal_neq_always (x y : creal) i (neq_xy : x != y) :
   (cauchymod x (lbound neq_xy) <= i)%N ->
@@ -777,13 +794,13 @@ Proof. by move=> cx c0; rewrite -[diff _]add0r -[0]/(0%CR i) diffP. Qed.
 Notation diff0_of p := (@diff0P _ p _ _ _).
 
 Lemma lt_crealP e i j (e_gt0 : 0 < e) (x y : creal) :
-  (cauchymod x (e / 5%:R) <= i)%N -> (cauchymod y (e / 5%:R) <= j)%N ->
+  (cauchymod x (e / 5) <= i)%N -> (cauchymod y (e / 5) <= j)%N ->
   x i + e <= y j ->  (x < y)%CR.
 Proof.
-move=> hi hj he; exists (e / 5%:R); rewrite pmulr_rgt0 ?gtr0E //=.
-rewrite ltW // (@gtr_creal (e / 5%:R) j) ?pmulr_rgt0 ?gtr0E //.
+move=> hi hj he; exists (e / 5); rewrite pmulr_rgt0 ?gtr0E //=.
+rewrite ltW // (@gtr_creal (e / 5) j) ?pmulr_rgt0 ?gtr0E //.
 rewrite (le_trans _ he) // -addrA (monoLR (addrNK _) (lerD2r _)).
-rewrite ltW // (@ltr_creal (e / 5%:R) i) ?pmulr_rgt0 ?gtr0E //.
+rewrite ltW // (@ltr_creal (e / 5) i) ?pmulr_rgt0 ?gtr0E //.
 rewrite -!addrA lerDl !addrA -mulrA -{1}[e]mulr1 -!(mulrBr, mulrDr).
 rewrite pmulr_rge0 // {1}[1](splitf 5) /= !mul1r !mulrDr mulr1.
 by rewrite !opprD !addrA !addrK addrN.
@@ -792,23 +809,26 @@ Qed.
 Lemma le_crealP i (x y : creal) :
   (forall j, (i <= j)%N -> x j <= y j) -> (x <= y)%CR.
 Proof.
-move=> hi lt_yx; pose_big_enough j.
-  have := hi j; big_enough => /(_ isT); apply/negP; rewrite -ltNge.
-  by rewrite (lt_le_trans _ (diff_of lt_yx)) ?ltr_pwDr ?diff_gt0.
-by close.
-Qed.
+move=> hi lt_yx.
+near \oo => j.
+have : ~~ (x j <= y j).
+  by rewrite -ltNge (lt_le_trans _ (diff_of lt_yx)) ?ltr_pwDr ?diff_gt0 //;
+    near: j.
+move=> /negP; apply; apply: hi.
+by near: j.
+Unshelve. all: by end_near. Qed.
 
 Lemma le_creal_refl (x : creal) : (x <= x)%CR.
-Proof. by apply: (@le_crealP 0%N). Qed.
+Proof. exact: (@le_crealP 0%N). Qed.
 Hint Resolve le_creal_refl : core.
 
 Lemma lt_neq_creal (x y : creal) : (x < y)%CR -> x != y.
 Proof.
-move=> ltxy; pose_big_enough i.
-  apply: (@neq_crealP (diff ltxy) i i) => //; first by rewrite diff_gt0.
-  by rewrite distrC leNgt ltr_distl negb_and -!leNgt diffP ?orbT.
-by close.
-Qed.
+move=> ltxy.
+near \oo => i.
+apply: (@neq_crealP (diff ltxy) i i); rewrite ?diff_gt0 //; [by near: i..|].
+by rewrite distrC leNgt ltr_distl negb_and -!leNgt diffP ?orbT//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma creal_lt_always (x y : creal) i (lt_xy : (x < y)%CR) :
   (cauchymod x (diff lt_xy) <= i)%N ->
@@ -825,10 +845,10 @@ Proof. by move=> /eq_creal_sym ? /lt_neq_creal. Qed.
 Lemma asympt_le (x y : creal) (le_xy : (x <= y)%CR) :
   {asympt e : i / x i < y i + e}.
 Proof.
-exists_big_modulus m F.
-  move=> e i e0 hm; rewrite ltNge; apply/negP=> he; apply: le_xy.
-  by apply: (@lt_crealP e i i).
-by close.
+exists (fun e => maxn (cauchymod y (e / 5)) (cauchymod x (e / 5))).
+move=> e i e0; rewrite geq_max => /andP[hy hx].
+rewrite ltNge; apply/negP => he; apply: le_xy.
+exact: (lt_crealP e0 hy hx he).
 Qed.
 
 Lemma asympt_ge0 (x : creal) : (0 <= x)%CR -> {asympt e : i / - e < x i}.
@@ -856,31 +876,32 @@ Notation "- x" := (opp_creal x) : creal_scope.
 
 Lemma add_crealP (x y : creal) :  creal_axiom (fun i => x i + y i).
 Proof.
-exists_big_modulus m F => [e i j he hi hj|].
-  by rewrite opprD addrACA split_norm_add ?cauchymodP ?divrn_gt0.
-by close.
+exists (fun e => maxn (cauchymod x (e / 2)) (cauchymod y (e / 2))).
+move=> e i j e0; rewrite !geq_max => /andP[hxi hyi] /andP[hxj hyj].
+by rewrite opprD addrACA split_norm_add ?cauchymodP ?divrn_gt0.
 Qed.
 Definition add_creal (x y : creal) := CReal (add_crealP x y).
 Notation "+%CR" := add_creal : creal_scope.
 Notation "x + y" := (add_creal x y) : creal_scope.
 Notation "x - y" := (x + - y)%CR : creal_scope.
 
-
 Lemma ubound_subproof (x : creal) : {b : F | b > 0 & forall i, `|x i| <= b}.
 Proof.
-pose_big_enough i; first set b := 1 + `|x i|.
-  exists (foldl Num.max b [seq `|x n| | n <- iota 0 i]) => [|n].
-    have : 0 < b by rewrite ltr_pwDl.
-    by elim: iota b => //= a l IHl b b_gt0; rewrite IHl ?lt_max ?b_gt0.
-  have [|le_in] := (ltnP n i).
-    elim: i b => [|i IHi] b //.
-    rewrite ltnS -addn1 iotaD add0n map_cat foldl_cat /= le_max leq_eqVlt.
-    by case/orP=> [/eqP->|/IHi->] //; rewrite lexx orbT.
-  set xn := `|x n|; suff : xn <= b.
-    by elim: iota xn b => //= a l IHl xn b Hxb; rewrite IHl ?le_max ?Hxb.
-  rewrite -lerBlDr (le_trans (ler_norm _)) //.
-  by rewrite (le_trans (ler_dist_dist _ _)) ?ltW ?cauchymodP.
-by close.
+set i := cauchymod x 1.
+have xi : (cauchymod x 1 <= i)%N by [].
+move: i => i in xi *.
+set b := 1 + `|x i|.
+exists (foldl Num.max b [seq `|x n| | n <- iota 0 i]) => [|n].
+  have : 0 < b by rewrite ltr_pwDl.
+  by elim: iota b => //= a l IHl b b_gt0; rewrite IHl ?lt_max ?b_gt0.
+have [|le_in] := (ltnP n i).
+  clear xi; elim: i b => [|i IHi] b //.
+  rewrite ltnS -addn1 iotaD add0n map_cat foldl_cat /= le_max leq_eqVlt.
+  by case/orP=> [/eqP->|/IHi->] //; rewrite lexx orbT.
+set xn := `|x n|; suff : xn <= b.
+  by elim: iota xn b => //= a l IHl xn b Hxb; rewrite IHl ?le_max ?Hxb.
+rewrite -lerBlDr (le_trans (ler_norm _)) //.
+by rewrite (le_trans (ler_dist_dist _ _)) ?ltW ?cauchymodP// (leq_trans xi).
 Qed.
 
 Definition ubound (x : creal) := let: exist2 b _ _ := ubound_subproof x in b.
@@ -895,17 +916,17 @@ Definition ubound_ge0 x := (ltW (ubound_gt0 x)).
 
 Lemma mul_crealP (x y : creal) :  creal_axiom (fun i => x i * y i).
 Proof.
-exists_big_modulus m F.
-  move=> e i j e_gt0 hi hj.
-  rewrite -[_ * _]subr0 -(subrr (x j * y i)) opprD opprK addrA.
-  rewrite -mulrBl -addrA -mulrBr split_norm_add // !normrM.
-    have /ler_wpM2l /le_lt_trans-> // := uboundP y i.
-    rewrite -ltr_pdivlMr ?ubound_gt0 ?cauchymodP //.
-    by rewrite !pmulr_rgt0 ?invr_gt0 ?ubound_gt0 ?ltr0n.
-  rewrite mulrC; have /ler_wpM2l /le_lt_trans-> // := uboundP x j.
+exists (fun e => maxn (cauchymod x (e / 2 / ubound y)) (cauchymod y (e / 2 / ubound x))).
+move=> e i j e_gt0.
+rewrite !geq_max => /andP[xi yi] /andP[xj yj].
+rewrite -[_ * _]subr0 -(subrr (x j * y i)) opprD opprK addrA.
+rewrite -mulrBl -addrA -mulrBr split_norm_add // !normrM.
+  have /ler_wpM2l /le_lt_trans-> // := uboundP y i.
   rewrite -ltr_pdivlMr ?ubound_gt0 ?cauchymodP //.
-  by rewrite !pmulr_rgt0 ?gtr0E ?ubound_gt0.
-by close.
+  by rewrite !pmulr_rgt0 ?invr_gt0 ?ubound_gt0 ?ltr0n.
+rewrite mulrC; have /ler_wpM2l /le_lt_trans-> // := uboundP x j.
+rewrite -ltr_pdivlMr ?ubound_gt0 ?cauchymodP//.
+by rewrite !pmulr_rgt0 ?gtr0E ?ubound_gt0.
 Qed.
 Definition mul_creal (x y : creal) := CReal (mul_crealP x y).
 Notation "*%CR" := mul_creal : creal_scope.
@@ -914,21 +935,21 @@ Notation "x * y" := (mul_creal x y) : creal_scope.
 Lemma inv_crealP (x : creal) (x_neq0 : x != 0) : creal_axiom (fun i => (x i)^-1).
 Proof.
 pose d := lbound x_neq0.
-exists_big_modulus m F.
- (* exists (fun e => [CC x # e * d ^+ 2; ! x_neq0]). *)
-  move=> e i j e_gt0 hi hj.
-  have /andP[xi_neq0 xj_neq0] : (x i != 0) && (x j != 0).
-    by rewrite -!normr_gt0 !(lt_le_trans _ (lbound0_of x_neq0)) ?lbound_gt0.
-  rewrite -(@ltr_pM2r _ `|x i * x j|); first by rewrite normr_gt0 mulf_neq0.
-  rewrite -normrM !mulrBl mulrA mulVf // mulrCA mulVf // mul1r mulr1.
-  apply: lt_le_trans (_ : e * d ^+ 2 <= _).
-    by apply: cauchymodP; rewrite // !pmulr_rgt0 ?lbound_gt0.
-  rewrite ler_wpM2l ?(ltW e_gt0) // normrM.
-  have /(_ j) hx /= := lbound0_of x_neq0.
-  have -> // := (le_trans (ler_wpM2l _ (hx _ _))).
-    by rewrite ltW // lbound_gt0.
-  by rewrite ler_wpM2r ?normr_ge0 // lbound0P.
-by close.
+exists (fun e => maxn (cauchymod x (e * d ^+ 2))
+  (maxn (cauchymod x d) (cauchymod 0 d))).
+move=> e i j e_gt0.
+rewrite !geq_max => /andP[xei /andP[xi i0]] /andP[xej /andP[xj j0]].
+have /andP[xi_neq0 xj_neq0] : (x i != 0) && (x j != 0).
+  by rewrite -!normr_gt0 !(lt_le_trans _ (lbound0_of x_neq0)) ?lbound_gt0.
+rewrite -(@ltr_pM2r _ `|x i * x j|); first by rewrite normr_gt0 mulf_neq0.
+rewrite -normrM !mulrBl mulrA mulVf // mulrCA mulVf // mul1r mulr1.
+apply: lt_le_trans (_ : e * d ^+ 2 <= _).
+   by apply: cauchymodP; rewrite // !pmulr_rgt0 ?lbound_gt0.
+rewrite ler_wpM2l ?(ltW e_gt0) // normrM.
+have /(_ j) hx /= := lbound0_of x_neq0.
+have -> // := (le_trans (ler_wpM2l _ (hx _ _))).
+  by rewrite ltW // lbound_gt0.
+by rewrite ler_wpM2r ?normr_ge0 // lbound0P.
 Qed.
 Definition inv_creal (x : creal) (x_neq0 : x != 0) := CReal (inv_crealP x_neq0).
 Notation "x_neq0 ^-1" := (inv_creal x_neq0) : creal_scope.
@@ -945,12 +966,13 @@ Local Notation "`| x |" := (norm_creal x) : creal_scope.
 Lemma horner_crealP (p : {poly F}) (x : creal) :
   creal_axiom (fun i => p.[x i]).
 Proof.
-exists_big_modulus m F=> [e i j e_gt0 hi hj|].
-  rewrite (le_lt_trans (@poly_accr_bound1P _ p (x (cauchymod x 1)) 1 _ _ _ _));
-    do ?[by rewrite ?e_gt0 | by rewrite ltW // cauchymodP].
-  rewrite -ltr_pdivlMr ?poly_accr_bound_gt0 ?cauchymodP //.
-  by rewrite pmulr_rgt0 ?invr_gt0 ?poly_accr_bound_gt0.
-by close.
+pose r := poly_accr_bound p (x (cauchymod x 1)) 1.
+exists (fun e => maxn (cauchymod x 1) (cauchymod x (e / r))).
+move=> e i j e_gt0; rewrite !geq_max => /andP[xi xei ]/andP[xj xej].
+rewrite (le_lt_trans (@poly_accr_bound1P _ p (x (cauchymod x 1)) 1 _ _ _ _));
+  do ?[by rewrite ?e_gt0 | by rewrite ltW // cauchymodP ?ltr01 ?leqnn].
+rewrite -ltr_pdivlMr ?poly_accr_bound_gt0 ?cauchymodP//.
+by rewrite pmulr_rgt0 ?invr_gt0 ?poly_accr_bound_gt0.
 Qed.
 Definition horner_creal (p : {poly F}) (x : creal) := CReal (horner_crealP p x).
 Notation "p .[ x ]" := (horner_creal p x) : creal_scope.
@@ -959,34 +981,36 @@ Lemma neq_creal_horner p (x y : creal) : p.[x] != p.[y] -> x != y.
 Proof.
 move=> neq_px_py.
 pose d := lbound neq_px_py.
-pose_big_enough i.
-  pose k := 2%:R + poly_accr_bound p (y i) d.
-  have /andP[d_gt0 k_gt0] : (0 < d) && (0 < k).
-    rewrite ?(ltr_pwDl, poly_accr_bound_ge0);
-    by rewrite ?ltr0n ?ltW ?ltr01 ?lbound_gt0.
-  pose_big_enough j.
-    apply: (@neq_crealP (d / k) j j) => //.
-      by rewrite ?(pmulr_lgt0, invr_gt0, ltr0n).
-    rewrite ler_pdivrMr //.
-    have /(_ j) // := (lbound_of neq_px_py).
-    big_enough=> /(_ isT isT).
-    apply: contraLR; rewrite -!ltNge=> hxy.
-    rewrite (le_lt_trans (@poly_accr_bound1P _ _ (y i) d _ _ _ _)) //.
-    + by rewrite ltW // cauchymodP.
-    + rewrite ltW // (@split_dist_add (y j)) //; last first.
-        by rewrite cauchymodP ?divrn_gt0.
-      rewrite ltr_pdivlMr ?ltr0n // (le_lt_trans _ hxy) //.
-      by rewrite ler_wpM2l ?normr_ge0 // ler_wpDr // poly_accr_bound_ge0.
-    rewrite (le_lt_trans _ hxy) // ler_wpM2l ?normr_ge0 //.
-    by rewrite ler_wpDl // ?ler0n.
-  by close.
-by close.
-Qed.
+near \oo => i.
+pose k := 2%:R + poly_accr_bound p (y i) d.
+have /andP[d_gt0 k_gt0] : (0 < d) && (0 < k).
+  rewrite ?(ltr_pwDl, poly_accr_bound_ge0);
+  by rewrite ?ltr0n ?ltW ?ltr01 ?lbound_gt0.
+near \oo => j.
+apply: (@neq_crealP (d / k) j j); rewrite ?(pmulr_lgt0, invr_gt0, ltr0n) //;
+  try by near: j; exact: nbhs_infty_ge.
+have [hj1 hj2 hd] : [/\ (cauchymod y d <= j)%N, (cauchymod y (d / 2%:R) <= j)%N
+                      & d <= `|horner p (x j) - horner p (y j)|].
+  by split; try apply: lboundP; near: j; exact: nbhs_infty_ge.
+rewrite ler_pdivrMr //.
+move: hd; apply: contraLR; rewrite -!ltNge => hxy.
+rewrite (le_lt_trans (@poly_accr_bound1P _ _ (y i) d _ _ _ _))//.
++ by rewrite ltW // cauchymodP//; near: i.
++ rewrite ltW // (@split_dist_add (y j)) //; last first.
+    by rewrite cauchymodP ?divrn_gt0//; near: i.
+  rewrite ltr_pdivlMr ?ltr0n // (le_lt_trans _ hxy)//.
+  by rewrite ler_wpM2l ?normr_ge0 // ler_wpDr // poly_accr_bound_ge0.
+rewrite (le_lt_trans _ hxy) // ler_wpM2l ?normr_ge0//.
+by rewrite ler_wpDl// ?ler0n.
+Unshelve. all: by end_near. Qed.
 
 Lemma eq_creal_horner p (x y : creal) : x == y -> p.[x] == p.[y].
 Proof. by move=> hxy /neq_creal_horner. Qed.
 
-Import Setoid Relation_Definitions.
+Require Setoid Relation_Definitions.
+
+Local Notation "R ==> R'" := (Morphisms.respectful R R')
+  (right associativity, at level 55) : signature_scope.
 
 Add Relation creal eq_creal
   reflexivity proved by eq_creal_refl
@@ -998,14 +1022,15 @@ Global Existing Instance eq_creal_rel.
 Add Morphism add_creal with
   signature eq_creal ==> eq_creal ==> eq_creal as add_creal_morph.
 Proof.
-move=> x y eq_xy z t eq_zt; apply: eq_crealP.
-exists_big_modulus m F.
-  move=> e i e_gt0 hi; rewrite opprD addrA [X in X + _]addrAC -addrA.
-  by rewrite split_norm_add ?eq_modP ?divrn_gt0.
-by close.
-Qed.
+move=> x y eq_xy z t eq_zt neq.
+near \oo => i.
+suff : lbound neq < lbound neq by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|(x i + z i) - (y i + t i)|).
+  by apply: lboundP; near: i.
+rewrite opprD addrA [X in X + _]addrAC -addrA.
+by rewrite split_norm_add ?eq_modP ?divrn_gt0 ?lbound_gt0 //; near: i.
+Unshelve. all: by end_near. Qed.
 Global Existing Instance add_creal_morph_Proper.
-
 
 Add Morphism opp_creal with
   signature eq_creal ==> eq_creal as opp_creal_morph.
@@ -1018,37 +1043,42 @@ Global Existing Instance opp_creal_morph_Proper.
 Add Morphism mul_creal with
   signature eq_creal ==> eq_creal ==> eq_creal as mul_creal_morph.
 Proof.
-move=> x y eq_xy z t eq_zt; apply: eq_crealP.
-exists_big_modulus m F.
-  move=> e i e_gt0 hi.
-  rewrite (@split_dist_add (y i * z i)) // -(mulrBl, mulrBr) normrM.
-    have /ler_wpM2l /le_lt_trans-> // := uboundP z i.
-    rewrite -ltr_pdivlMr ?ubound_gt0 ?eq_modP //.
-    by rewrite !pmulr_rgt0 ?invr_gt0 ?ubound_gt0 ?ltr0n.
-  rewrite mulrC; have /ler_wpM2l /le_lt_trans-> // := uboundP y i.
-  rewrite -ltr_pdivlMr ?ubound_gt0 ?eq_modP //.
+move=> x y eq_xy z t eq_zt xzyt.
+pose e := lbound xzyt; have e_gt0 : 0 < e by exact: lbound_gt0.
+near \oo => i.
+suff : e < e by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|x i * z i - y i * t i|).
+  by apply: lboundP; near: i.
+rewrite (@split_dist_add (y i * z i)) // -(mulrBl, mulrBr) normrM.
+  have /ler_wpM2l /le_lt_trans-> // := uboundP z i.
+  rewrite -ltr_pdivlMr ?ubound_gt0 ?eq_modP //; last by near: i.
   by rewrite !pmulr_rgt0 ?invr_gt0 ?ubound_gt0 ?ltr0n.
-by close.
-Qed.
+rewrite mulrC; have /ler_wpM2l /le_lt_trans-> // := uboundP y i.
+rewrite -ltr_pdivlMr ?ubound_gt0 ?eq_modP //; last by near: i.
+by rewrite !pmulr_rgt0 ?invr_gt0 ?ubound_gt0 ?ltr0n.
+Unshelve. all: by end_near. Qed.
 Global Existing Instance mul_creal_morph_Proper.
 
 Lemma eq_creal_inv (x y : creal) (x_neq0 : x != 0) (y_neq0 : y != 0) :
   (x == y) -> (x_neq0^-1 == y_neq0^-1).
 Proof.
-move=> eq_xy; apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi /=.
-  rewrite -(@ltr_pM2r _ (lbound x_neq0 * lbound y_neq0));
-    do ?by rewrite ?pmulr_rgt0 ?lbound_gt0.
-  apply: le_lt_trans (_ : `|(x i)^-1 - (y i)^-1| * (`|x i| * `|y i|) < _).
-    rewrite ler_wpM2l ?normr_ge0 //.
-    apply: le_trans (_ : `|x i| * lbound y_neq0 <= _).
-      by rewrite ler_wpM2r ?lbound_ge0 ?lbound0P.
-    by rewrite ler_wpM2l ?normr_ge0 ?lbound0P.
-  rewrite -!normrM mulrBl mulKf ?creal_neq0_always //.
-  rewrite mulrCA mulVf ?mulr1 ?creal_neq0_always //.
-  by rewrite distrC eq_modP ?pmulr_rgt0 ?lbound_gt0.
-by close.
-Qed.
+move=> eq_xy xy.
+pose e := lbound xy; have e_gt0 : 0 < e by exact: lbound_gt0.
+near \oo => i.
+suff : e < e by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|(x i)^-1 - (y i)^-1|).
+  by apply: lboundP; near: i.
+rewrite -(@ltr_pM2r _ (lbound x_neq0 * lbound y_neq0));
+  do ?by rewrite ?pmulr_rgt0 ?lbound_gt0.
+apply: le_lt_trans (_ : `|(x i)^-1 - (y i)^-1| * (`|x i| * `|y i|) < _).
+  rewrite ler_wpM2l ?normr_ge0//.
+  apply: le_trans (_ : `|x i| * lbound y_neq0 <= _).
+    by rewrite ler_wpM2r ?lbound_ge0 ?lbound0P//; near: i.
+  by rewrite ler_wpM2l ?normr_ge0 ?lbound0P//; near: i.
+rewrite -!normrM mulrBl mulKf ?creal_neq0_always//; [by near: i..|].
+rewrite mulrCA mulVf ?mulr1 ?creal_neq0_always//; [by near: i..|].
+by rewrite distrC eq_modP ?pmulr_rgt0 ?lbound_gt0//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Add Morphism horner_creal with
   signature (@eq _) ==> eq_creal ==> eq_creal as horner_creal_morph.
@@ -1058,8 +1088,8 @@ Global Existing Instance horner_creal_morph_Proper.
 Add Morphism lt_creal with
   signature eq_creal ==> eq_creal ==> iff as lt_creal_morph.
 Proof.
-move=> x y eq_xy z t eq_zt.
-wlog lxz : x y z t eq_xy eq_zt / (x < z)%CR.
+move=> x y xy z t zt.
+wlog lxz : x y z t xy zt / (x < z)%CR.
   move=> hwlog; split=> h1; move: (h1) => /hwlog; apply=> //;
   by apply: eq_creal_sym.
 split=> // _.
@@ -1067,18 +1097,17 @@ pose e' := diff lxz / 4%:R.
 have e'_gt0 : e' > 0 by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
 have le_zt : (z <= t)%CR by apply: eq_le_creal.
 have le_xy : (y <= x)%CR by apply: eq_le_creal; apply: eq_creal_sym.
-pose_big_enough i.
-  apply: (@lt_crealP e' i i)=> //.
-  rewrite ltW // -(ltrD2r e').
-  rewrite (le_lt_trans _ (@le_modP _ _ le_zt _ _ _ _)) //.
-  rewrite -addrA (monoLR (@addrNK _ _) (@lerD2r _ _)) ltW //.
-  rewrite (lt_le_trans (@le_modP _ _ le_xy e' _ _ _)) //.
-  rewrite -(monoLR (@addrNK _ _) (@lerD2r _ _)) ltW //.
-  rewrite (lt_le_trans _ (diff_of lxz)) //.
-  rewrite -addrA ler_ltD // /e' -!mulrDr gtr_pMr ?diff_gt0 //.
-  by rewrite [X in _ < X](splitf 4) /=  mul1r !ltrDr ?gtr0E.
-by close.
-Qed.
+near \oo => i.
+apply: (@lt_crealP e' i i) => //; [by near: i..|].
+rewrite ltW // -(ltrD2r e').
+rewrite (le_lt_trans _ (@le_modP _ _ le_zt _ _ _ _))//; last by near: i.
+rewrite -addrA (monoLR (@addrNK _ _) (@lerD2r _ _)) ltW//.
+rewrite (lt_le_trans (@le_modP _ _ le_xy e' _ _ _))//; first by near: i.
+rewrite -(monoLR (@addrNK _ _) (@lerD2r _ _)) ltW//.
+rewrite (lt_le_trans _ (diff_of lxz))//; [|by near: i..].
+rewrite -addrA ler_ltD // /e' -!mulrDr gtr_pMr ?diff_gt0//.
+by rewrite [X in _ < X](splitf 4) /= mul1r !ltrDr ?gtr0E.
+Unshelve. all: by end_near. Qed.
 Global Existing Instance lt_creal_morph_Proper.
 
 Add Morphism le_creal with
@@ -1089,48 +1118,56 @@ Global Existing Instance le_creal_morph_Proper.
 Add Morphism norm_creal
  with signature eq_creal ==> eq_creal as norm_creal_morph.
 Proof.
-move=> x y hxy; apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi.
-  by rewrite (le_lt_trans (ler_dist_dist _ _)) ?eq_modP.
-by close.
-Qed.
+move=> x y xy x_neq_y.
+pose e := lbound x_neq_y; have e_gt0 : 0 < e by exact: lbound_gt0.
+near \oo => i.
+suff : e < e by rewrite ltxx.
+apply: (@le_lt_trans _ _ `| `|x i| - `|y i| |).
+  by apply: lboundP; near: i.
+by rewrite (le_lt_trans (ler_dist_dist _ _)) ?eq_modP//; near: i.
+Unshelve. all: by end_near. Qed.
 Global Existing Instance norm_creal_morph_Proper.
 
 Lemma neq_creal_ltVgt (x y : creal) : x != y -> {(x < y)%CR} + {(y < x)%CR}.
 Proof.
-move=> neq_xy; pose_big_enough i.
-  have := (@lboundP _ _ neq_xy i); big_enough => /(_ isT isT).
-  have [le_xy|/ltW le_yx'] := lerP (x i) (y i).
-    rewrite -(lerD2r (x i)) ?addrNK addrC.
-    move=> /lt_crealP; rewrite ?lbound_gt0; big_enough.
-    by do 3!move/(_ isT); left.
-  rewrite -(lerD2r (y i)) ?addrNK addrC.
-  move=> /lt_crealP; rewrite ?lbound_gt0; big_enough.
-  by do 3!move/(_ isT); right.
-by close.
+move=> xy; pose d := lbound xy.
+pose i := maxn (maxn (cauchymod x d) (cauchymod y d))
+  (maxn (cauchymod x (lbound xy / 5)) (cauchymod y (lbound xy / 5))).
+have xi : (cauchymod x d <= i)%N by rewrite leq_max leq_maxl.
+have yi : (cauchymod y d <= i)%N by rewrite leq_max leq_maxr.
+have x5i : (cauchymod x (lbound xy / 5) <= i)%N.
+   by rewrite leq_max leq_maxl orbT.
+have y5i : (cauchymod y (lbound xy / 5) <= i)%N.
+   by rewrite leq_max leq_maxr orbT.
+have := @lboundP _ _ xy i xi yi.
+have [le_xy|/ltW le_yx'] := lerP (x i) (y i).
+  rewrite -(lerD2r (x i)) ?addrNK addrC.
+  by move=> /(lt_crealP (lbound_gt0 _) x5i y5i); left.
+rewrite -(lerD2r (y i)) ?addrNK addrC.
+by move=> /(lt_crealP (lbound_gt0 _) y5i x5i); right.
 Qed.
 
 Lemma lt_creal_neq (x y : creal) : (x < y -> x != y)%CR.
 Proof.
-move=> lxy; pose_big_enough i.
-  apply: (@neq_crealP (diff lxy) i i); rewrite ?diff_gt0 //.
-  rewrite distrC ler_normr (monoRL (addrK _) (lerD2r _)) addrC.
-  by rewrite (diff_of lxy).
-by close.
-Qed.
+move=> lxy.
+near \oo => i.
+apply: (@neq_crealP (diff lxy) i i); rewrite ?diff_gt0//; [by near: i..|].
+rewrite distrC ler_normr (monoRL (addrK _) (lerD2r _)) addrC.
+by rewrite (diff_of lxy)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma gt_creal_neq (x y : creal) : (y < x -> x != y)%CR.
 Proof. by move/lt_creal_neq /neq_creal_sym. Qed.
 
 Lemma lt_creal_trans (x y z : creal) : (x < y -> y < z -> x < z)%CR.
 Proof.
-move=> lt_xy lt_yz; pose_big_enough i.
-  apply: (@lt_crealP (diff lt_xy + diff lt_yz) i i) => //.
-    by rewrite addr_gt0 ?diff_gt0.
-  rewrite (le_trans _ (diff_of lt_yz)) //.
-  by rewrite addrA lerD2r (diff_of lt_xy).
-by close.
-Qed.
+move=> lt_xy lt_yz.
+near \oo => i.
+apply: (@lt_crealP (diff lt_xy + diff lt_yz) i i) => //; [|by near: i..|].
+  by rewrite addr_gt0 ?diff_gt0.
+rewrite (le_trans _ (diff_of lt_yz))//; [|by near: i..].
+by rewrite addrA lerD2r (diff_of lt_xy)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma lt_crealW (x y : creal) : (x < y)%CR -> (x <= y)%CR.
 Proof. by move=> /lt_creal_trans /(_ _) /le_creal_refl. Qed.
@@ -1180,12 +1217,12 @@ Qed.
 
 Lemma neq_creal_cst x y : reflect (cst_creal x != cst_creal y) (x != y).
 Proof.
-apply: (iffP idP)=> neq_xy; pose_big_enough i.
-+ by apply (@neq_crealP `|x - y| i i); rewrite ?normr_gt0 ?subr_eq0 .
-+ by close.
-+ by rewrite (@creal_neq_always _ _ i neq_xy).
-+ by close.
-Qed.
+apply: (iffP idP) => neq_xy.
+- near \oo => i.
+  by apply: (@neq_crealP `|x - y| i i); rewrite ?normr_gt0 ?subr_eq0 //; near: i.
+- near \oo => i.
+  by rewrite (@creal_neq_always _ _ i neq_xy)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma eq_creal_cst x y : reflect (cst_creal x == cst_creal y) (x == y).
 Proof.
@@ -1195,64 +1232,70 @@ Qed.
 
 Lemma lt_creal_cst x y : reflect (cst_creal x < cst_creal y)%CR (x < y).
 Proof.
-apply: (iffP idP)=> lt_xy; pose_big_enough i.
-+ apply: (@lt_crealP (y - x) i i); rewrite ?subr_gt0 //=.
+apply: (iffP idP) => lt_xy.
+- near \oo => i.
+  apply: (@lt_crealP (y - x) i i); rewrite ?subr_gt0 //=; [by near: i..|].
   by rewrite addrCA subrr addr0.
-+ by close.
-+ by rewrite (@creal_lt_always _ _ i lt_xy).
-+ by close.
-Qed.
+- near \oo => i.
+  by rewrite (@creal_lt_always _ _ i lt_xy)//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma le_creal_cst x y : reflect (cst_creal x <= cst_creal y)%CR (x <= y).
 Proof. by rewrite leNgt; apply: (iffP negP)=> ? /lt_creal_cst. Qed.
-
 
 Lemma mul_creal_neq0 x y : x != 0 -> y != 0 -> x * y != 0.
 Proof.
 move=> x_neq0 y_neq0.
 pose d := lbound x_neq0 * lbound y_neq0.
 have d_gt0 : 0 < d by rewrite pmulr_rgt0 lbound_gt0.
-pose_big_enough i.
-  apply: (@neq_crealP d i i)=> //; rewrite subr0 normrM.
-  apply: le_trans (_ : `|x i| * lbound y_neq0 <= _).
-    by rewrite ler_wpM2r ?lbound_ge0 // lbound0P.
-  by rewrite ler_wpM2l ?normr_ge0 // lbound0P.
-by close.
-Qed.
+near \oo => i.
+apply: (@neq_crealP d i i) => //; [by near: i..|].
+rewrite subr0 normrM.
+apply: le_trans (_ : `|x i| * lbound y_neq0 <= _).
+  rewrite ler_wpM2r ?lbound_ge0 //.
+  by apply: lbound0P; near: i.
+rewrite ler_wpM2l ?normr_ge0 //.
+by apply: lbound0P; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma mul_neq0_creal x y : x * y != 0 -> y != 0.
 Proof.
-move=> xy_neq0; pose_big_enough i.
-  apply: (@neq_crealP ((ubound x)^-1 * lbound xy_neq0) i i) => //.
-    by rewrite pmulr_rgt0 ?invr_gt0 ?lbound_gt0 ?ubound_gt0.
-  rewrite subr0 ler_pdivrMl ?ubound_gt0 //.
-  have /(_ i)-> // := (le_trans (lbound0_of xy_neq0)).
-  by rewrite normrM ler_wpM2r ?normr_ge0 ?uboundP.
-by close.
-Qed.
+move=> xy_neq0; near \oo => i.
+apply: (@neq_crealP ((ubound x)^-1 * lbound xy_neq0) i i) => //; [|by near: i..|].
+  by rewrite pmulr_rgt0 ?invr_gt0 ?lbound_gt0 ?ubound_gt0.
+rewrite subr0 ler_pdivrMl ?ubound_gt0 //.
+have /le_trans ->// : lbound xy_neq0 <= `|(x * y)%CR i| by apply: lbound0P; near: i.
+by rewrite /= normrM ler_wpM2r ?normr_ge0 ?uboundP.
+Unshelve. all: by end_near. Qed.
 
 Lemma poly_mul_creal_eq0_coprime p q x :
   coprimep p q ->
   p.[x] * q.[x] == 0 -> {p.[x] == 0} + {q.[x] == 0}.
 Proof.
-move=> /Bezout_eq1_coprimepP /sig_eqW [[u v] /= hpq]; pose_big_enough i.
-  have := (erefl ((1 : {poly F}).[x i])).
-  rewrite -{1}hpq /= hornerD hornerC.
-  set upxi := (u * _).[_].
-  move=> hpqi.
-  have [p_small|p_big] := lerP `|upxi| 2%:R^-1=> pqx0; [left|right].
-    move=> px0; apply: pqx0; apply: mul_creal_neq0=> //.
-    apply: (@mul_neq0_creal v.[x]).
-    apply: (@neq_crealP 2%:R^-1 i i); rewrite ?gtr0E //.
-    rewrite /= subr0 -hornerM -(lerD2l `|upxi|).
-    rewrite (le_trans _ (ler_normD _ _)) // hpqi normr1.
-    rewrite (monoLR (addrNK _) (lerD2r _)).
-    by rewrite {1}[1](splitf 2) /= mul1r addrK.
-  move=> qx0; apply: pqx0; apply: mul_creal_neq0=> //.
-  apply: (@mul_neq0_creal u.[x]).
+move=> /Bezout_eq1_coprimepP /sig_eqW [[u v] /= hpq].
+pose i := maxn
+    (maxn (cauchymod (v.[x] * q.[x]) (2^-1 / 5)) (cauchymod 0 (2^-1 / 5)))
+    (cauchymod (u.[x] * p.[x]) (2^-1 / 5)).
+have vqi : (cauchymod (v.[x] * q.[x]) (2^-1 / 5) <= i)%N.
+  by rewrite leq_max leq_maxl.
+have i0 : (cauchymod 0 (2^-1 / 5) <= i)%N by rewrite leq_max leq_maxr.
+have upi : (cauchymod (u.[x] * p.[x]) (2^-1 / 5) <= i)%N by rewrite leq_maxr.
+have := erefl ((1 : {poly F}).[x i]).
+rewrite -{1}hpq /= hornerD hornerC.
+set upxi := (u * _).[_].
+move=> hpqi.
+have [p_small|p_big] := lerP `|upxi| 2%:R^-1 => pqx0; [left|right].
+  move=> px0; apply: pqx0; apply: mul_creal_neq0 => //.
+  apply: (@mul_neq0_creal v.[x]).
   apply: (@neq_crealP 2%:R^-1 i i); rewrite ?gtr0E //.
-  by rewrite /= subr0 -hornerM ltW.
-by close.
+  rewrite /= subr0 -hornerM -(lerD2l `|upxi|).
+  rewrite (le_trans _ (ler_normD _ _)) // hpqi normr1.
+  rewrite (monoLR (addrNK _) (lerD2r _)).
+  by rewrite {1}[1](splitf 2) /= mul1r addrK.
+move=> qx0; apply: pqx0; apply: mul_creal_neq0 => //.
+apply: (@mul_neq0_creal u.[x]).
+apply: (@neq_crealP 2%:R^-1 i i); rewrite ?gtr0E //.
+by rewrite /= subr0 -hornerM ltW.
 Qed.
 
 Lemma dvdp_creal_eq0 p q x : p %| q -> p.[x] == 0 -> q.[x] == 0.
@@ -1263,12 +1306,17 @@ Qed.
 Lemma root_poly_expn_creal p k x : (0 < k)%N
   -> (p ^+ k).[x] == 0 -> p.[x] == 0.
 Proof.
-move=> k_gt0 pkx_eq0; apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi; rewrite /= subr0.
-  rewrite -(@ltr_pXn2r _ k) -?topredE /= ?normr_ge0 ?ltW //.
-  by rewrite -normrX -horner_exp (@eq0_modP _ pkx_eq0) ?exprn_gt0 //.
-by close.
-Qed.
+move=> k_gt0 pkx_eq0 px_neq0.
+pose e := lbound px_neq0.
+have e_gt0 : 0 < e by exact: lbound_gt0.
+near \oo => i.
+have hpx : e <= `|p.[x i]| by apply: lbound0P; near: i.
+have : `|(p ^+ k).[x i]| < e ^+ k.
+  by rewrite (@eq0_modP _ pkx_eq0) ?exprn_gt0//; near: i.
+rewrite horner_exp normrX => pxe.
+have : e ^+ k <= `|p.[x i]| ^+ k by rewrite lerXn2r// ?nnegrE// ltW.
+by rewrite leNgt pxe.
+Unshelve. all: by end_near. Qed.
 
 Lemma horner_cst_creal c x : c%:P.[x] == c%:CR.
 Proof.
@@ -1278,7 +1326,6 @@ Qed.
 
 Lemma horner_creal_cst (p : {poly F}) (x : F) : p.[x%:CR] == p.[x]%:CR.
 Proof. by apply: eq_crealP; exists m0=> *; rewrite /= subrr normr0. Qed.
-
 
 Lemma poly_mul_creal_eq0 p q x :
   p.[x] * q.[x] == 0 -> {p.[x] == 0} + {q.[x] == 0}.
@@ -1316,21 +1363,20 @@ Lemma coprimep_root (p q : {poly F}) x :
 Proof.
 move=> /Bezout_eq1_coprimepP /sig_eqW [[u v] hpq] px0.
 have upx_eq0 : u.[x] * p.[x] == 0 by rewrite px0 mul_creal0.
-pose_big_enough i.
-  have := (erefl ((1 : {poly F}).[x i])).
-  rewrite -{1}hpq /= hornerD hornerC.
-  set upxi := (u * _).[_] => hpqi.
-  apply: (@neq_crealP ((ubound v.[x])%CR^-1 / 2%:R) i i) => //.
-    by rewrite pmulr_rgt0 ?gtr0E // ubound_gt0.
-  rewrite /= subr0 ler_pdivrMl ?ubound_gt0 //.
-  apply: le_trans (_ : `|(v * q).[x i]| <= _); last first.
-    by rewrite hornerM normrM ler_wpM2r ?normr_ge0 ?(uboundP v.[x]).
-  rewrite -(lerD2l `|upxi|) (le_trans _ (ler_normD _ _)) // hpqi normr1.
-  rewrite (monoLR (addrNK _) (lerD2r _)).
-  rewrite {1}[1](splitf 2) /= mul1r addrK ltW // /upxi hornerM.
-  by rewrite (@eq0_modP _ upx_eq0) ?gtr0E.
-by close.
-Qed.
+near \oo => i.
+have := erefl ((1 : {poly F}).[x i]).
+rewrite -{1}hpq /= hornerD hornerC.
+set upxi := (u * _).[_] => hpqi.
+apply: (@neq_crealP ((ubound v.[x])%CR^-1 / 2%:R) i i) => //; [|by near:i ..|].
+  by rewrite pmulr_rgt0 ?gtr0E // ubound_gt0.
+rewrite /= subr0 ler_pdivrMl ?ubound_gt0 //.
+apply: le_trans (_ : `|(v * q).[x i]| <= _); last first.
+  by rewrite hornerM normrM ler_wpM2r ?normr_ge0 ?(uboundP v.[x]).
+rewrite -(lerD2l `|upxi|) (le_trans _ (ler_normD _ _)) // hpqi normr1.
+rewrite (monoLR (addrNK _) (lerD2r _)).
+rewrite {1}[1](splitf 2) /= mul1r addrK ltW // /upxi hornerM.
+by rewrite (@eq0_modP _ upx_eq0) ?gtr0E//; near: i.
+Unshelve. all: by end_near. Qed.
 
 Lemma deriv_neq0_mono (p : {poly F}) (x : creal) : p^`().[x] != 0 ->
   { r : F & 0 < r &
@@ -1340,76 +1386,85 @@ move=> px_neq0.
 wlog : p px_neq0 / (0 < p^`().[x])%CR.
   case/neq_creal_ltVgt: (px_neq0)=> px_lt0; last exact.
   case/(_ (- p)).
-  + pose_big_enough i.
-      apply: (@neq_crealP (lbound px_neq0) i i); do ?by rewrite ?lbound_gt0.
-      rewrite /= derivN hornerN subr0 normrN.
-      by rewrite (lbound0_of px_neq0).
-    by close.
-  + pose_big_enough i.
-      apply: (@lt_crealP (diff px_lt0) i i); do ?by rewrite ?diff_gt0.
-      rewrite /= add0r derivN hornerN -subr_le0 opprK addrC.
-      by rewrite (diff_of px_lt0) //.
-    by close.
+  + near \oo => i.
+    apply: (@neq_crealP (lbound px_neq0) i i); rewrite ?lbound_gt0//.
+    by near: i.
+    by near: i.
+    rewrite /= derivN hornerN subr0 normrN.
+    by rewrite (lbound0_of px_neq0)//; near: i.
+  + near \oo => i.
+    apply: (@lt_crealP (diff px_lt0) i i); rewrite ?diff_gt0//.
+    by near: i.
+    by near: i.
+    rewrite /= add0r derivN hornerN -subr_le0 opprK addrC.
+    by rewrite (diff_of px_lt0)//; near: i.
   move=> r r_ge0 [i hi]; move/strong_monoN; rewrite opprK=> sm.
   by exists r=> //; exists i.
 move=> px_gt0.
 pose b1 := poly_accr_bound p^`() 0 (1 + ubound x).
 pose b2 := poly_accr_bound2 p 0 (1 + ubound x).
 pose r : F := Num.min 1 (Num.min
-  (diff px_gt0 / 4%:R / b1)
-  (diff px_gt0 / 4%:R / b2 / 2%:R)).
+  (diff px_gt0 / 4 / b1)
+  (diff px_gt0 / 4 / b2 / 2)).
 exists r.
   rewrite !lt_min ?ltr01 ?pmulr_rgt0 ?gtr0E ?diff_gt0;
   by rewrite ?poly_accr_bound2_gt0 ?poly_accr_bound_gt0.
-pose_big_enough i.
-  exists i => //; left; split; last first.
-    move=> y hy; have := (@poly_accr_bound1P _ p^`() 0 (1 + ubound x) (x i) y).
-    rewrite ?subr0 ler_wpDl ?ler01 ?uboundP //.
-    rewrite (le_trans (_ : _ <= r + `|x i|)) ?subr0.
-    + rewrite (monoRL (addrNK _) (lerD2r _)).
-      by rewrite (le_trans (lerB_dist _ _)).
-    + by rewrite lerD ?ge_min ?lexx ?uboundP.
-    move=> /(_ isT isT).
-    rewrite ler_distl=> /andP[le_py ge_py].
-    rewrite (lt_le_trans _ le_py) // subr_gt0 -/b1.
-    rewrite (lt_le_trans _ (diff0_of px_gt0)) //.
-    apply: le_lt_trans (_ : r * b1 < _).
-      by rewrite ler_wpM2r ?poly_accr_bound_ge0.
-    rewrite -ltr_pdivlMr ?poly_accr_bound_gt0 //.
-    rewrite !gt_min ltr_pM2r ?invr_gt0 ?poly_accr_bound_gt0 //.
-    by rewrite gtr_pMr ?diff_gt0 // invf_lt1 ?gtr0E ?ltr1n ?orbT.
-  exists (diff px_gt0 / 4%:R).
-   by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
-  move=> y z neq_yz hy hz.
-  have := (@poly_accr_bound1P _ p^`() 0 (1 + ubound x) (x i) z).
-  have := @poly_accr_bound2P _ p 0 (1 + ubound x) z y; rewrite eq_sym !subr0.
-  rewrite neq_yz ?ler01 ?ubound_ge0=> // /(_ isT).
-  rewrite (le_trans (_ : _ <= r + `|x i|)).
+pose i := maxn (cauchymod x r)
+  (maxn (cauchymod 0 (diff px_gt0)) (cauchymod p^`().[x] (diff px_gt0))).
+have xri : (cauchymod x r <= i)%N
+  by rewrite /i; exact: leq_maxl.
+have hi1 : (cauchymod 0 (diff px_gt0) <= i)%N.
+  by rewrite leq_max leq_maxl orbT.
+have hid : (cauchymod p^`().[x] (diff px_gt0) <= i)%N.
+  rewrite /i.
+  by rewrite leq_max leq_maxr orbT.
+exists i => //; left; split; last first.
+  move=> y hy; have := (@poly_accr_bound1P _ p^`() 0 (1 + ubound x) (x i) y).
+  rewrite ?subr0 ler_wpDl ?ler01 ?uboundP //.
+  rewrite (le_trans (_ : _ <= r + `|x i|)) ?subr0.
   + rewrite (monoRL (addrNK _) (lerD2r _)).
     by rewrite (le_trans (lerB_dist _ _)).
   + by rewrite lerD ?ge_min ?lexx ?uboundP.
-  rewrite (le_trans (_ : _ <= r + `|x i|)).
-  + rewrite (monoRL (addrNK _) (lerD2r _)).
-    by rewrite (le_trans (lerB_dist _ _)).
-  + by rewrite lerD ?ge_min ?lexx ?uboundP.
-  rewrite ler_wpDl ?uboundP ?ler01 //.
-  move=> /(_ isT isT); rewrite ler_distl=> /andP [haccr _].
-  move=> /(_ isT isT); rewrite ler_distl=> /andP [hp' _].
-  rewrite (lt_le_trans _ haccr) // (monoRL (addrK _) (ltrD2r _)).
-  rewrite (lt_le_trans _ hp') // (monoRL (addrK _) (ltrD2r _)).
-  rewrite (lt_le_trans _ (diff0_of px_gt0)) //.
-  rewrite {2}[diff _](splitf 4) /= -!addrA ltrD2l ltr_pwDl //.
-    by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
-  rewrite -/b1 -/b2 lerD //.
-  + rewrite -ler_pdivlMr ?poly_accr_bound2_gt0 //.
-    rewrite (le_trans (ler_distD (x i) _ _)) //.
-    apply: le_trans (_ : r * 2%:R <= _).
-      by rewrite mulrDr mulr1 lerD // distrC.
-    by rewrite -ler_pdivlMr ?ltr0n // !ge_min lexx !orbT.
-  + rewrite -ler_pdivlMr ?poly_accr_bound_gt0 //.
-    by rewrite (le_trans hz) // !ge_min lexx !orbT.
-by close.
-Qed.
+  move=> /(_ isT isT).
+  rewrite ler_distl => /andP[le_py ge_py].
+  rewrite (lt_le_trans _ le_py) // subr_gt0 -/b1.
+  rewrite (lt_le_trans _ (diff0_of px_gt0))//.
+  apply: le_lt_trans (_ : r * b1 < _).
+    by rewrite ler_wpM2r ?poly_accr_bound_ge0.
+  rewrite -ltr_pdivlMr ?poly_accr_bound_gt0 //.
+  rewrite !gt_min ltr_pM2r ?invr_gt0 ?poly_accr_bound_gt0 //.
+  by rewrite gtr_pMr ?diff_gt0 // invf_lt1 ?gtr0E ?ltr1n ?orbT.
+exists (diff px_gt0 / 4).
+  by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
+move=> y z neq_yz hy hz.
+have := (@poly_accr_bound1P _ p^`() 0 (1 + ubound x) (x i) z).
+have := @poly_accr_bound2P _ p 0 (1 + ubound x) z y; rewrite eq_sym !subr0.
+rewrite neq_yz ?ler01 ?ubound_ge0 => // /(_ isT).
+rewrite (le_trans (_ : _ <= r + `|x i|)).
++ rewrite (monoRL (addrNK _) (lerD2r _)).
+  by rewrite (le_trans (lerB_dist _ _)).
++ by rewrite lerD ?ge_min ?lexx ?uboundP.
+rewrite (le_trans (_ : _ <= r + `|x i|)).
++ rewrite (monoRL (addrNK _) (lerD2r _)).
+  by rewrite (le_trans (lerB_dist _ _)).
++ by rewrite lerD ?ge_min ?lexx ?uboundP.
+rewrite ler_wpDl ?uboundP ?ler01 //.
+move=> /(_ isT isT); rewrite ler_distl => /andP[haccr _].
+move=> /(_ isT isT); rewrite ler_distl => /andP[hp' _].
+rewrite (lt_le_trans _ haccr) // (monoRL (addrK _) (ltrD2r _)).
+rewrite (lt_le_trans _ hp') // (monoRL (addrK _) (ltrD2r _)).
+rewrite (lt_le_trans _ (diff0_of px_gt0)) //.
+rewrite {2}[diff _](splitf 4) /= -!addrA ltrD2l ltr_pwDl //.
+  by rewrite pmulr_rgt0 ?gtr0E ?diff_gt0.
+rewrite -/b1 -/b2 lerD //.
++ rewrite -ler_pdivlMr ?poly_accr_bound2_gt0 //.
+  rewrite (le_trans (ler_distD (x i) _ _)) //.
+  apply: le_trans (_ : r * 2 <= _).
+    by rewrite mulrDr mulr1 lerD // distrC.
+  by rewrite -ler_pdivlMr ?ltr0n // !ge_min lexx !orbT.
++ rewrite -ler_pdivlMr ?poly_accr_bound_gt0 //.
+  by rewrite (le_trans hz) // !ge_min lexx !orbT.
+Unshelve. all: by end_near. Qed.
 
 Lemma smaller_factor (p q : {poly F}) x :
   p \is monic-> p.[x] == 0 ->
@@ -1446,9 +1501,9 @@ Qed.
 
 Lemma root_cst_creal (x : F) : ('X - x%:P).[cst_creal x] == 0.
 Proof.
-apply: eq_crealP; exists_big_modulus m F.
-  by move=> e i e_gt0 hi; rewrite /= subr0 !hornerE subrr normr0.
-by close.
+apply: eq_crealP.
+exists (fun _ => 0%N).
+by move=> e i e_gt0 hi; rewrite /= subr0 !hornerE subrr normr0.
 Qed.
 
 Lemma has_root_creal_size_gt1 (x : creal) (p : {poly F}) :
@@ -1534,24 +1589,23 @@ Lemma horner2_crealP (p : {poly {poly F}}) (x y : creal) :
   creal_axiom (fun i => p.[x i, y i]).
 Proof.
 set a := x (cauchymod x 1).
-exists_big_modulus m F.
-  move=> e i j e_gt0 hi hj; rewrite (@split_dist_add p.[x i, y j]) //.
-    rewrite (le_lt_trans (@poly_accr_bound1P _ _ 0 (ubound y) _ _ _ _)) //;
-      do ?by rewrite ?subr0 ?uboundP.
-    apply: le_lt_trans
-             (_ : `|y i - y j| * bound_poly_accr_bound x p 0 (ubound y) < _).
-      by rewrite ler_wpM2l ?normr_ge0 // bound_poly_accr_boundP.
-    rewrite -ltr_pdivlMr ?bound_poly_accr_bound_gt0 //.
-    by rewrite cauchymodP // !pmulr_rgt0 ?gtr0E ?bound_poly_accr_bound_gt0.
-  rewrite -[p]swapXYK  ![(swapXY (swapXY _)).[_, _]]horner2_swapXY.
-  rewrite (le_lt_trans (@poly_accr_bound1P _ _ 0 (ubound x) _ _ _ _)) //;
-    do ?by rewrite ?subr0 ?uboundP.
-  apply: le_lt_trans
-      (_ : `|x i - x j| * bound_poly_accr_bound y (swapXY p) 0 (ubound x) < _).
+exists (fun e => maxn
+  (cauchymod y (e / 2 / bound_poly_accr_bound x p 0 (ubound y)))
+  (cauchymod x (e / 2 / bound_poly_accr_bound y (swapXY p) 0 (ubound x)))).
+move=> e i j e_gt0.
+rewrite !geq_max => /andP[hyi hxi] /andP[hyj hxj].
+rewrite (@split_dist_add p.[x i, y j]) //.
+  rewrite (le_lt_trans (@poly_accr_bound1P _ _ 0 (ubound y) _ _ _ _)) ?subr0 ?uboundP//.
+  apply: le_lt_trans (_ : `|y i - y j| * bound_poly_accr_bound x p 0 (ubound y) < _).
+    by rewrite ler_wpM2l ?normr_ge0 // bound_poly_accr_boundP.
+  rewrite -ltr_pdivlMr ?bound_poly_accr_bound_gt0//.
+  by rewrite cauchymodP //!pmulr_rgt0 ?gtr0E ?bound_poly_accr_bound_gt0.
+- rewrite -[p]swapXYK ![(swapXY (swapXY _)).[_, _]]horner2_swapXY.
+  rewrite (le_lt_trans (@poly_accr_bound1P _ _ 0 (ubound x) _ _ _ _)) ?subr0 ?uboundP//.
+  apply: le_lt_trans (_ : `|x i - x j| * bound_poly_accr_bound y (swapXY p) 0 (ubound x) < _).
     by rewrite ler_wpM2l ?normr_ge0 // bound_poly_accr_boundP.
   rewrite -ltr_pdivlMr ?bound_poly_accr_bound_gt0 //.
-  by rewrite cauchymodP // !pmulr_rgt0 ?gtr0E ?bound_poly_accr_bound_gt0.
-by close.
+  by rewrite cauchymodP// !pmulr_rgt0 ?gtr0E ?bound_poly_accr_bound_gt0.
 Qed.
 
 Definition horner2_creal (p : {poly {poly F}}) (x y : creal) :=
@@ -1570,21 +1624,26 @@ move=> p_neq0 q_neq0 px_eq0 qy_eq0.
 have [||[u v] /= [hu hv] hpq] := @sub_annihilant_in_ideal _ p q.
 + by rewrite (@has_root_creal_size_gt1 x).
 + by rewrite (@has_root_creal_size_gt1 y).
-apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi /=; rewrite subr0.
-  rewrite (hpq (y i)) addrCA subrr addr0 split_norm_add // normrM.
-    apply: le_lt_trans (_ : (ubound u.[y, x - y]) * `|p.[x i]| < _).
-      by rewrite ler_wpM2r ?normr_ge0 // (uboundP u.[y, x - y] i).
-    rewrite -ltr_pdivlMl ?ubound_gt0 //.
-    by rewrite (@eq0_modP _ px_eq0) // !pmulr_rgt0 ?gtr0E ?ubound_gt0.
-  apply: le_lt_trans (_ : (ubound v.[y, x - y]) * `|q.[y i]| < _).
-    by rewrite ler_wpM2r ?normr_ge0 // (uboundP v.[y, x - y] i).
-  rewrite -ltr_pdivlMl ?ubound_gt0 //.
-  by rewrite (@eq0_modP _ qy_eq0) // !pmulr_rgt0 ?gtr0E ?ubound_gt0.
-by close.
-Qed.
+move=> hneq.
+pose e := lbound hneq.
+have e_gt0 : 0 < e by exact: lbound_gt0.
+near \oo => i.
+suff : e < e by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|(sub_annihilant p q).[x i - y i]|).
+  by apply: lbound0P; near: i.
+rewrite (hpq (y i)) addrCA subrr addr0 split_norm_add // normrM.
+- apply: le_lt_trans (_ : ubound u.[y, x - y] * `|p.[x i]| < _).
+    by rewrite ler_wpM2r ?normr_ge0 // (uboundP u.[y, x - y] i).
+  rewrite -ltr_pdivlMl ?ubound_gt0//.
+  by rewrite (@eq0_modP _ px_eq0)// ?pmulr_rgt0 ?gtr0E ?ubound_gt0//; near: i.
+- apply: le_lt_trans (_ : ubound v.[y, x - y] * `|q.[y i]| < _).
+    by rewrite ler_wpM2r ?normr_ge0// (uboundP v.[y, x - y] i).
+  rewrite -ltr_pdivlMl ?ubound_gt0//.
+  by rewrite (@eq0_modP _ qy_eq0)// ?pmulr_rgt0 ?gtr0E ?ubound_gt0//; near: i.
+Unshelve. all: by end_near. Qed.
 
-Lemma root_div_annihilant_creal (x y : creal) (p q : {poly F}) (y_neq0 : y != 0) :
+Lemma root_div_annihilant_creal (x y : creal) (p q : {poly F})
+    (y_neq0 : y != 0) :
   (p != 0)%B -> (q != 0)%B -> p.[x] == 0 -> q.[y] == 0 ->
   (div_annihilant p q).[(x / y_neq0)%CR] == 0.
 Proof.
@@ -1592,21 +1651,28 @@ move=> p_neq0 q_neq0 px_eq0 qy_eq0.
 have [||[u v] /= [hu hv] hpq] := @div_annihilant_in_ideal _ p q.
 + by rewrite (@has_root_creal_size_gt1 x).
 + by rewrite (@has_root_creal_size_gt1 y).
-apply: eq_crealP; exists_big_modulus m F.
-  move=> e i e_gt0 hi /=; rewrite subr0.
-  rewrite (hpq (y i)) mulrCA divff ?mulr1.
-    by rewrite -normr_gt0 (lt_le_trans _ (lbound0_of y_neq0)) ?lbound_gt0.
-  rewrite split_norm_add // normrM.
-    apply: le_lt_trans (_ : (ubound u.[y, x / y_neq0]) * `|p.[x i]| < _).
-      by rewrite ler_wpM2r ?normr_ge0 // (uboundP u.[y, x / y_neq0] i).
-    rewrite -ltr_pdivlMl ?ubound_gt0 //.
-    by rewrite (@eq0_modP _ px_eq0) // !pmulr_rgt0 ?gtr0E ?ubound_gt0.
-  apply: le_lt_trans (_ : (ubound v.[y, x / y_neq0]) * `|q.[y i]| < _).
-    by rewrite ler_wpM2r ?normr_ge0 // (uboundP v.[y, x / y_neq0] i).
+move=> hneq.
+pose e := lbound hneq.
+have e_gt0 : 0 < e by exact: lbound_gt0.
+near \oo => i.
+suff : e < e by rewrite ltxx.
+apply: (@le_lt_trans _ _ `|(div_annihilant p q).[x i / y i]|).
+  by apply: lbound0P; near: i.
+rewrite (hpq (y i)) mulrCA divff ?mulr1.
+- have hy : lbound y_neq0 <= `|y i|.
+    by apply: lbound0P; near: i.
+  rewrite -normr_gt0.
+  exact: lt_le_trans (lbound_gt0 y_neq0) hy.
+rewrite split_norm_add // normrM.
+- apply: le_lt_trans (_ : ubound u.[y, x / y_neq0] * `|p.[x i]| < _).
+    by rewrite ler_wpM2r ?normr_ge0 // (uboundP u.[y, x / y_neq0] i).
   rewrite -ltr_pdivlMl ?ubound_gt0 //.
-  by rewrite (@eq0_modP _ qy_eq0) // !pmulr_rgt0 ?gtr0E ?ubound_gt0.
-by close.
-Qed.
+  by rewrite (@eq0_modP _ px_eq0) ?pmulr_rgt0 ?gtr0E ?ubound_gt0//; near: i.
+- apply: le_lt_trans (_ : ubound v.[y, x / y_neq0] * `|q.[y i]| < _).
+    by rewrite ler_wpM2r ?normr_ge0// (uboundP v.[y, x / y_neq0] i).
+  rewrite -ltr_pdivlMl ?ubound_gt0//.
+  by rewrite (@eq0_modP _ qy_eq0) ?pmulr_rgt0 ?gtr0E ?ubound_gt0 //; near: i.
+Unshelve. all: by end_near. Qed.
 
 Definition exp_creal x n := (iterop n *%CR x 1%:CR).
 Notation "x ^+ n" := (exp_creal x n) : creal_scope.
