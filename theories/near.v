@@ -687,6 +687,16 @@ move=> i j; exists (maxn i j) => n //=.
 by rewrite geq_max => /andP[ltin ltjn].
 Qed.
 
+Lemma near_prod_nears (P : nat -> nat -> Prop) :
+  (\forall i & j \near \oo, P i j) ->
+  \forall i \near \oo, \forall j \near \oo, P i j.
+Proof.
+move=> [[A B]/= [hA hB] AB].
+apply: (filterS _ hA) => i Ai.
+apply: (filterS _ hB) => k Bk.
+exact: (AB (i, k) (conj Ai Bk)).
+Qed.
+
 Canonical eventually_filterType := FilterType eventually _.
 Canonical eventually_pfilterType := PFilterType eventually (filter_not_empty _).
 
@@ -733,7 +743,7 @@ move=> FF; apply: Build_ProperFilter => P.
 by rewrite fmapE => /filter_not_empty[] x/= Px; exists (f x).
 Qed.
 
-(* N.B. I can not prove right now that this is a (proper) filter, so is there
+(* NB: I can not prove right now that this is a (proper) filter, so is there
   any point keeping it? *)
 Definition fmapi {T U : Type} (f : T -> set U) (F : set_system T) :
     set_system _ :=
