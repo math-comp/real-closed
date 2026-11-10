@@ -29,7 +29,6 @@ order theory of real closed field, through quantifier elimination.
   - [MathComp ssreflect 2.4 or later](https://math-comp.github.io)
   - [MathComp algebra](https://math-comp.github.io)
   - [MathComp field](https://math-comp.github.io)
-  - [MathComp bigenough 1.0.0 or later](https://github.com/math-comp/bigenough)
 - Rocq/Coq namespace: `mathcomp.real_closed`
 - Related publication(s):
   - [Formal proofs in real algebraic geometry: from ordered fields to quantifier elimination](https://hal.inria.fr/inria-00593738v4) doi:[10.2168/LMCS-8(1:2)2012](https://doi.org/10.2168/LMCS-8(1:2)2012)
