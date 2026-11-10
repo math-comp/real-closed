@@ -31,7 +31,7 @@
 
   ## select an entry to build in the following `bundles` set
   ## defaults to "default"
-  default-bundle = "9.1";
+  default-bundle = "9.2";
 
   ## write one `bundles.name` attribute set per
   ## alternative configuration
@@ -59,17 +59,10 @@
       mathcomp-apery.override.version = "master";
     };
   in {
-  "9.0" = { rocqPackages = {
-    rocq-core.override.version = "9.0";
+  "9.2"= { rocqPackages = {
+    rocq-core.override.version = "9.2";
   }; coqPackages = revdeps-overrides // {
-    coq.override.version = "9.0";
-    coq-elpi.job = true;
-    hierarchy-builder.job = true;
-  }; };
-  "9.1" = { rocqPackages = {
-    rocq-core.override.version = "9.1";
-  }; coqPackages = revdeps-overrides // {
-    coq.override.version = "9.1";
+    coq.override.version = "9.2";
     coq-elpi.job = true;
     hierarchy-builder.job = true;
   }; };
