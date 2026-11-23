@@ -31,7 +31,7 @@
 
   ## select an entry to build in the following `bundles` set
   ## defaults to "default"
-  default-bundle = "9.2";
+  default-bundle = "9.3";
 
   ## write one `bundles.name` attribute set per
   ## alternative configuration
@@ -63,6 +63,13 @@
     rocq-core.override.version = "9.2";
   }; coqPackages = revdeps-overrides // {
     coq.override.version = "9.2";
+    coq-elpi.job = true;
+    hierarchy-builder.job = true;
+  }; };
+  "9.3"= { rocqPackages = {
+    rocq-core.override.version = "9.3";
+  }; coqPackages = revdeps-overrides // {
+    coq.override.version = "9.3";
     coq-elpi.job = true;
     hierarchy-builder.job = true;
   }; };
