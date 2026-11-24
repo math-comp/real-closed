@@ -790,6 +790,15 @@ Defined.
 Lemma ubound_subproof_ex (x : creal) : exists2 b, 0 < b & forall i, `|x i| <= b.
 Proof. by have [b b0 xb] := ubound_subproof_sig x; exists b. Qed.
 
+Definition ubound (x : creal) : F :=
+  let: exist2 b _ _ := ubound_subproof_sig x in b.
+
+Lemma uboundP (x : creal) i : `|x i| <= ubound x.
+Proof. by rewrite /ubound; case: ubound_subproof_sig. Qed.
+
+Lemma ubound_gt0 x : 0 < ubound x.
+Proof. by rewrite /ubound; case: ubound_subproof_sig. Qed.
+
 Lemma mul_crealP (x y : creal) : creal_axiom_sig (fun i => x i * y i).
 Proof.
 have [dx dx0 hbx] := ubound_subproof_sig x.
